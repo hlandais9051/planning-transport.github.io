@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Planning Transport Mensuel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+      /* --- STYLE (Inchangé) --- */
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: sans-serif;
+        padding: 1vw;
+        background-color: #f0f2f5;
+        margin: 0;
+        width: 100vw;
+        overflow-x: hidden;
+      }
+      .header-tools {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      /* À ajouter à la fin de votre bloc <style> */
+      @media (max-width: 1024px) {
+        th,
+        td {
+          font-size: 12px; /* Taille minimum pour rester lisible */
+          height: auto;
+          padding: 5px;
+        }
+
+        #display-date {
+          font-size: 1.5rem;
+        }
+
+        /* Permet de faire défiler le tableau horizontalement 
+     sur mobile sans casser toute la page */
+        .table-container {
+          overflow-x: auto;
+          display: block;
+        }
+      }
+      #capture-area {
+        background: white;
+        padding: 1.5vw;
+        border-radius: 8px;
+        width: 100%;
+      }
+      .table-container {
+        width: 100%;
+        background: white;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        table-layout: fixed;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        text-align: left;
+        vertical-align: top;
+        height: 3vw;
+        font-size: 0.85vw;
+        padding: 0.2vw;
+      }
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+      #display-date {
+        margin-top: 0;
+        color: #333;
+        font-size: 1.8vw;
+        margin-bottom: 1vw;
+      }
+      .col-associe {
+        width: 10%;
+      }
+      .col-temps {
+        width: 5%;
+      }
+      .col-chantier {
+        width: 10%;
+      }
+      .col-date {
+        width: 9%;
+      }
+      .col-matos {
+        width: 10%;
+      }
+      .col-client {
+        width: 10%;
+      }
+      .col-consigne {
+        width: 15%;
+      }
+      .col-chauffeur {
+        width: 10%;
+      }
+      .col-ncommande {
+        width: 12%;
+      }
+      .col-nchantier {
+        width: 10%;
+      }
+      .col-nbon {
+        width: 8%;
+      }
+      .col-tarif {
+        width: 9%;
+      }
+      .col-supplement-client {
+        width: 10%;
+      }
+      .col-tarif-affrete {
+        width: 9%;
+      }
+      .col-supplement-affrete {
+        width: 12%;
+      }
+      .col-commentaire {
+        width: 12%;
+      }
+      .col-actions {
+        width: 4%;
+      }
+      .matos-cell {
+        padding: 0 !important;
+        vertical-align: middle;
+      }
+      .combo-input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: transparent;
+        padding: 0.2vw;
+        font-size: inherit;
+        outline: none;
+        vertical-align: middle;
+      }
+      [contenteditable="true"] {
+        width: 100%;
+        height: 100%;
+        padding: 0.5vw 0.2vw;
+        outline: none;
+      }
+      .btn {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        color: white;
+      }
+      .btn-add {
+        background-color: #28a745;
+      }
+      .btn-reset {
+        background-color: #dc3545;
+      }
+      .btn-copy-img {
+        background-color: #6610f2;
+      }
+      .btn-export {
+        background-color: #ff9500;
+      }
+      .btn-config-client {
+        background-color: #6c757d;
+      }
+      .btn-config-associe {
+        background-color: #17a2b8;
+      }
+      .btn-config-chauffeur {
+        background-color: #9b1594;
+      }
+      .btn-copy-day {
+        background-color: #ff00b7;
+      }
+      .btn-paste-day {
+        background-color: #00d69a;
+      }
+      .color-landais {
+        background-color: #00eeff !important;
+      }
+      .color-allard {
+        background-color: #fffb00 !important;
+      }
+      .color-std {
+        background-color: #e27aff !important;
+      }
+      .color-tendron,
+      .color-goulard,
+      .color-pinon,
+      .color-mahe {
+        background-color: #c0c7d3 !important;
+      }
+      .save-notif {
+        color: #28a745;
+        font-weight: bold;
+        display: none;
+        margin-left: auto;
+        font-size: 1vw;
+      }
+      #config-section-client,
+      #config-section-associe,
+      #config-section-chauffeur {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: white;
+        z-index: 1000;
+        padding: 2vw;
+        overflow-y: auto;
+      }
+      .config-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background: white;
+      }
+      .config-table th,
+      .config-table td {
+        border: 1px solid #ccc;
+        padding: 8px;
+        text-align: center;
+        font-size: 0.9rem;
+      }
+      .config-table th {
+        background: #f2f2f2;
+        color: #333;
+        position: sticky;
+        top: 0;
+      }
+      .client-header,
+      .group-header {
+        background: #e9ecef;
+        vertical-align: middle;
+      }
+      .del-matos-btn {
+        color: #dc3545;
+        background: none;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 1.2em;
+      }
+      .cell-selected {
+        background-color: rgba(
+          0,
+          123,
+          255,
+          0.2
+        ) !important; /* Bleu clair transparent */
+        border: 2px solid #007bff !important;
+      }
+      .btn-delete {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 2px 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 10px;
+        transition: background 0.3s;
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <datalist id="list-associe"></datalist>
+    <datalist id="list-vehicule"></datalist>
+    <datalist id="list-client"></datalist>
+    <datalist id="list-chauffeur"></datalist>
+
+    <div class="header-tools">
+      <div>Le : <input type="date" id="current-date-picker" /></div>
+      <button id="add-row" class="btn btn-add">Ajouter une ligne</button>
+      <button id="copy-image" class="btn btn-copy-img">Copier planning</button>
+      <button id="export-excel" class="btn btn-export">Exporter Excel</button>
+      <button id="copy-day" class="btn btn-copy-day">Copier journée</button>
+      <button id="paste-day" class="btn btn-paste-day">Coller journée</button>
+      <button id="toggle-config-client" class="btn btn-config-client">
+        Configuration Clients
+      </button>
+      <button id="toggle-config-associe" class="btn btn-config-associe">
+        Configuration Associés
+      </button>
+      <button id="toggle-config-chauffeur" class="btn btn-config-chauffeur">
+        Configuration Chauffeurs
+      </button>
+      <button id="reset-day" class="btn btn-reset">Tout supprimer</button>
+      <span id="save-notif" class="save-notif">OK</span>
+    </div>
+
+    <div id="config-section-client">
+      <button
+        class="btn btn-reset"
+        style="float: right"
+        onclick="closeConfigs('config-section-client')"
+      >
+        Fermer
+      </button>
+      <h2>Configuration Clients</h2>
+
+      <div
+        style="
+          background: #e9ecef;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        "
+      >
+        <div>
+          <strong>Nouveau Groupe :</strong><br />
+          <input type="text" id="new-group-name" placeholder="Nom..." />
+          <button onclick="addNewGroup()" class="btn btn-add">
+            Créer Groupe
+          </button>
+        </div>
+        <div>
+          <strong>Nouveau Client :</strong><br />
+          <input type="text" id="new-client-name" placeholder="Nom..." />
+          <button onclick="addNewClient()" class="btn btn-add">
+            Créer Client
+          </button>
+        </div>
+        <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
+        <div>
+          <strong>Nouvelle Catégorie :</strong><br />
+          <input
+            type="text"
+            id="global-categorie-client"
+            placeholder="Nom..."
+          />
+          <button
+            onclick="addCategorie('client')"
+            class="btn btn-config-client"
+          >
+            Ajouter partout
+          </button>
+        </div>
+        <div>
+          <strong>Nouveau Matériel :</strong><br />
+          <input type="text" id="global-matos-client" placeholder="Nom..." />
+          <button
+            onclick="addGlobalMatos('client')"
+            class="btn btn-config-client"
+          >
+            Ajouter partout
+          </button>
+        </div>
+      </div>
+      <div id="config-container"></div>
+    </div>
+
+    <div id="config-section-associe">
+      <button
+        class="btn btn-reset"
+        style="float: right"
+        onclick="closeConfigs('config-section-associe')"
+      >
+        Fermer
+      </button>
+      <h2>Configuration Associés</h2>
+
+      <div
+        style="
+          background: #e9ecef;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        "
+      >
+        <div>
+          <strong>Nouvel Associé :</strong><br />
+          <input type="text" id="new-config2-name" placeholder="Nom..." />
+          <button onclick="addNewClient2()" class="btn btn-add">
+            Créer Associé
+          </button>
+        </div>
+        <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
+        <div>
+          <strong>Nouvelle Catégorie :</strong><br />
+          <input
+            type="text"
+            id="global-categorie-associe"
+            placeholder="Nom..."
+          />
+          <button
+            onclick="addCategorie('associe')"
+            class="btn btn-config-client"
+          >
+            Ajouter partout
+          </button>
+        </div>
+        <div>
+          <strong>Nouveau Matériel :</strong><br />
+          <input type="text" id="global-matos-associe" placeholder="Nom..." />
+          <button
+            onclick="addGlobalMatos('associe')"
+            class="btn btn-config-associe"
+          >
+            Ajouter partout
+          </button>
+        </div>
+      </div>
+      <div id="config-container-2"></div>
+    </div>
+
+    <div id="config-section-chauffeur">
+      <button
+        class="btn btn-reset"
+        style="float: right"
+        onclick="closeConfigs('config-section-chauffeur')"
+      >
+        Fermer
+      </button>
+      <h2>Configuration Chauffeurs</h2>
+
+      <div
+        style="
+          background: #e9ecef;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          display: flex;
+          gap: 10px;
+        "
+      >
+        <div>
+          <strong>Nouveau chauffeur :</strong><br />
+          <input
+            type="text"
+            id="new-config-chauffeur-name"
+            placeholder="Nom..."
+          />
+          <button onclick="addNewChauffeur()" class="btn btn-add">
+            Créer Chauffeur
+          </button>
+        </div>
+      </div>
+      <div id="config-container-chauffeur"></div>
+    </div>
+
+    <div id="capture-area">
+      <h2 id="display-date">Planning du ...</h2>
+      <div class="table-container">
+        <table id="my-table">
+          <thead>
+            <tr>
+              <th class="col-associe">Associé</th>
+              <th class="col-temps">Matin</th>
+              <th class="col-temps">A-M</th>
+              <th class="col-chantier">Chantier</th>
+              <th class="col-date">Date</th>
+              <th class="col-matos">Matériel</th>
+              <th class="col-client">Client</th>
+              <th class="col-consigne">Consigne</th>
+              <th class="col-chauffeur">Chauffeur</th>
+              <th class="col-ncommande">N° Commande</th>
+              <th class="col-nchantier">N° Chantier</th>
+              <th class="col-nbon">N° Bon</th>
+              <th class="col-tarif">Tarif-client</th>
+              <th class="col-supplement-client">Supplément-client</th>
+              <th class="col-tarif-affrete">Tarif-affrétés</th>
+              <th class="col-supplement-affrete">Supplément-affrétés</th>
+              <th class="col-commentaire">Commentaire</th>
+              <th class="col-actions hide-export">Del</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+          <tfoot>
+            <tr style="background: #f8f9fa; font-weight: bold">
+              <td
+                colspan="18"
+                style="text-align: right; padding-right: 15px; height: 30px"
+              >
+                TOTAL CLIENTS :
+                <span
+                  id="total-price"
+                  style="color: #007bff; margin-right: 15px"
+                  >0.00 €</span
+                >
+                TOTAL SUPPLÉMENTS-CLIENTS :
+                <span
+                  id="total-price-supplement-client"
+                  style="color: #007bff; margin-right: 15px"
+                  >0.00 €</span
+                >
+                TOTAL AFFRÉTÉS :
+                <span
+                  id="total-price-affrete"
+                  style="color: #dc3545; margin-right: 15px"
+                  >0.00 €</span
+                >
+                TOTAL SUPPLÉMENTS-AFFRETES :
+                <span id="total-price-supplement-affrete" style="color: #dc3545"
+                  >0.00 €</span
+                >
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const defaultMatosList = [
+        "6x4",
+        "8x4",
+        "6x2 GRUE",
+        "AC3",
+        "PB",
+        "PC",
+        "8x2 AMP GRUE",
+      ];
+
+      const defaultAssociesList = [
+        "LANDAIS",
+        "ALLARD",
+        "STD",
+        "TENDRON",
+        "GOULARD",
+        "PINON",
+        "MAHE",
+      ];
+
+      const defaultChauffeursList = [];
+
+      // --- LOGIQUE DE SÉLECTION VISUELLE ---
+
+      let isMouseDown = false;
+
+      // Quand on appuie sur le bouton de la souris
+
+      document
+        .getElementById("my-table")
+        .addEventListener("mousedown", function (e) {
+          isMouseDown = true;
+          // On nettoie la sélection précédente si on ne maintient pas CTRL
+          if (!e.ctrlKey) {
+            document
+              .querySelectorAll(".cell-selected")
+              .forEach((el) => el.classList.remove("cell-selected"));
+          }
+          const td = e.target.closest("td");
+          if (td) td.classList.add("cell-selected");
+        });
+
+      // Quand on glisse sur les cellules
+
+      document
+        .getElementById("my-table")
+        .addEventListener("mouseover", function (e) {
+          if (isMouseDown) {
+            const td = e.target.closest("td");
+            if (td) td.classList.add("cell-selected");
+          }
+        });
+
+      // Quand on relâche le bouton
+
+      window.addEventListener("mouseup", () => {
+        isMouseDown = false;
+      });
+
+      // Désélectionner si on clique ailleurs
+
+      document.addEventListener("click", function (e) {
+        if (!e.target.closest("#my-table")) {
+          document
+
+            .querySelectorAll(".cell-selected")
+
+            .forEach((el) => el.classList.remove("cell-selected"));
+        }
+      });
+
+      // --- GESTION DU CTRL+C POUR LES CELLULES ---
+
+      document.addEventListener("copy", function (e) {
+        const selectedCells = document.querySelectorAll(".cell-selected");
+
+        if (selectedCells.length > 0) {
+          let textResult = "";
+          let rows = {};
+
+          // On regroupe les cellules par index de ligne pour gérer les retours à la ligne
+          selectedCells.forEach((td) => {
+            const rowIndex = td.parentElement.rowIndex;
+            if (!rows[rowIndex]) rows[rowIndex] = [];
+
+            const input = td.querySelector("input");
+            const val = input ? input.value : td.innerText.trim();
+            rows[rowIndex].push(val);
+          });
+
+          // On assemble les lignes avec des tabulations entre les cellules et des sauts de ligne
+          textResult = Object.values(rows)
+            .map((rowCells) => rowCells.join("\t"))
+            .join("\n");
+
+          if (textResult) {
+            e.clipboardData.setData("text/plain", textResult);
+            e.preventDefault();
+
+            const sn = document.getElementById("save-notif");
+            sn.textContent = "Cellules copiées !";
+            sn.style.display = "inline";
+            setTimeout(() => (sn.style.display = "none"), 2000);
+          }
+        }
+      });
+
+      let transportConfigClient =
+        JSON.parse(localStorage.getItem("transport_config_client")) || {};
+      let transportConfigAssocie =
+        JSON.parse(localStorage.getItem("transport_config_associe")) || {};
+      let transportConfigChauffeur =
+        JSON.parse(localStorage.getItem("transport_config_chauffeur")) || {};
+      let transportConfigGroup =
+        JSON.parse(localStorage.getItem("transport_config_group")) || {};
+      let transportConfigMateriel =
+        JSON.parse(localStorage.getItem("transport_config_materiel")) || {};
+      let transportConfigCategorie =
+        JSON.parse(localStorage.getItem("transport_config_categorie")) || {};
+
+      function trierDatalist(id) {
+        const list = document.getElementById(id);
+        const options = Array.from(list.options);
+        options.sort((a, b) => a.value.localeCompare(b.value));
+        list.innerHTML = "";
+        options.forEach((opt) => list.appendChild(opt));
+      }
+
+      function closeConfigs(id) {
+        document.getElementById(id).style.display = "none";
+      }
+
+      function getTarifClient(clientNom, matosNom) {
+        const groupeNom = transportConfigClient[clientNom];
+        if (!groupeNom) return 0;
+
+        const groupeData = transportConfigGroup[groupeNom];
+        if (groupeData && groupeData[matosNom]) {
+          const base = parseFloat(groupeData[matosNom].tarif) || 0;
+          const indice = parseFloat(groupeData[matosNom].indice) || 0;
+
+          // Formule : Prix de base + (Prix de base * pourcentage indice)
+          return base * (1 + indice / 100);
+        }
+        return 0;
+      }
+
+      // Fonction pour ajouter un matériel à tout le monde d'un coup
+      function addGlobalMatos(type) {
+        // 1. Récupérer la valeur selon le bouton cliqué (Client/Groupe ou Associé)
+        let inputId =
+          type === "client" ? "global-matos-client" : "global-matos-associe";
+        let val = document.getElementById(inputId).value.trim().toUpperCase();
+
+        if (!val) return;
+
+        // 2. MISE À JOUR DES GROUPES (qui gèrent maintenant les tarifs clients)
+        for (let groupName in transportConfigGroup) {
+          if (!transportConfigGroup[groupName][val]) {
+            transportConfigGroup[groupName][val] = { tarif: 0, indice: 0 };
+          }
+        }
+
+        // 3. MISE À JOUR DES ASSOCIÉS
+        for (let associeName in transportConfigAssocie) {
+          if (!transportConfigAssocie[associeName][val]) {
+            transportConfigAssocie[associeName][val] = { tarif: 0, indice: 0 };
+          }
+        }
+
+        // 4. SAUVEGARDE
+        localStorage.setItem(
+          "transport_config_group",
+          JSON.stringify(transportConfigGroup)
+        );
+        localStorage.setItem(
+          "transport_config_associe",
+          JSON.stringify(transportConfigAssocie)
+        );
+
+        // 5. RECHARGEMENT DES INTERFACES
+        document.getElementById(inputId).value = "";
+        renderConfigUI(); // Interface Groupes/Clients
+        renderConfigUI2(); // Interface Associés
+        updateMatosDatalist(); // Liste déroulante planning
+
+        // Notification
+        const sn = document.getElementById("save-notif");
+        sn.textContent = "Matériel " + val + " ajouté partout !";
+        sn.style.display = "inline";
+        setTimeout(() => (sn.style.display = "none"), 2000);
+      }
+
+      function deleteGlobalMatos(type, matosNom) {
+        if (
+          confirm(`Supprimer "${matosNom}" de tous les Groupes et Associés ?`)
+        ) {
+          // Supprimer dans les groupes
+          for (let g in transportConfigGroup) {
+            delete transportConfigGroup[g][matosNom];
+          }
+
+          // Supprimer chez les associés
+          for (let a in transportConfigAssocie) {
+            delete transportConfigAssocie[a][matosNom];
+          }
+
+          localStorage.setItem(
+            "transport_config_group",
+            JSON.stringify(transportConfigGroup)
+          );
+          localStorage.setItem(
+            "transport_config_associe",
+            JSON.stringify(transportConfigAssocie)
+          );
+
+          renderConfigUI();
+          renderConfigUI2();
+          updateMatosDatalist();
+        }
+      }
+
+      function renderConfigUI() {
+        const container = document.getElementById("config-container");
+
+        // --- PARTIE 1 : TARIFS PAR GROUPE ---
+        let html = `<h3>Tarifs par Groupe</h3>
+              <table class="config-table">
+                <thead>
+                  <tr>
+                    <th>Groupe</th>
+                    <th>Catégorie</th>
+                    <th>Matériel</th>
+                    <th>Tarif (€)</th>
+                    <th>Indice (%)</th>
+                    <th>Action</th>
+                  </tr>
+                </thead><tbody>`;
+
+        const groups = Object.keys(transportConfigGroup).sort();
+        const categorie = Object.keys(transportConfigCategorie).sort();
+
+        if (groups.length === 0) {
+          html += `<tr><td colspan="6"><i>Aucun groupe configuré manuellement. Utilisez le bouton "Créer Groupe" pour définir des tarifs spécifiques.</i></td></tr>`;
+        } else {
+          groups.forEach((group) => {
+            let matosKeys = Object.keys(transportConfigGroup[group]).sort();
+
+            if (matosKeys.length === 0) {
+              html += `<tr>
+                    <td class="group-header"><strong>${group}</strong></td>
+                    <td colspan="3">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
+                  </tr>`;
+            } else {
+              matosKeys.forEach((matos, index) => {
+                const val = transportConfigGroup[group][matos];
+                const currentCat = transportConfigMateriel[matos] || "";
+                html += `<tr>
+            ${
+              index === 0
+                ? `<td rowspan="${matosKeys.length}" class="group-header">
+                     <strong>${group}</strong><br>
+                     <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
+                   </td>`
+                : ""
+            }
+            <td style="text-align:left; padding-left:10px;">
+                            <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
+                                <option value="">-- Sans --</option>
+                                ${categorie
+                                  .map(
+                                    (c) =>
+                                      `<option value="${c}" ${
+                                        currentCat === c ? "selected" : ""
+                                      }>${c}</option>`
+                                  )
+                                  .join("")}
+                            </select>
+                            <br>
+                        </td>
+            <td>${matos}</td>
+            <td>
+              <input type="number" step="0.01" value="${val.tarif}"
+                onchange="updateGroupPrice('${group}', '${matos}', this.value)"
+                style="width:100%;"></td>
+            <td>
+              <input type="number" step="0.01" value="${val.indice}"
+                onchange="updateGroupIndice('${group}', '${matos}', this.value)"
+                style="width:100%;">
+            </td><td>
+                    <button class="del-matos-btn" title="Supprimer partout" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
+                  </td>
+          </tr>`;
+              });
+            }
+          });
+        }
+        html += `</tbody></table>`;
+
+        // --- PARTIE 2 : ASSIGNATION DES CLIENTS ---
+        html += `<h3 style="margin-top:30px;">Assignation des Clients</h3>
+           <table class="config-table">
+             <thead>
+               <tr>
+                 <th>Client</th>
+                 <th>Groupe assigné</th>
+                 <th>Action</th>
+               </tr>
+             </thead><tbody>`;
+
+        const clients = Object.keys(transportConfigClient).sort();
+
+        if (clients.length === 0) {
+          html += `<tr><td colspan="3"><i>Aucun client configuré manuellement. Utilisez le bouton "Créer Client" pour définir des tarifs spécifiques.</i></td></tr>`;
+        } else {
+          clients.forEach((client) => {
+            const assignedGroup = transportConfigClient[client];
+            html += `<tr>
+        <td><strong>${client}</strong></td>
+        <td>
+          <select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;">
+            <option value="">-- Aucun groupe --</option>
+            ${groups
+              .map(
+                (g) => `
+              <option value="${g}" ${
+                  assignedGroup === g ? "selected" : ""
+                }>${g}</option>
+            `
+              )
+              .join("")}
+          </select>
+        </td>
+        <td>
+          <button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button>
+        </td>
+      </tr>`;
+          });
+        }
+
+        container.innerHTML = html + `</tbody></table>`;
+      }
+
+      function updateGroupPrice(group, matos, price) {
+        if (!transportConfigGroup[group][matos]) {
+          transportConfigGroup[group][matos] = { tarif: 0, indice: 0 };
+        }
+        transportConfigGroup[group][matos].tarif = parseFloat(price) || 0;
+        localStorage.setItem(
+          "transport_config_group",
+          JSON.stringify(transportConfigGroup)
+        );
+      }
+
+      function updateGroupIndice(group, matos, indice) {
+        if (!transportConfigGroup[group][matos]) {
+          transportConfigGroup[group][matos] = { tarif: 0, indice: 0 };
+        }
+        transportConfigGroup[group][matos].indice = parseFloat(indice) || 0;
+        localStorage.setItem(
+          "transport_config_group",
+          JSON.stringify(transportConfigGroup)
+        );
+      }
+
+      function updateConfigValue(c, m, f, v) {
+        if (typeof transportConfigClient[c][m] !== "object") {
+          const old = transportConfigClient[c][m] || 0;
+          transportConfigClient[c][m] = { tarif: old, indice: 0 };
+        }
+        transportConfigClient[c][m][f] = parseFloat(v) || 0;
+      }
+
+      // Créer un client qui pointe vers un groupe
+      function addNewClient() {
+        const name = document
+          .getElementById("new-client-name")
+          .value.trim()
+          .toUpperCase();
+        if (!name || transportConfigClient[name]) return;
+
+        transportConfigClient[name] = ""; // Client créé sans groupe par défaut
+
+        localStorage.setItem(
+          "transport_config_client",
+          JSON.stringify(transportConfigClient)
+        );
+        document.getElementById("new-client-name").value = "";
+        renderConfigUI();
+        updateMatosDatalist();
+      }
+
+      function deleteClient(c) {
+        if (confirm("Supprimer ce client ?")) {
+          delete transportConfigClient[c];
+          localStorage.setItem(
+            "transport_config_client",
+            JSON.stringify(transportConfigClient)
+          );
+          renderConfigUI();
+        }
+      }
+
+      // Créer un groupe avec les matériels par défaut
+      function addNewGroup() {
+        const name = document
+          .getElementById("new-group-name")
+          .value.trim()
+          .toUpperCase();
+
+        if (!name) return;
+        if (transportConfigGroup[name]) {
+          alert("Ce groupe existe déjà");
+          return;
+        }
+
+        // 1. Créer une liste de TOUS les matériels existants (comme dans addNewClient2)
+        const fullMatosList = new Set(defaultMatosList);
+
+        // On scanne les groupes existants pour récupérer les matériels ajoutés globalement
+        for (let group in transportConfigGroup) {
+          Object.keys(transportConfigGroup[group]).forEach((m) =>
+            fullMatosList.add(m)
+          );
+        }
+
+        // On scanne aussi les associés au cas où
+        for (let associe in transportConfigAssocie) {
+          Object.keys(transportConfigAssocie[associe]).forEach((m) =>
+            fullMatosList.add(m)
+          );
+        }
+
+        // 2. Initialisation du groupe avec TOUTE cette liste complète
+        transportConfigGroup[name] = {};
+
+        fullMatosList.forEach((m) => {
+          transportConfigGroup[name][m] = { tarif: 0, indice: 0 };
+        });
+
+        // 3. Sauvegarde
+        localStorage.setItem(
+          "transport_config_group",
+          JSON.stringify(transportConfigGroup)
+        );
+
+        document.getElementById("new-group-name").value = "";
+        renderConfigUI();
+
+        const sn = document.getElementById("save-notif");
+        sn.textContent =
+          "Groupe " + name + " créé avec tous les matériels actuels !";
+        sn.style.display = "inline";
+        setTimeout(() => (sn.style.display = "none"), 2000);
+      }
+
+      function deleteGroup(name) {
+        if (confirm(`Supprimer le groupe "${name}" ?`)) {
+          delete transportConfigGroup[name];
+          // On nettoie les clients qui étaient dans ce groupe
+          for (let c in transportConfigClient) {
+            if (transportConfigClient[c] === name)
+              transportConfigClient[c] = "";
+          }
+          localStorage.setItem(
+            "transport_config_group",
+            JSON.stringify(transportConfigGroup)
+          );
+          localStorage.setItem(
+            "transport_config_client",
+            JSON.stringify(transportConfigClient)
+          );
+          renderConfigUI();
+        }
+      }
+
+      function getClientGroup(client) {
+        for (let group in transportConfigGroup) {
+          if (transportConfigGroup[group].includes(client)) return group;
+        }
+        return "";
+      }
+
+      function setClientGroup(client, groupName) {
+        transportConfigClient[client] = groupName;
+        localStorage.setItem(
+          "transport_config_client",
+          JSON.stringify(transportConfigClient)
+        );
+        const sn = document.getElementById("save-notif");
+        sn.textContent = "Client assigné au groupe !";
+        sn.style.display = "inline";
+        setTimeout(() => (sn.style.display = "none"), 2000);
+      }
+
+      function addCategorie(type) {
+        const inputId =
+          type === "associe"
+            ? "global-categorie-associe"
+            : "global-categorie-client";
+
+        const input = document.getElementById(inputId);
+        if (!input) return;
+
+        const name = input.value.trim().toUpperCase();
+        if (!name) return;
+
+        if (!transportConfigCategorie[name]) {
+          transportConfigCategorie[name] = true;
+
+          localStorage.setItem(
+            "transport_config_categorie",
+            JSON.stringify(transportConfigCategorie)
+          );
+
+          input.value = "";
+          renderConfigUI();
+          renderConfigUI2();
+
+          const sn = document.getElementById("save-notif");
+          sn.textContent = "Catégorie " + name + " créée !";
+          sn.style.display = "inline";
+          setTimeout(() => (sn.style.display = "none"), 2000);
+        }
+      }
+
+      function setMaterielCategorie(matos, categorieName) {
+        transportConfigMateriel[matos] = categorieName;
+        localStorage.setItem(
+          "transport_config_materiel",
+          JSON.stringify(transportConfigMateriel)
+        );
+        const sn = document.getElementById("save-notif");
+        sn.textContent = "Matériel assigné à la catégorie !";
+        sn.style.display = "inline";
+        setTimeout(() => (sn.style.display = "none"), 2000);
+      }
+
+      function updateRowTarif(tr) {
+        const client = tr.querySelector(".select-client").value;
+        const associe = tr.querySelector(".select-associe").value;
+        const matos = tr.querySelector(".select-vehicule").value;
+
+        const cellTarifClient = tr.querySelector(".cell-tarif");
+        const cellTarifAffrete = tr.querySelector(".cell-tarif-affrete");
+
+        // ----- TARIF CLIENT -----
+        if (client && matos) {
+          const prixFinal = getTarifClient(client, matos);
+          cellTarifClient.textContent = prixFinal.toFixed(2) + " €";
+        } else {
+          cellTarifClient.textContent = "0.00 €";
+        }
+
+        // ----- TARIF AFFRÉTÉ -----
+        if (
+          associe &&
+          matos &&
+          transportConfigAssocie[associe] &&
+          transportConfigAssocie[associe][matos]
+        ) {
+          const base =
+            parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
+          const indice =
+            parseFloat(transportConfigAssocie[associe][matos].indice) || 0;
+
+          const total = base * (1 + indice / 100);
+          cellTarifAffrete.textContent = total.toFixed(2) + " €";
+        } else {
+          cellTarifAffrete.textContent = "0.00 €";
+        }
+
+        saveCurrentDay();
+      }
+
+      function renderConfigUI2() {
+        const container = document.getElementById("config-container-2");
+        const associeListDatalist = document.getElementById("list-associe");
+        associeListDatalist.innerHTML = "";
+
+        // On crée un Set pour mélanger les associés par défaut et ceux créés par l'utilisateur sans doublons
+        const allAssocies = new Set([
+          ...defaultAssociesList,
+          ...Object.keys(transportConfigAssocie),
+        ]);
+
+        // On remplit la liste déroulante du planning
+        Array.from(allAssocies)
+          .sort()
+          .forEach((name) => {
+            associeListDatalist.innerHTML += `<option value="${name}">`;
+          });
+
+        // Construction du tableau de gestion
+        let html = `<table class="config-table"><thead><tr><th>Associé</th><th>Catégorie</th><th>Matériel</th><th>Tarif (€)</th><th>Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
+
+        const sortedEntries = Object.keys(transportConfigAssocie).sort();
+        const categories = Object.keys(transportConfigCategorie).sort();
+
+        if (sortedEntries.length === 0) {
+          html += `<tr><td colspan="6"><i>Aucun associé configuré manuellement. Utilisez le bouton "Créer Associé" pour définir des tarifs spécifiques.</i></td></tr>`;
+        } else {
+          sortedEntries.forEach((entry) => {
+            let keys = Object.keys(transportConfigAssocie[entry]).sort();
+            if (keys.length === 0) {
+              html += `<tr><td class="client-header">${entry}</td><td colspan="3"><i>Aucun matériel</i></td><td><button onclick="deleteEntry2('${entry}')" class="btn-delete">Supprimer</button></td></tr>`;
+            } else {
+              keys.forEach((k, index) => {
+                const val = transportConfigAssocie[entry][k];
+                html += `<tr>${
+                  index === 0
+                    ? `<td rowspan="${keys.length}" class="client-header"><strong>${entry}</strong><br><button class="btn btn-reset" style="padding:2px 5px; font-size:10px; margin-top:5px;" onclick="deleteEntry2('${entry}')">Suppr. Associé</button></td>`
+                    : ""
+                }
+                  <td style="text-align:left; padding-left:10px;">
+  <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
+    <option value="">-- Sans --</option>
+    ${categories
+      .map(
+        (c) =>
+          `<option value="${c}" ${
+            (transportConfigMateriel[k] || "") === c ? "selected" : ""
+          }>${c}</option>`
+      )
+      .join("")}
+  </select>
+</td>
+
+                  <td>${k}</td>
+                  <td><input type="number" step="0.01" value="${
+                    val.tarif || 0
+                  }" onchange="transportConfigAssocie['${entry}']['${k}'].tarif = parseFloat(this.value) || 0; localStorage.setItem('transport_config_associe', JSON.stringify(transportConfigAssocie));" style="width:100%;"></td>
+                  <td><input type="number" step="0.01" value="${
+                    val.indice || 0
+                  }" onchange="transportConfigAssocie['${entry}']['${k}'].indice = parseFloat(this.value) || 0; localStorage.setItem('transport_config_associe', JSON.stringify(transportConfigAssocie));" style="width:100%;"></td>
+                  <td>
+                    <button class="del-matos-btn" title="Supprimer partout" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
+                  </td></tr>`;
+              });
+            }
+            html += `<tr style="height: 20px; border:none; background: transparent;"><td colspan="5" style="border:none;"></td></tr>`;
+          });
+        }
+
+        container.innerHTML = html + `</tbody></table>`;
+        trierDatalist("list-associe");
+      }
+
+      function addNewClient2() {
+        const name = document
+          .getElementById("new-config2-name")
+          .value.trim()
+          .toUpperCase();
+        if (!name || transportConfigAssocie[name]) return;
+
+        // 1. Créer la liste complète et unique des matériels existants
+        const fullMatosList = new Set(defaultMatosList);
+
+        // On ajoute aussi tous les matériels déjà présents dans les Groupes
+        for (let group in transportConfigGroup) {
+          Object.keys(transportConfigGroup[group]).forEach((m) =>
+            fullMatosList.add(m)
+          );
+        }
+
+        // On ajoute aussi les matériels des autres associés au cas où
+        for (let associe in transportConfigAssocie) {
+          Object.keys(transportConfigAssocie[associe]).forEach((m) =>
+            fullMatosList.add(m)
+          );
+        }
+
+        // 2. Initialiser le nouvel associé avec TOUTE cette liste
+        transportConfigAssocie[name] = {};
+        fullMatosList.forEach((m) => {
+          transportConfigAssocie[name][m] = { tarif: 0, indice: 0 };
+        });
+
+        localStorage.setItem(
+          "transport_config_associe",
+          JSON.stringify(transportConfigAssocie)
+        );
+        document.getElementById("new-config2-name").value = "";
+        renderConfigUI2();
+        updateMatosDatalist(); // Mise à jour des listes du planning
+      }
+
+      function deleteEntry2(e) {
+        if (confirm("Supprimer cet associé ?")) {
+          delete transportConfigAssocie[e];
+          localStorage.setItem(
+            "transport_config_associe",
+            JSON.stringify(transportConfigAssocie)
+          );
+          renderConfigUI2();
+        }
+      }
+
+      function renderConfigUIChauffeur() {
+        const container = document.getElementById("config-container-chauffeur");
+        const chauffeurListDatalist = document.getElementById("list-chauffeur");
+        chauffeurListDatalist.innerHTML = "";
+
+        // On crée un Set pour mélanger les chauffeurs par défaut et ceux créés par l'utilisateur sans doublons
+        const allChauffeurs = new Set([
+          ...defaultChauffeursList,
+          ...Object.keys(transportConfigChauffeur),
+        ]);
+
+        // On remplit la liste déroulante du planning
+        Array.from(allChauffeurs)
+          .sort()
+          .forEach((name) => {
+            chauffeurListDatalist.innerHTML += `<option value="${name}">`;
+          });
+
+        // Construction du tableau de gestion
+        let html = `<table class="config-table"><thead><tr><th>Chauffeur</th><th>Actions</th></tr></thead><tbody>`;
+
+        const sortedEntries = Object.keys(transportConfigChauffeur).sort();
+
+        if (sortedEntries.length === 0) {
+          html += `<tr><td colspan="2"><i>Aucun chauffeur configuré manuellement. Utilisez le bouton "Créer Chauffeur" pour en ajouter.</i></td></tr>`;
+        } else {
+          sortedEntries.forEach((entry) => {
+            html += `<tr>
+                  <td class="client-header">${entry}</td>
+                  <td><button class="btn btn-reset" onclick="deleteChauffeur('${entry}')">Suppr. Chauffeur</button></td>
+                  </tr>`;
+          });
+        }
+
+        container.innerHTML = html + `</tbody></table>`;
+        trierDatalist("list-chauffeur");
+      }
+
+      function addNewChauffeur() {
+        const name = document
+          .getElementById("new-config-chauffeur-name")
+          .value.trim()
+          .toUpperCase();
+
+        if (!name || transportConfigChauffeur[name]) return;
+
+        transportConfigChauffeur[name] = {};
+        localStorage.setItem(
+          "transport_config_chauffeur",
+          JSON.stringify(transportConfigChauffeur)
+        );
+        document.getElementById("new-config-chauffeur-name").value = "";
+        renderConfigUIChauffeur();
+      }
+
+      function deleteChauffeur(name) {
+        if (confirm("Supprimer ce chauffeur ?")) {
+          delete transportConfigChauffeur[name];
+          localStorage.setItem(
+            "transport_config_chauffeur",
+            JSON.stringify(transportConfigChauffeur)
+          );
+          renderConfigUIChauffeur();
+        }
+      }
+
+      function updateMatosDatalist() {
+        // 1. Liste des VÉHICULES (Matériels)
+        const listVehicule = document.getElementById("list-vehicule");
+        if (listVehicule) {
+          const uniqueMatos = new Set(defaultMatosList);
+
+          // Ajout depuis les Groupes
+          for (let group in transportConfigGroup) {
+            Object.keys(transportConfigGroup[group]).forEach((m) =>
+              uniqueMatos.add(m)
+            );
+          }
+          // Ajout depuis les Associés
+          for (let associe in transportConfigAssocie) {
+            Object.keys(transportConfigAssocie[associe]).forEach((m) =>
+              uniqueMatos.add(m)
+            );
+          }
+
+          listVehicule.innerHTML = "";
+          Array.from(uniqueMatos)
+            .sort()
+            .forEach((m) => {
+              const opt = document.createElement("option");
+              opt.value = m;
+              listVehicule.appendChild(opt);
+            });
+        }
+
+        // 2. Liste des CLIENTS
+        const listClient = document.getElementById("list-client");
+        if (listClient) {
+          listClient.innerHTML = "";
+          // On récupère les noms des clients configurés
+          Object.keys(transportConfigClient)
+            .sort()
+            .forEach((c) => {
+              const opt = document.createElement("option");
+              opt.value = c;
+              listClient.appendChild(opt);
+            });
+        }
+      }
+
+      function calculerTotal() {
+        let total = 0;
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          const content = tr.cells[12].textContent
+            .replace(/[€\s]/g, "")
+            .replace(",", ".");
+          const val = parseFloat(content);
+          if (!isNaN(val)) total += val;
+        });
+        document.getElementById("total-price").textContent =
+          total.toFixed(2) + " €";
+      }
+
+      function calculerTotalSupplement_client() {
+        let total = 0;
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          const content = tr.cells[13].textContent
+            .replace(/[€\s]/g, "")
+            .replace(",", ".");
+          const val = parseFloat(content);
+          if (!isNaN(val)) total += val;
+        });
+        document.getElementById("total-price-supplement-client").textContent =
+          total.toFixed(2) + " €";
+      }
+
+      function calculerTotalAffrete() {
+        let total = 0;
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          const content = tr.cells[14].textContent
+            .replace(/[€\s]/g, "")
+            .replace(",", ".");
+          const val = parseFloat(content);
+          if (!isNaN(val)) total += val;
+        });
+        document.getElementById("total-price-affrete").textContent =
+          total.toFixed(2) + " €";
+      }
+
+      function calculerTotalSupplement_affrete() {
+        let total = 0;
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          const content = tr.cells[15].textContent
+            .replace(/[€\s]/g, "")
+            .replace(",", ".");
+          const val = parseFloat(content);
+          if (!isNaN(val)) total += val;
+        });
+        document.getElementById("total-price-supplement-affrete").textContent =
+          total.toFixed(2) + " €";
+      }
+
+      function saveCurrentDay() {
+        const date = document.getElementById("current-date-picker").value;
+        if (!date) return;
+        const rows = [];
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          rows.push({
+            associe: tr.querySelector(".select-associe").value,
+            matin: tr.cells[1].innerText,
+            apres: tr.cells[2].innerText,
+            chantier: tr.cells[3].innerText,
+            date: tr.cells[4].innerText,
+            vehicule: tr.querySelector(".select-vehicule").value,
+            client: tr.querySelector(".select-client").value,
+            consigne: tr.cells[7].innerText,
+            chauffeur: tr.querySelector(".select-chauffeur").value,
+            n_commande: tr.cells[9].innerText,
+            n_chantier: tr.cells[10].innerText,
+            n_bon: tr.cells[11].innerText,
+            tarif: tr.cells[12].innerText,
+            supplement_client: tr.cells[13].innerText,
+            tarif_affrete: tr.cells[14].innerText,
+            supplement_affrete: tr.cells[15].innerText,
+            commentaire: tr.cells[16].innerText,
+          });
+        });
+        localStorage.setItem("planning_" + date, JSON.stringify(rows));
+        calculerTotal();
+        calculerTotalSupplement_client();
+        calculerTotalAffrete();
+        calculerTotalSupplement_affrete();
+      }
+
+      function appliquerCouleurAssocie(input) {
+        const cell = input.parentElement;
+        cell.className = "matos-cell";
+        const val = input.value.toUpperCase();
+        if (val) cell.classList.add("color-" + val.toLowerCase());
+      }
+
+      function ajouterLigne(data = null) {
+        const tableBody = document.getElementById("table-body");
+        const datePicker = document.getElementById("current-date-picker");
+        const dateSelectionnee = new Date(datePicker.value);
+        const dateFormatee = dateSelectionnee.toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+                  <td class="matos-cell"><input class="combo-input select-associe" list="list-associe" value="${
+                    data ? data.associe : ""
+                  }"onchange="updateRowTarif(this.closest('tr'))"></td>
+                  <td contenteditable="true">${data ? data.matin : "0.5"}</td>
+                  <td contenteditable="true">${data ? data.apres : "0.5"}</td>
+                  <td contenteditable="true">${data ? data.chantier : ""}</td>
+                  <td contenteditable="true">${
+                    data ? data.date : dateFormatee
+                  }</td>
+                  <td class="matos-cell">
+                      <input class="combo-input select-vehicule" list="list-vehicule" 
+                          value="${data ? data.vehicule : ""}" 
+                          onchange="updateRowTarif(this.closest('tr'))">
+                  </td>
+                  <td class="matos-cell">
+                      <input class="combo-input select-client" list="list-client" 
+                          value="${data ? data.client : ""}" 
+                          onchange="updateRowTarif(this.closest('tr'))">
+                  </td>
+                  <td contenteditable="true">${data ? data.consigne : ""}</td>
+                  <td class="matos-cell"><input class="combo-input select-chauffeur" list="list-chauffeur" value="${
+                    data ? data.chauffeur : ""
+                  }"></td>
+                  <td contenteditable="true">${data ? data.n_commande : ""}</td>
+                  <td contenteditable="true">${data ? data.n_chantier : ""}</td>
+                  <td contenteditable="true">${data ? data.n_bon : ""}</td>
+                  <td class="cell-tarif" contenteditable="true" style="padding:4px">${
+                    data && data.tarif ? data.tarif : "0.00 €"
+                  }</td>
+                  <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${
+                    data && data.supplement_client
+                      ? data.supplement_client
+                      : "0.00 €"
+                  }</td>
+                  <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${
+                    data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"
+                  }</td>
+                  <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${
+                    data && data.supplement_affrete
+                      ? data.supplement_affrete
+                      : "0.00 €"
+                  }</td>
+                  <td contenteditable="true">${
+                    data ? data.commentaire : ""
+                  }</td>
+                  <td class="hide-export" style="text-align:center"><button style="color:red; background:none; border:none; cursor:pointer;" onclick="if(confirm('Voulez-vous vraiment supprimer cette ligne ?')){this.closest('tr').remove(); saveCurrentDay();}">×</button></td>`;
+        tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
+          cell.addEventListener("input", () => {
+            saveCurrentDay();
+          });
+        });
+        tr.querySelectorAll(".combo-input").forEach((input) => {
+          input.addEventListener("change", () => {
+            saveCurrentDay();
+            if (input.classList.contains("select-associe"))
+              appliquerCouleurAssocie(input);
+          });
+        });
+        tableBody.appendChild(tr);
+        if (data || tr.querySelector(".select-associe").value)
+          appliquerCouleurAssocie(tr.querySelector(".select-associe"));
+        calculerTotal();
+        calculerTotalSupplement_client();
+        calculerTotalAffrete();
+        calculerTotalSupplement_affrete();
+      }
+
+      function copierJournee() {
+        const rows = [];
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          rows.push({
+            associe: tr.querySelector(".select-associe").value,
+            matin: tr.cells[1].innerText,
+            apres: tr.cells[2].innerText,
+            chantier: tr.cells[3].innerText,
+            date: tr.cells[4].innerText,
+            vehicule: tr.querySelector(".select-vehicule").value,
+            client: tr.querySelector(".select-client").value,
+            consigne: tr.cells[7].innerText,
+            chauffeur: tr.querySelector(".select-chauffeur").value,
+            n_commande: tr.cells[9].innerText,
+            n_chantier: tr.cells[10].innerText,
+            n_bon: tr.cells[11].innerText,
+            tarif: tr.cells[12].innerText,
+            supplement_client: tr.cells[13].innerText,
+            tarif_affrete: tr.cells[14].innerText,
+            supplement_affrete: tr.cells[15].innerText,
+            commentaire: tr.cells[16].innerText,
+          });
+        });
+
+        if (rows.length === 0) return;
+
+        localStorage.setItem("planning_copy_buffer", JSON.stringify(rows));
+        const sn = document.getElementById("save-notif");
+        sn.textContent = "Planning copié !";
+        sn.style.display = "inline";
+        setTimeout(() => (sn.style.display = "none"), 2000);
+      }
+
+      function collerJournee() {
+        const buffer = localStorage.getItem("planning_copy_buffer");
+        if (!buffer) {
+          alert("Aucune journée copiée.");
+          return;
+        }
+
+        if (!confirm("Remplacer la journée actuelle par celle copiée ?"))
+          return;
+
+        const data = JSON.parse(buffer);
+        const tableBody = document.getElementById("table-body");
+        tableBody.innerHTML = "";
+
+        const datePicker = document.getElementById("current-date-picker");
+        const dateFormatee = new Date(datePicker.value).toLocaleDateString(
+          "fr-FR"
+        );
+
+        data.forEach((row) => {
+          row.date = dateFormatee; // 🔁 Mise à jour automatique de la date
+          ajouterLigne(row);
+        });
+
+        saveCurrentDay();
+      }
+
+      // --- INITIALISATION ---
+      document.addEventListener("DOMContentLoaded", function () {
+        const datePicker = document.getElementById("current-date-picker");
+        const displayDate = document.getElementById("display-date");
+
+        // 1. Définir la date par défaut (aujourd'hui)
+        const aujourdhui = new Date().toISOString().split("T")[0];
+        datePicker.value = aujourdhui;
+        displayDate.textContent =
+          "Planning du " + new Date(aujourdhui).toLocaleDateString("fr-FR");
+
+        // 2. Charger les outils
+        updateMatosDatalist();
+        trierDatalist("list-associe");
+        trierDatalist("list-chauffeur");
+        renderConfigUI();
+        renderConfigUI2();
+        renderConfigUIChauffeur();
+
+        // 3. Charger le planning du jour
+        const saved = localStorage.getItem("planning_" + aujourdhui);
+        if (saved && JSON.parse(saved).length > 0) {
+          JSON.parse(saved).forEach(ajouterLigne);
+        } else {
+          ajouterLigne();
+        }
+
+        // 4. Événements
+        datePicker.addEventListener("change", function () {
+          const nouvelleDate = this.value;
+          displayDate.textContent =
+            "Planning du " + new Date(nouvelleDate).toLocaleDateString("fr-FR");
+          document.getElementById("table-body").innerHTML = "";
+          const savedDay = localStorage.getItem("planning_" + nouvelleDate);
+          if (savedDay && JSON.parse(savedDay).length > 0) {
+            JSON.parse(savedDay).forEach(ajouterLigne);
+          } else {
+            ajouterLigne();
+          }
+          calculerTotal();
+          calculerTotalSupplement_client();
+          calculerTotalAffrete();
+          calculerTotalSupplement_affrete();
+        });
+
+        document
+          .getElementById("copy-day")
+          .addEventListener("click", copierJournee);
+        document
+          .getElementById("paste-day")
+          .addEventListener("click", collerJournee);
+        document
+          .getElementById("toggle-config-client")
+          .addEventListener("click", () => {
+            document.getElementById("config-section-client").style.display =
+              "block";
+          });
+        document
+          .getElementById("toggle-config-associe")
+          .addEventListener("click", () => {
+            document.getElementById("config-section-associe").style.display =
+              "block";
+          });
+        document
+          .getElementById("toggle-config-chauffeur")
+          .addEventListener("click", () => {
+            document.getElementById("config-section-chauffeur").style.display =
+              "block";
+          });
+        document.getElementById("add-row").addEventListener("click", () => {
+          ajouterLigne();
+          saveCurrentDay();
+        });
+        document.getElementById("reset-day").addEventListener("click", () => {
+          if (confirm("Supprimer toutes les lignes ?")) {
+            document.getElementById("table-body").innerHTML = "";
+            saveCurrentDay();
+          }
+        });
+
+        document.getElementById("table-body").addEventListener("input", (e) => {
+          const row = e.target.closest("tr");
+          if (!row) return;
+
+          if (e.target.classList.contains("select-associe")) {
+            appliquerCouleurAssocie(e.target);
+          }
+
+          if (
+            e.target.classList.contains("select-client") ||
+            e.target.classList.contains("select-vehicule") ||
+            e.target.classList.contains("select-associe")
+          ) {
+            const client = row.querySelector(".select-client").value;
+            const veh = row.querySelector(".select-vehicule").value;
+            const associe = row.querySelector(".select-associe").value;
+
+            // Calcul Tarif Client
+            if (
+              transportConfigClient[client] &&
+              transportConfigClient[client][veh]
+            ) {
+              const config = transportConfigClient[client][veh];
+              let tarifBase =
+                typeof config === "object" ? config.tarif : config;
+              let indice = typeof config === "object" ? config.indice || 0 : 0;
+              row.querySelector(".cell-tarif").textContent =
+                (tarifBase * (1 + indice / 100)).toFixed(2) + " €";
+            }
+
+            // Calcul Tarif Affrété (Associé)
+            if (
+              transportConfigAssocie[associe] &&
+              transportConfigAssocie[associe][veh]
+            ) {
+              const configA = transportConfigAssocie[associe][veh];
+              let tarifBaseA =
+                typeof configA === "object" ? configA.tarif : configA;
+              let indiceA =
+                typeof configA === "object" ? configA.indice || 0 : 0;
+              row.querySelector(".cell-tarif-affrete").textContent =
+                (tarifBaseA * (1 + indiceA / 100)).toFixed(2) + " €";
+            }
+          }
+          saveCurrentDay();
+        });
+
+        document.getElementById("table-body").addEventListener(
+          "blur",
+          function (e) {
+            if (
+              !e.target.classList.contains("cell-supplement-client") &&
+              !e.target.classList.contains("cell-supplement-affrete")
+            )
+              return;
+
+            let value = e.target.textContent
+              .replace(/[€\s]/g, "")
+              .replace(",", ".");
+
+            const number = parseFloat(value);
+
+            if (!isNaN(number)) {
+              e.target.textContent = number.toFixed(2) + " €";
+            } else {
+              e.target.textContent = "0.00 €";
+            }
+
+            calculerTotalSupplement_client();
+            calculerTotalSupplement_affrete();
+            saveCurrentDay();
+          },
+          true
+        );
+
+        document
+          .getElementById("copy-image")
+          .addEventListener("click", function () {
+            const area = document.getElementById("capture-area");
+            const toHide = document.querySelectorAll(".hide-export");
+            toHide.forEach((el) => (el.style.display = "none"));
+            html2canvas(area, { scale: 2 }).then((canvas) => {
+              canvas.toBlob((blob) => {
+                navigator.clipboard
+                  .write([new ClipboardItem({ "image/png": blob })])
+                  .then(() => {
+                    const sn = document.getElementById("save-notif");
+                    sn.style.display = "inline";
+                    setTimeout(() => (sn.style.display = "none"), 2000);
+                  });
+              });
+              toHide.forEach((el) => (el.style.display = ""));
+            });
+          });
+        document
+          .getElementById("export-excel")
+          .addEventListener("click", function () {
+            const datePicker = document.getElementById(
+              "current-date-picker"
+            ).value;
+            if (!datePicker) {
+              alert(
+                "Veuillez sélectionner une date pour définir le mois à exporter."
+              );
+              return;
+            }
+
+            // 1. Déterminer le préfixe du mois (ex: "planning_2025-01")
+            const monthPrefix = "planning_" + datePicker.substring(0, 7);
+            const workbook = XLSX.utils.book_new();
+            const allRows = [];
+
+            // 2. Définir les entêtes
+            const headers = [
+              "Date Planning",
+              "Associé",
+              "Matin",
+              "A-M",
+              "Chantier",
+              "Date Chantier",
+              "Véhicule",
+              "Client",
+              "Consigne",
+              "Chauffeur",
+              "N° Commande",
+              "N° Chantier",
+              "N° Bon",
+              "Tarif",
+              "Supplement Client",
+              "Tarif Affrété",
+              "Supplément-Affrété",
+              "Commentaire",
+            ];
+            allRows.push(headers);
+
+            // 3. Récupérer toutes les clés du localStorage et les trier
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key.startsWith(monthPrefix)) {
+                keys.push(key);
+              }
+            }
+            keys.sort(); // Tri par date (planning_2025-01-01, 01-02, etc.)
+
+            let totalClient = 0;
+            let totalSupplement_client = 0;
+            let totalAffrete = 0;
+            let totalSupplement_affrete = 0;
+
+            keys.forEach((key) => {
+              const dayData = JSON.parse(localStorage.getItem(key));
+              const dateDay = key.replace("planning_", ""); // YYYY-MM-DD
+
+              dayData.forEach((row) => {
+                const tarif = parseFloat(
+                  (row.tarif || "0").replace(/[€\s]/g, "").replace(",", ".")
+                );
+                const suppClient = parseFloat(
+                  (row.supplement_client || "0")
+                    .replace(/[€\s]/g, "")
+                    .replace(",", ".")
+                );
+                const tarifAff = parseFloat(
+                  (row.tarif_affrete || "0")
+                    .replace(/[€\s]/g, "")
+                    .replace(",", ".")
+                );
+                const suppAff = parseFloat(
+                  (row.supplement_affrete || "0")
+                    .replace(/[€\s]/g, "")
+                    .replace(",", ".")
+                );
+
+                if (!isNaN(tarif)) totalClient += tarif;
+                if (!isNaN(suppClient)) totalSupplement_client += suppClient;
+                if (!isNaN(tarifAff)) totalAffrete += tarifAff;
+                if (!isNaN(suppAff)) totalSupplement_affrete += suppAff;
+
+                const rowData = [
+                  dateDay,
+                  row.associe,
+                  row.matin,
+                  row.apres,
+                  row.chantier,
+                  row.date,
+                  row.vehicule,
+                  row.client,
+                  row.consigne,
+                  row.chauffeur,
+                  row.n_commande,
+                  row.n_chantier,
+                  row.n_bon,
+                  tarif || 0,
+                  suppClient || 0,
+                  tarifAff || 0,
+                  suppAff || 0,
+                  row.commentaire,
+                ];
+
+                allRows.push(rowData);
+              });
+            });
+
+            if (allRows.length <= 1) {
+              alert("Aucune donnée enregistrée pour ce mois.");
+              return;
+            }
+
+            // 5. Ajouter une ligne de total à la fin
+            allRows.push([]);
+            allRows.push([
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "",
+              "TOTAL MOIS :",
+              totalClient.toFixed(2) + " €",
+              totalSupplement_client.toFixed(2) + " €",
+              totalAffrete.toFixed(2) + " €",
+              totalSupplement_affrete.toFixed(2) + " €",
+              "",
+            ]);
+
+            // 6. Génération du fichier
+            const worksheet = XLSX.utils.aoa_to_sheet(allRows);
+            // Forcer l'affichage à 2 décimales dans Excel
+            const moneyCols = [13, 14, 15, 16]; // colonnes monétaires (0-based)
+
+            for (let R = 1; R < allRows.length; R++) {
+              moneyCols.forEach((C) => {
+                const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+                if (
+                  worksheet[cellRef] &&
+                  typeof worksheet[cellRef].v === "number"
+                ) {
+                  worksheet[cellRef].t = "n"; // type nombre
+                  worksheet[cellRef].z = "0.00"; // FORCE 2 décimales
+                }
+              });
+            }
+
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Export Mensuel");
+
+            // Nom de fichier dynamique : Transport_2025-01.xlsx
+            XLSX.writeFile(
+              workbook,
+              `Transport_${datePicker.substring(0, 7)}.xlsx`
+            );
+          });
+      });
+    </script>
+
+    <p style="margin-top: 20px; padding: 1vw">
+      <small style="color: #666">
+        <strong style="display: block; margin-bottom: -5px">Note :</strong>
+
+        <ul style="margin-top: 0; padding-left: 20px">
+          <li>
+            <i
+              style="
+                margin-bottom: 2px;
+                text-transform: uppercase;
+                color: #000;
+                font-weight: bold;
+              "
+              >Pensez à d'abord configurer tous les paramètres avant de rentrer
+              une information dans le planning.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i>Cliquez dans les cases blanches pour saisir vos informations.</i>
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Sélectionnez la date dans le calendrier
+              <input type="date" class="fake-date" /> pour changer de jour.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i>Sélectionnez plusieurs cases pour copier leur contenu.</i>
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur le bouton
+              <span style="color: #28a745; font-weight: bold">VERT</span> pour
+              rajouter une ligne.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur le bouton
+              <span style="color: #6610f2; font-weight: bold">BLEU</span> pour
+              copier le planning entier en image.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur le bouton
+              <span style="color: #ff9500; font-weight: bold">ORANGE</span> pour
+              exporter le planning du mois en fichier Excel.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur le bouton
+              <span style="color: #ff00b7; font-weight: bold">ROSE</span>
+              pour copier la journée actuelle.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur le bouton
+              <span style="color: #00d69a; font-weight: bold">TURQUOISE</span>
+              pour coller la journée copiée.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur le bouton
+              <span style="color: #6c757d; font-weight: bold">GRIS</span> pour
+              configurer les prix des clients.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur le bouton
+              <span style="color: #17a2b8; font-weight: bold">BLEU CLAIR</span>
+              pour configurer les prix des associés.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur le bouton
+              <span style="color: #9b1594; font-weight: bold">VIOLET</span> pour
+              configurer la liste des chauffeurs.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur la croix rouge à droite
+              <span style="color: #dc3545; font-weight: bold">X</span> pour
+              supprimer une seule ligne.</i
+            >
+          </li>
+
+          <li style="margin-bottom: 2px">
+            <i
+              >Appuyez sur le bouton
+              <span style="color: #dc3545; font-weight: bold">ROUGE</span> pour
+              tout supprimer la journée.</i
+            >
+          </li>
+        </ul>
+      </small>
+    </p>
+  </body>
+</html>
