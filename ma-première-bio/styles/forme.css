@@ -1,0 +1,61 @@
+html {
+  background-color: white;
+}
+
+body {
+  font: 1.2em / 1.5 system-ui;
+  padding: 20px;
+  width: auto;
+  background-color: #efefef;
+  margin: 0 auto;
+}
+
+ul {
+  background-color: white;
+  border: 5px solid purple;
+  padding: 30px;
+  border-radius: 20px;
+}
+
+h1 {
+  color: darkslategray;
+  font-size: 2rem;
+}
+
+h2 {
+  font-style: italic;
+  font-size: 1.5rem;
+}
+
+.job-title {
+  color: darkslategray;
+  font-weight: bold;
+}
+
+a {
+  color: green;
+}
+
+a:hover,
+a:focus {
+  color: darkgreen;
+  text-decoration: none;
+}
+
+/* Le conteneur qui aligne l'image et le texte */
+.header {
+  border-bottom: 10px dotted purple;
+  display: flex; /* Aligne les éléments côte à côte */
+  justify-content: space-between;
+  align-items: center; /* Aligne verticalement au milieu */
+  gap: 20px; /* Espace de 20px entre l'image et le texte */
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+/* Style spécifique pour l'image de profil */
+.header img {
+  max-width: 140px; /* Fixe une largeur précise (ex: 100px) */
+  height: auto;
+  border-radius: 10px; /* Optionnel : arrondit un peu les angles */
+}

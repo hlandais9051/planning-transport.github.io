@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Ma page de test</title>
+    <link rel="stylesheet" href="styles/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="ecran-accueil">
+      <div class="menu-selection">
+        <div class="carte-jeu">
+          <h3>Labyrinthe Infernal</h3>
+          <p>Échappe aux monstres et évite les pièges !</p>
+          <input type="number" id="input-niveaux" value="1" min="1" max="10" />
+          <button id="btn-start">Jouer au Labyrinthe</button>
+        </div>
+
+        <div class="carte-jeu futur">
+          <h3>Snake (Bientôt)</h3>
+          <p>Arrivera au niveau 5 du hub...</p>
+          <button disabled>Bloqué</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="compteur" class="hidden"></div>
+    <div id="labyrinthe" class="hidden"></div>
+
+    <script src="scripts/main.js"></script>
+  </body>
+</html>
