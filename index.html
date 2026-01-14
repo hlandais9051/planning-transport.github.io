@@ -761,6 +761,7 @@
                     <th>Matériel</th>
                     <th>Tarif (€)</th>
                     <th>Indice (%)</th>
+                    <th>Action</th>
                   </tr>
                 </thead><tbody>`;
 
@@ -815,7 +816,7 @@
                 onchange="updateGroupIndice('${group}', '${matos}', this.value)"
                 style="width:100%;">
             </td><td>
-                    <button class="del-matos-btn" title="Supprimer partout" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
+                    <button class="del-matos-btn" title="Supprimer partout" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
                   </td>
           </tr>`;
               });
