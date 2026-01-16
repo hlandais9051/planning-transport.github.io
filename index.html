@@ -95,7 +95,7 @@
         width: 10%;
       }
       .col-date {
-        width: 9%;
+        width: 10%;
       }
       .col-matos {
         width: 10%;
@@ -110,25 +110,31 @@
         width: 10%;
       }
       .col-ncommande {
-        width: 12%;
+        width: 14%;
       }
       .col-nchantier {
-        width: 10%;
+        width: 11%;
       }
       .col-nbon {
         width: 8%;
       }
       .col-tarif {
-        width: 9%;
+        width: 10%;
       }
       .col-supplement-client {
+        width: 12%;
+      }
+      .col-IC-client {
         width: 10%;
       }
       .col-tarif-affrete {
-        width: 9%;
+        width: 10%;
       }
       .col-supplement-affrete {
         width: 12%;
+      }
+      .col-IC-affrete {
+        width: 10%;
       }
       .col-commentaire {
         width: 12%;
@@ -483,8 +489,10 @@
               <th class="col-nbon">N° Bon</th>
               <th class="col-tarif">Tarif-client</th>
               <th class="col-supplement-client">Supplément-client</th>
-              <th class="col-tarif-affrete">Tarif-affrétés</th>
-              <th class="col-supplement-affrete">Supplément-affrétés</th>
+              <th class="col-IC-client">IC-client</th>
+              <th class="col-tarif-affrete">Tarif-affrété</th>
+              <th class="col-supplement-affrete">Supplément-affrété</th>
+              <th class="col-IC-affrete">IC-affrété</th>
               <th class="col-commentaire">Commentaire</th>
               <th class="col-actions hide-export">Del</th>
             </tr>
@@ -493,7 +501,7 @@
           <tfoot>
             <tr style="background: #f8f9fa; font-weight: bold">
               <td
-                colspan="18"
+                colspan="20"
                 style="text-align: right; padding-right: 15px; height: 30px"
               >
                 TOTAL CLIENTS :
@@ -508,6 +516,12 @@
                   style="color: #007bff; margin-right: 15px"
                   >0.00 €</span
                 >
+                TOTAL IC-CLIENTS :
+                <span
+                  id="total-price-IC-client"
+                  style="color: #007bff; margin-right: 15px"
+                  >0.00 €</span
+                >
                 TOTAL AFFRÉTÉS :
                 <span
                   id="total-price-affrete"
@@ -515,7 +529,13 @@
                   >0.00 €</span
                 >
                 TOTAL SUPPLÉMENTS-AFFRETES :
-                <span id="total-price-supplement-affrete" style="color: #dc3545"
+                <span
+                  id="total-price-supplement-affrete"
+                  style="color: #dc3545; margin-right: 15px"
+                  >0.00 €</span
+                >
+                TOTAL IC-AFFRETES :
+                <span id="total-price-IC-affrete" style="color: #dc3545"
                   >0.00 €</span
                 >
               </td>
@@ -665,10 +685,22 @@
         const groupeData = transportConfigGroup[groupeNom];
         if (groupeData && groupeData[matosNom]) {
           const base = parseFloat(groupeData[matosNom].tarif) || 0;
+
+          return base;
+        }
+        return 0;
+      }
+
+      function getICClient(clientNom, matosNom) {
+        const groupeNom = transportConfigClient[clientNom];
+        if (!groupeNom) return 0;
+
+        const groupeData = transportConfigGroup[groupeNom];
+        if (groupeData && groupeData[matosNom]) {
+          const tarif = parseFloat(groupeData[matosNom].tarif) || 0;
           const indice = parseFloat(groupeData[matosNom].indice) || 0;
 
-          // Formule : Prix de base + (Prix de base * pourcentage indice)
-          return base * (1 + indice / 100);
+          return tarif * indice;
         }
         return 0;
       }
@@ -1071,6 +1103,8 @@
 
         const cellTarifClient = tr.querySelector(".cell-tarif");
         const cellTarifAffrete = tr.querySelector(".cell-tarif-affrete");
+        const cellICClient = tr.querySelector(".cell-IC-client");
+        const cellICAffrete = tr.querySelector(".cell-IC-affrete");
 
         // ----- TARIF CLIENT -----
         if (client && matos) {
@@ -1078,6 +1112,13 @@
           cellTarifClient.textContent = prixFinal.toFixed(2) + " €";
         } else {
           cellTarifClient.textContent = "0.00 €";
+        }
+
+        if (client && matos) {
+          const prixFinal = getICClient(client, matos);
+          cellICClient.textContent = prixFinal.toFixed(2) + " €";
+        } else {
+          cellICClient.textContent = "0.00 €";
         }
 
         // ----- TARIF AFFRÉTÉ -----
@@ -1089,13 +1130,28 @@
         ) {
           const base =
             parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
-          const indice =
-            parseFloat(transportConfigAssocie[associe][matos].indice) || 0;
 
-          const total = base * (1 + indice / 100);
+          const total = base;
           cellTarifAffrete.textContent = total.toFixed(2) + " €";
         } else {
           cellTarifAffrete.textContent = "0.00 €";
+        }
+
+        if (
+          associe &&
+          matos &&
+          transportConfigAssocie[associe] &&
+          transportConfigAssocie[associe][matos]
+        ) {
+          const tarif =
+            parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
+          const indice =
+            parseFloat(transportConfigAssocie[associe][matos].indice) || 0;
+
+          const total = tarif * indice;
+          cellICAffrete.textContent = total.toFixed(2) + " €";
+        } else {
+          cellICAffrete.textContent = "0.00 €";
         }
 
         saveCurrentDay();
@@ -1360,10 +1416,23 @@
           total.toFixed(2) + " €";
       }
 
-      function calculerTotalAffrete() {
+      function calculerTotalIC_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
           const content = tr.cells[14].textContent
+            .replace(/[€\s]/g, "")
+            .replace(",", ".");
+          const val = parseFloat(content);
+          if (!isNaN(val)) total += val;
+        });
+        document.getElementById("total-price-IC-client").textContent =
+          total.toFixed(2) + " €";
+      }
+
+      function calculerTotalAffrete() {
+        let total = 0;
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          const content = tr.cells[15].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -1376,13 +1445,26 @@
       function calculerTotalSupplement_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[15].textContent
+          const content = tr.cells[16].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
           if (!isNaN(val)) total += val;
         });
         document.getElementById("total-price-supplement-affrete").textContent =
+          total.toFixed(2) + " €";
+      }
+
+      function calculerTotalIC_affrete() {
+        let total = 0;
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          const content = tr.cells[17].textContent
+            .replace(/[€\s]/g, "")
+            .replace(",", ".");
+          const val = parseFloat(content);
+          if (!isNaN(val)) total += val;
+        });
+        document.getElementById("total-price-IC-affrete").textContent =
           total.toFixed(2) + " €";
       }
 
@@ -1406,16 +1488,20 @@
             n_bon: tr.cells[11].innerText,
             tarif: tr.cells[12].innerText,
             supplement_client: tr.cells[13].innerText,
-            tarif_affrete: tr.cells[14].innerText,
-            supplement_affrete: tr.cells[15].innerText,
-            commentaire: tr.cells[16].innerText,
+            IC_client: tr.cells[14].innerText,
+            tarif_affrete: tr.cells[15].innerText,
+            supplement_affrete: tr.cells[16].innerText,
+            IC_affrete: tr.cells[17].innerText,
+            commentaire: tr.cells[18].innerText,
           });
         });
         localStorage.setItem("planning_" + date, JSON.stringify(rows));
         calculerTotal();
         calculerTotalSupplement_client();
+        calculerTotalIC_client();
         calculerTotalAffrete();
         calculerTotalSupplement_affrete();
+        calculerTotalIC_affrete();
       }
 
       function appliquerCouleurAssocie(input) {
@@ -1471,6 +1557,9 @@
                       ? data.supplement_client
                       : "0.00 €"
                   }</td>
+                  <td class="cell-IC-client" contenteditable="true" style="padding:4px">${
+                    data && data.IC_client ? data.IC_client : "0.00 €"
+                  }</td>
                   <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${
                     data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"
                   }</td>
@@ -1478,6 +1567,9 @@
                     data && data.supplement_affrete
                       ? data.supplement_affrete
                       : "0.00 €"
+                  }</td>
+                  <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${
+                    data && data.IC_affrete ? data.IC_affrete : "0.00 €"
                   }</td>
                   <td contenteditable="true">${
                     data ? data.commentaire : ""
@@ -1500,8 +1592,10 @@
           appliquerCouleurAssocie(tr.querySelector(".select-associe"));
         calculerTotal();
         calculerTotalSupplement_client();
+        calculerTotalIC_client();
         calculerTotalAffrete();
         calculerTotalSupplement_affrete();
+        calculerTotalIC_affrete();
       }
 
       function copierJournee() {
@@ -1522,9 +1616,11 @@
             n_bon: tr.cells[11].innerText,
             tarif: tr.cells[12].innerText,
             supplement_client: tr.cells[13].innerText,
-            tarif_affrete: tr.cells[14].innerText,
-            supplement_affrete: tr.cells[15].innerText,
-            commentaire: tr.cells[16].innerText,
+            IC_client: tr.cells[14].innerText,
+            tarif_affrete: tr.cells[15].innerText,
+            supplement_affrete: tr.cells[16].innerText,
+            IC_affrete: tr.cells[17].innerText,
+            commentaire: tr.cells[18].innerText,
           });
         });
 
@@ -1605,8 +1701,10 @@
           }
           calculerTotal();
           calculerTotalSupplement_client();
+          calculerTotalIC_client();
           calculerTotalAffrete();
           calculerTotalSupplement_affrete();
+          calculerTotalIC_affrete();
         });
 
         document
@@ -1671,7 +1769,7 @@
                 typeof config === "object" ? config.tarif : config;
               let indice = typeof config === "object" ? config.indice || 0 : 0;
               row.querySelector(".cell-tarif").textContent =
-                (tarifBase * (1 + indice / 100)).toFixed(2) + " €";
+                tarifBase.toFixed(2) + " €";
             }
 
             // Calcul Tarif Affrété (Associé)
@@ -1685,7 +1783,7 @@
               let indiceA =
                 typeof configA === "object" ? configA.indice || 0 : 0;
               row.querySelector(".cell-tarif-affrete").textContent =
-                (tarifBaseA * (1 + indiceA / 100)).toFixed(2) + " €";
+                tarifBaseA.toFixed(2) + " €";
             }
           }
           saveCurrentDay();
@@ -1773,8 +1871,10 @@
               "N° Bon",
               "Tarif",
               "Supplement Client",
+              "IC-client",
               "Tarif Affrété",
               "Supplément-Affrété",
+              "IC-affrete",
               "Commentaire",
             ];
             allRows.push(headers);
@@ -1791,8 +1891,10 @@
 
             let totalClient = 0;
             let totalSupplement_client = 0;
+            let IC_client = 0;
             let totalAffrete = 0;
             let totalSupplement_affrete = 0;
+            let IC_affrete = 0;
 
             keys.forEach((key) => {
               const dayData = JSON.parse(localStorage.getItem(key));
@@ -1807,6 +1909,9 @@
                     .replace(/[€\s]/g, "")
                     .replace(",", ".")
                 );
+                const ICClient = parseFloat(
+                  (row.IC_client || "0").replace(/[€\s]/g, "").replace(",", ".")
+                );
                 const tarifAff = parseFloat(
                   (row.tarif_affrete || "0")
                     .replace(/[€\s]/g, "")
@@ -1817,11 +1922,18 @@
                     .replace(/[€\s]/g, "")
                     .replace(",", ".")
                 );
+                const ICAffrete = parseFloat(
+                  (row.IC_affrete || "0")
+                    .replace(/[€\s]/g, "")
+                    .replace(",", ".")
+                );
 
                 if (!isNaN(tarif)) totalClient += tarif;
                 if (!isNaN(suppClient)) totalSupplement_client += suppClient;
+                if (!isNaN(ICClient)) IC_client += ICClient;
                 if (!isNaN(tarifAff)) totalAffrete += tarifAff;
                 if (!isNaN(suppAff)) totalSupplement_affrete += suppAff;
+                if (!isNaN(ICAffrete)) IC_affrete += ICAffrete;
 
                 const rowData = [
                   dateDay,
@@ -1839,8 +1951,10 @@
                   row.n_bon,
                   tarif || 0,
                   suppClient || 0,
+                  ICClient || 0,
                   tarifAff || 0,
                   suppAff || 0,
+                  ICAffrete || 0,
                   row.commentaire,
                 ];
 
@@ -1871,8 +1985,10 @@
               "TOTAL MOIS :",
               totalClient.toFixed(2) + " €",
               totalSupplement_client.toFixed(2) + " €",
+              IC_client.toFixed(2) + " €",
               totalAffrete.toFixed(2) + " €",
               totalSupplement_affrete.toFixed(2) + " €",
+              IC_affrete.toFixed(2) + " €",
               "",
             ]);
 
