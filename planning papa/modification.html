@@ -6,7 +6,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-      /* --- STYLE (Inchangé) --- */
       * {
         box-sizing: border-box;
       }
@@ -29,21 +28,16 @@
         align-items: center;
         flex-wrap: wrap;
       }
-      /* À ajouter à la fin de votre bloc <style> */
       @media (max-width: 1024px) {
         th,
         td {
-          font-size: 12px; /* Taille minimum pour rester lisible */
+          font-size: 12px;
           height: auto;
           padding: 5px;
         }
-
         #display-date {
           font-size: 1.5rem;
         }
-
-        /* Permet de faire défiler le tableau horizontalement 
-     sur mobile sans casser toute la page */
         .table-container {
           overflow-x: auto;
           display: block;
@@ -266,12 +260,7 @@
         font-size: 1.2em;
       }
       .cell-selected {
-        background-color: rgba(
-          0,
-          123,
-          255,
-          0.2
-        ) !important; /* Bleu clair transparent */
+        background-color: rgba(0, 123, 255, 0.2) !important;
         border: 2px solid #007bff !important;
       }
       .btn-delete {
@@ -568,17 +557,12 @@
 
       const defaultChauffeursList = [];
 
-      // --- LOGIQUE DE SÉLECTION VISUELLE ---
-
       let isMouseDown = false;
-
-      // Quand on appuie sur le bouton de la souris
 
       document
         .getElementById("my-table")
         .addEventListener("mousedown", function (e) {
           isMouseDown = true;
-          // On nettoie la sélection précédente si on ne maintient pas CTRL
           if (!e.ctrlKey) {
             document
               .querySelectorAll(".cell-selected")
@@ -587,8 +571,6 @@
           const td = e.target.closest("td");
           if (td) td.classList.add("cell-selected");
         });
-
-      // Quand on glisse sur les cellules
 
       document
         .getElementById("my-table")
@@ -599,13 +581,9 @@
           }
         });
 
-      // Quand on relâche le bouton
-
       window.addEventListener("mouseup", () => {
         isMouseDown = false;
       });
-
-      // Désélectionner si on clique ailleurs
 
       document.addEventListener("click", function (e) {
         if (!e.target.closest("#my-table")) {
@@ -617,8 +595,6 @@
         }
       });
 
-      // --- GESTION DU CTRL+C POUR LES CELLULES ---
-
       document.addEventListener("copy", function (e) {
         const selectedCells = document.querySelectorAll(".cell-selected");
 
@@ -626,7 +602,6 @@
           let textResult = "";
           let rows = {};
 
-          // On regroupe les cellules par index de ligne pour gérer les retours à la ligne
           selectedCells.forEach((td) => {
             const rowIndex = td.parentElement.rowIndex;
             if (!rows[rowIndex]) rows[rowIndex] = [];
@@ -636,7 +611,6 @@
             rows[rowIndex].push(val);
           });
 
-          // On assemble les lignes avec des tabulations entre les cellules et des sauts de ligne
           textResult = Object.values(rows)
             .map((rowCells) => rowCells.join("\t"))
             .join("\n");
@@ -665,6 +639,10 @@
         JSON.parse(localStorage.getItem("transport_config_materiel")) || {};
       let transportConfigCategorie =
         JSON.parse(localStorage.getItem("transport_config_categorie")) || {};
+      let transportConfigGroupCat =
+        JSON.parse(localStorage.getItem("transportConfigGroupCat")) || {};
+      let transportConfigGroupInfo =
+        JSON.parse(localStorage.getItem("transportConfigGroupInfo")) || {};
 
       function trierDatalist(id) {
         const list = document.getElementById(id);
@@ -698,37 +676,73 @@
         const groupeData = transportConfigGroup[groupeNom];
         if (groupeData && groupeData[matosNom]) {
           const tarif = parseFloat(groupeData[matosNom].tarif) || 0;
-          const indice = parseFloat(groupeData[matosNom].indice) || 0;
+
+          let indice = parseFloat(groupeData[matosNom].indice) || 0;
+
+          if (indice === 0) {
+            const catDuMatos = transportConfigMateriel[matosNom];
+            if (
+              catDuMatos &&
+              transportConfigGroupInfo[groupeNom] &&
+              transportConfigGroupInfo[groupeNom][catDuMatos]
+            ) {
+              indice = parseFloat(
+                transportConfigGroupInfo[groupeNom][catDuMatos]
+              );
+            }
+          }
 
           return tarif * indice;
         }
         return 0;
       }
 
-      // Fonction pour ajouter un matériel à tout le monde d'un coup
+      function getICAffrete(associeNom, matosNom) {
+        if (!associeNom || !matosNom || !transportConfigAssocie[associeNom])
+          return 0;
+
+        const data = transportConfigAssocie[associeNom][matosNom];
+        if (!data) return 0;
+
+        const tarif = parseFloat(data.tarif) || 0;
+
+        let indice = parseFloat(data.indice) || 0;
+
+        if (indice === 0) {
+          const catDuMatos = transportConfigMateriel[matosNom];
+          if (
+            catDuMatos &&
+            transportConfigGroupInfo[associeNom] &&
+            transportConfigGroupInfo[associeNom][catDuMatos]
+          ) {
+            indice = parseFloat(
+              transportConfigGroupInfo[associeNom][catDuMatos]
+            );
+          }
+        }
+
+        return tarif * indice;
+      }
+
       function addGlobalMatos(type) {
-        // 1. Récupérer la valeur selon le bouton cliqué (Client/Groupe ou Associé)
         let inputId =
           type === "client" ? "global-matos-client" : "global-matos-associe";
         let val = document.getElementById(inputId).value.trim().toUpperCase();
 
         if (!val) return;
 
-        // 2. MISE À JOUR DES GROUPES (qui gèrent maintenant les tarifs clients)
         for (let groupName in transportConfigGroup) {
           if (!transportConfigGroup[groupName][val]) {
             transportConfigGroup[groupName][val] = { tarif: 0, indice: 0 };
           }
         }
 
-        // 3. MISE À JOUR DES ASSOCIÉS
         for (let associeName in transportConfigAssocie) {
           if (!transportConfigAssocie[associeName][val]) {
             transportConfigAssocie[associeName][val] = { tarif: 0, indice: 0 };
           }
         }
 
-        // 4. SAUVEGARDE
         localStorage.setItem(
           "transport_config_group",
           JSON.stringify(transportConfigGroup)
@@ -738,31 +752,32 @@
           JSON.stringify(transportConfigAssocie)
         );
 
-        // 5. RECHARGEMENT DES INTERFACES
         document.getElementById(inputId).value = "";
-        renderConfigUI(); // Interface Groupes/Clients
-        renderConfigUI2(); // Interface Associés
-        updateMatosDatalist(); // Liste déroulante planning
-
-        // Notification
-        const sn = document.getElementById("save-notif");
-        sn.textContent = "Matériel " + val + " ajouté partout !";
-        sn.style.display = "inline";
-        setTimeout(() => (sn.style.display = "none"), 2000);
+        renderConfigUI();
+        renderConfigUI2();
+        if (typeof updateMatosDatalist === "function") updateMatosDatalist();
       }
 
       function deleteGlobalMatos(type, matosNom) {
         if (
-          confirm(`Supprimer "${matosNom}" de tous les Groupes et Associés ?`)
+          confirm(
+            `Supprimer définitivement "${matosNom}" de TOUS les Groupes (Clients) et de TOUS les Associés ?`
+          )
         ) {
-          // Supprimer dans les groupes
           for (let g in transportConfigGroup) {
-            delete transportConfigGroup[g][matosNom];
+            if (transportConfigGroup[g][matosNom] !== undefined) {
+              delete transportConfigGroup[g][matosNom];
+            }
           }
 
-          // Supprimer chez les associés
           for (let a in transportConfigAssocie) {
-            delete transportConfigAssocie[a][matosNom];
+            if (transportConfigAssocie[a][matosNom] !== undefined) {
+              delete transportConfigAssocie[a][matosNom];
+            }
+          }
+
+          if (transportConfigMateriel[matosNom]) {
+            delete transportConfigMateriel[matosNom];
           }
 
           localStorage.setItem(
@@ -773,35 +788,45 @@
             "transport_config_associe",
             JSON.stringify(transportConfigAssocie)
           );
+          localStorage.setItem(
+            "transport_config_materiel",
+            JSON.stringify(transportConfigMateriel)
+          );
 
           renderConfigUI();
           renderConfigUI2();
-          updateMatosDatalist();
+          if (typeof updateMatosDatalist === "function") updateMatosDatalist();
+
+          const sn = document.getElementById("save-notif");
+          if (sn) {
+            sn.textContent = `"${matosNom}" supprimé partout.`;
+            sn.style.display = "inline";
+            setTimeout(() => (sn.style.display = "none"), 2000);
+          }
         }
       }
 
       function renderConfigUI() {
         const container = document.getElementById("config-container");
 
-        // --- PARTIE 1 : TARIFS PAR GROUPE ---
         let html = `<h3>Tarifs par Groupe</h3>
-              <table class="config-table">
-                <thead>
-                  <tr>
-                    <th>Groupe</th>
-                    <th>Catégorie</th>
-                    <th>Matériel</th>
-                    <th>Tarif (€)</th>
-                    <th>Indice (%)</th>
-                    <th>Action</th>
-                  </tr>
-                </thead><tbody>`;
+          <table class="config-table">
+            <thead>
+              <tr>
+                <th>Groupe</th>
+                <th>Catégorie</th>
+                <th>Matériel</th>
+                <th>Tarif (€)</th>
+                <th>Indice (%)</th>
+                <th>Action</th>
+              </tr>
+            </thead><tbody>`;
 
         const groups = Object.keys(transportConfigGroup).sort();
         const categorie = Object.keys(transportConfigCategorie).sort();
 
         if (groups.length === 0) {
-          html += `<tr><td colspan="6"><i>Aucun groupe configuré manuellement. Utilisez le bouton "Créer Groupe" pour définir des tarifs spécifiques.</i></td></tr>`;
+          html += `<tr><td colspan="6"><i>Aucun groupe configuré...</i></td></tr>`;
         } else {
           groups.forEach((group) => {
             let matosKeys = Object.keys(transportConfigGroup[group]).sort();
@@ -809,55 +834,100 @@
             if (matosKeys.length === 0) {
               html += `<tr>
                     <td class="group-header"><strong>${group}</strong></td>
-                    <td colspan="3">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
+                    <td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
                   </tr>`;
             } else {
               matosKeys.forEach((matos, index) => {
                 const val = transportConfigGroup[group][matos];
                 const currentCat = transportConfigMateriel[matos] || "";
+
+                let indiceAafficher = val.indice;
+                let isUsingCategory = false;
+
+                if ((!val.indice || val.indice === 0) && currentCat) {
+                  if (
+                    transportConfigGroupInfo[group] &&
+                    transportConfigGroupInfo[group][currentCat]
+                  ) {
+                    indiceAafficher =
+                      transportConfigGroupInfo[group][currentCat];
+                    isUsingCategory = true;
+                  }
+                }
+
                 html += `<tr>
             ${
               index === 0
                 ? `<td rowspan="${matosKeys.length}" class="group-header">
-                     <strong>${group}</strong><br>
-                     <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
-                   </td>`
+                    <strong>${group}</strong><br>
+                    <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
+                    <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+                      <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>
+                      ${categorie
+                        .map((cat) => {
+                          const valIndice =
+                            transportConfigGroupInfo[group] &&
+                            transportConfigGroupInfo[group][cat]
+                              ? transportConfigGroupInfo[group][cat]
+                              : 0;
+                          return `
+                            <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                              <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                                <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
+                              </div>
+                              <input type="number" step="0.01" value="${valIndice}" 
+                                    onchange="updateGroupCatIndice('${group}', '${cat}', this.value)" 
+                                    style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                            </div>
+                          `;
+                        })
+                        .join("")}
+                    </div>
+                  </td>`
                 : ""
             }
             <td style="text-align:left; padding-left:10px;">
-                            <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
-                                <option value="">-- Sans --</option>
-                                ${categorie
-                                  .map(
-                                    (c) =>
-                                      `<option value="${c}" ${
-                                        currentCat === c ? "selected" : ""
-                                      }>${c}</option>`
-                                  )
-                                  .join("")}
-                            </select>
-                            <br>
-                        </td>
+                <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
+                    <option value="">-- Sans --</option>
+                    ${categorie
+                      .map(
+                        (c) =>
+                          `<option value="${c}" ${
+                            currentCat === c ? "selected" : ""
+                          }>${c}</option>`
+                      )
+                      .join("")}
+                </select>
+            </td>
             <td>${matos}</td>
             <td>
               <input type="number" step="0.01" value="${val.tarif}"
                 onchange="updateGroupPrice('${group}', '${matos}', this.value)"
-                style="width:100%;"></td>
-            <td>
-              <input type="number" step="0.01" value="${val.indice}"
-                onchange="updateGroupIndice('${group}', '${matos}', this.value)"
                 style="width:100%;">
-            </td><td>
-                    <button class="del-matos-btn" title="Supprimer partout" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
-                  </td>
+            </td>
+            <td>
+              <input type="number" step="0.01" 
+                value="${indiceAafficher}" 
+                placeholder="${isUsingCategory ? "Hérité" : ""}"
+                onchange="updateGroupIndice('${group}', '${matos}', this.value)"
+                style="width:100%; ${
+                  isUsingCategory
+                    ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
+                    : "font-weight: bold;"
+                }">
+            </td>
+            <td>
+                <button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
+            </td>
           </tr>`;
               });
             }
           });
         }
+
         html += `</tbody></table>`;
 
-        // --- PARTIE 2 : ASSIGNATION DES CLIENTS ---
         html += `<h3 style="margin-top:30px;">Assignation des Clients</h3>
            <table class="config-table">
              <thead>
@@ -869,36 +939,56 @@
              </thead><tbody>`;
 
         const clients = Object.keys(transportConfigClient).sort();
-
         if (clients.length === 0) {
-          html += `<tr><td colspan="3"><i>Aucun client configuré manuellement. Utilisez le bouton "Créer Client" pour définir des tarifs spécifiques.</i></td></tr>`;
+          html += `<tr><td colspan="3"><i>Aucun client configuré.</i></td></tr>`;
         } else {
           clients.forEach((client) => {
             const assignedGroup = transportConfigClient[client];
             html += `<tr>
-        <td><strong>${client}</strong></td>
-        <td>
-          <select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;">
-            <option value="">-- Aucun groupe --</option>
-            ${groups
-              .map(
-                (g) => `
-              <option value="${g}" ${
-                  assignedGroup === g ? "selected" : ""
-                }>${g}</option>
-            `
-              )
-              .join("")}
-          </select>
-        </td>
-        <td>
-          <button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button>
-        </td>
-      </tr>`;
+                <td><strong>${client}</strong></td>
+                <td>
+                  <select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;">
+                    <option value="">-- Aucun groupe --</option>
+                    ${groups
+                      .map(
+                        (g) =>
+                          `<option value="${g}" ${
+                            assignedGroup === g ? "selected" : ""
+                          }>${g}</option>`
+                      )
+                      .join("")}
+                  </select>
+                </td>
+                <td><button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button></td>
+              </tr>`;
           });
         }
 
         container.innerHTML = html + `</tbody></table>`;
+      }
+
+      function updateGroupCatIndice(group, cat, value) {
+        if (!transportConfigGroupInfo[group]) {
+          transportConfigGroupInfo[group] = {};
+        }
+
+        transportConfigGroupInfo[group][cat] = parseFloat(value) || 0;
+
+        localStorage.setItem(
+          "transportConfigGroupInfo",
+          JSON.stringify(transportConfigGroupInfo)
+        );
+
+        renderConfigUI();
+        renderConfigUI2();
+        refreshAllPlanningTarifs();
+
+        const sn = document.getElementById("save-notif");
+        if (sn) {
+          sn.textContent = `Indice ${cat} mis à jour pour ${group}`;
+          sn.style.display = "inline";
+          setTimeout(() => (sn.style.display = "none"), 1500);
+        }
       }
 
       function updateGroupPrice(group, matos, price) {
@@ -910,6 +1000,7 @@
           "transport_config_group",
           JSON.stringify(transportConfigGroup)
         );
+        refreshAllPlanningTarifs();
       }
 
       function updateGroupIndice(group, matos, indice) {
@@ -921,6 +1012,80 @@
           "transport_config_group",
           JSON.stringify(transportConfigGroup)
         );
+        refreshAllPlanningTarifs();
+      }
+
+      function deleteCategorie(catNom) {
+        if (
+          confirm(
+            `Voulez-vous vraiment supprimer la catégorie "${catNom}" ?\n(Les matériels n'auront plus de catégorie assignée).`
+          )
+        ) {
+          delete transportConfigCategorie[catNom];
+          localStorage.setItem(
+            "transport_config_categorie",
+            JSON.stringify(transportConfigCategorie)
+          );
+
+          for (let group in transportConfigGroupInfo) {
+            if (transportConfigGroupInfo[group][catNom] !== undefined) {
+              delete transportConfigGroupInfo[group][catNom];
+            }
+          }
+          localStorage.setItem(
+            "transportConfigGroupInfo",
+            JSON.stringify(transportConfigGroupInfo)
+          );
+
+          for (let matos in transportConfigMateriel) {
+            if (transportConfigMateriel[matos] === catNom) {
+              transportConfigMateriel[matos] = "";
+            }
+          }
+          localStorage.setItem(
+            "transport_config_materiel",
+            JSON.stringify(transportConfigMateriel)
+          );
+
+          renderConfigUI();
+          renderConfigUI2();
+
+          if (typeof renderCategorieManager === "function")
+            renderCategorieManager();
+
+          const sn = document.getElementById("save-notif");
+          if (sn) {
+            sn.textContent = `Catégorie "${catNom}" supprimée.`;
+            sn.style.display = "inline";
+            setTimeout(() => (sn.style.display = "none"), 2000);
+          }
+        }
+      }
+
+      function renderCategorieManager() {
+        const container = document.getElementById(
+          "categorie-manager-container"
+        );
+        if (!container) return;
+
+        const cats = Object.keys(transportConfigCategorie).sort();
+
+        let html = `<h3>Gestion des Catégories</h3>
+                <ul style="list-style: none; padding: 0; max-width: 400px;">`;
+
+        cats.forEach((cat) => {
+          html += `
+            <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;">
+                <span>${cat}</span>
+                <button onclick="deleteCategorie('${cat}')" 
+                        style="color: white; background: #dc3545; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+                    Supprimer
+                </button>
+            </li>`;
+        });
+
+        html += `</ul>`;
+        container.innerHTML = html;
       }
 
       function updateConfigValue(c, m, f, v) {
@@ -931,7 +1096,6 @@
         transportConfigClient[c][m][f] = parseFloat(v) || 0;
       }
 
-      // Créer un client qui pointe vers un groupe
       function addNewClient() {
         const name = document
           .getElementById("new-client-name")
@@ -939,7 +1103,7 @@
           .toUpperCase();
         if (!name || transportConfigClient[name]) return;
 
-        transportConfigClient[name] = ""; // Client créé sans groupe par défaut
+        transportConfigClient[name] = "";
 
         localStorage.setItem(
           "transport_config_client",
@@ -961,7 +1125,6 @@
         }
       }
 
-      // Créer un groupe avec les matériels par défaut
       function addNewGroup() {
         const name = document
           .getElementById("new-group-name")
@@ -974,31 +1137,26 @@
           return;
         }
 
-        // 1. Créer une liste de TOUS les matériels existants (comme dans addNewClient2)
         const fullMatosList = new Set(defaultMatosList);
 
-        // On scanne les groupes existants pour récupérer les matériels ajoutés globalement
         for (let group in transportConfigGroup) {
           Object.keys(transportConfigGroup[group]).forEach((m) =>
             fullMatosList.add(m)
           );
         }
 
-        // On scanne aussi les associés au cas où
         for (let associe in transportConfigAssocie) {
           Object.keys(transportConfigAssocie[associe]).forEach((m) =>
             fullMatosList.add(m)
           );
         }
 
-        // 2. Initialisation du groupe avec TOUTE cette liste complète
         transportConfigGroup[name] = {};
 
         fullMatosList.forEach((m) => {
           transportConfigGroup[name][m] = { tarif: 0, indice: 0 };
         });
 
-        // 3. Sauvegarde
         localStorage.setItem(
           "transport_config_group",
           JSON.stringify(transportConfigGroup)
@@ -1017,7 +1175,6 @@
       function deleteGroup(name) {
         if (confirm(`Supprimer le groupe "${name}" ?`)) {
           delete transportConfigGroup[name];
-          // On nettoie les clients qui étaient dans ce groupe
           for (let c in transportConfigClient) {
             if (transportConfigClient[c] === name)
               transportConfigClient[c] = "";
@@ -1090,10 +1247,17 @@
           "transport_config_materiel",
           JSON.stringify(transportConfigMateriel)
         );
+
+        renderConfigUI();
+        renderConfigUI2();
+        refreshAllPlanningTarifs();
+
         const sn = document.getElementById("save-notif");
-        sn.textContent = "Matériel assigné à la catégorie !";
-        sn.style.display = "inline";
-        setTimeout(() => (sn.style.display = "none"), 2000);
+        if (sn) {
+          sn.textContent = "Catégorie mise à jour !";
+          sn.style.display = "inline";
+          setTimeout(() => (sn.style.display = "none"), 2000);
+        }
       }
 
       function updateRowTarif(tr) {
@@ -1106,22 +1270,16 @@
         const cellICClient = tr.querySelector(".cell-IC-client");
         const cellICAffrete = tr.querySelector(".cell-IC-affrete");
 
-        // ----- TARIF CLIENT -----
         if (client && matos) {
-          const prixFinal = getTarifClient(client, matos);
-          cellTarifClient.textContent = prixFinal.toFixed(2) + " €";
+          cellTarifClient.textContent =
+            getTarifClient(client, matos).toFixed(2) + " €";
+          cellICClient.textContent =
+            getICClient(client, matos).toFixed(2) + " €";
         } else {
           cellTarifClient.textContent = "0.00 €";
-        }
-
-        if (client && matos) {
-          const prixFinal = getICClient(client, matos);
-          cellICClient.textContent = prixFinal.toFixed(2) + " €";
-        } else {
           cellICClient.textContent = "0.00 €";
         }
 
-        // ----- TARIF AFFRÉTÉ -----
         if (
           associe &&
           matos &&
@@ -1130,26 +1288,14 @@
         ) {
           const base =
             parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
-
-          const total = base;
-          cellTarifAffrete.textContent = total.toFixed(2) + " €";
+          cellTarifAffrete.textContent = base.toFixed(2) + " €";
         } else {
           cellTarifAffrete.textContent = "0.00 €";
         }
 
-        if (
-          associe &&
-          matos &&
-          transportConfigAssocie[associe] &&
-          transportConfigAssocie[associe][matos]
-        ) {
-          const tarif =
-            parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
-          const indice =
-            parseFloat(transportConfigAssocie[associe][matos].indice) || 0;
-
-          const total = tarif * indice;
-          cellICAffrete.textContent = total.toFixed(2) + " €";
+        if (associe && matos) {
+          const montantIC = getICAffrete(associe, matos);
+          cellICAffrete.textContent = montantIC.toFixed(2) + " €";
         } else {
           cellICAffrete.textContent = "0.00 €";
         }
@@ -1157,25 +1303,31 @@
         saveCurrentDay();
       }
 
+      function refreshAllPlanningTarifs() {
+        const rows = document.querySelectorAll("#my-table tr");
+        rows.forEach((tr, index) => {
+          if (tr.querySelector(".select-client")) {
+            updateRowTarif(tr);
+          }
+        });
+      }
+
       function renderConfigUI2() {
         const container = document.getElementById("config-container-2");
         const associeListDatalist = document.getElementById("list-associe");
         associeListDatalist.innerHTML = "";
 
-        // On crée un Set pour mélanger les associés par défaut et ceux créés par l'utilisateur sans doublons
         const allAssocies = new Set([
           ...defaultAssociesList,
           ...Object.keys(transportConfigAssocie),
         ]);
 
-        // On remplit la liste déroulante du planning
         Array.from(allAssocies)
           .sort()
           .forEach((name) => {
             associeListDatalist.innerHTML += `<option value="${name}">`;
           });
 
-        // Construction du tableau de gestion
         let html = `<table class="config-table"><thead><tr><th>Associé</th><th>Catégorie</th><th>Matériel</th><th>Tarif (€)</th><th>Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
 
         const sortedEntries = Object.keys(transportConfigAssocie).sort();
@@ -1186,43 +1338,96 @@
         } else {
           sortedEntries.forEach((entry) => {
             let keys = Object.keys(transportConfigAssocie[entry]).sort();
+            const categories = Object.keys(transportConfigCategorie).sort();
+
             if (keys.length === 0) {
-              html += `<tr><td class="client-header">${entry}</td><td colspan="3"><i>Aucun matériel</i></td><td><button onclick="deleteEntry2('${entry}')" class="btn-delete">Supprimer</button></td></tr>`;
+              html += `<tr><td class="client-header">${entry}</td><td colspan="5"><i>Aucun matériel</i> - <button onclick="deleteEntry2('${entry}')" class="btn-delete">Supprimer</button></td></tr>`;
             } else {
               keys.forEach((k, index) => {
                 const val = transportConfigAssocie[entry][k];
-                html += `<tr>${
-                  index === 0
-                    ? `<td rowspan="${keys.length}" class="client-header"><strong>${entry}</strong><br><button class="btn btn-reset" style="padding:2px 5px; font-size:10px; margin-top:5px;" onclick="deleteEntry2('${entry}')">Suppr. Associé</button></td>`
-                    : ""
-                }
-                  <td style="text-align:left; padding-left:10px;">
-  <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
-    <option value="">-- Sans --</option>
-    ${categories
-      .map(
-        (c) =>
-          `<option value="${c}" ${
-            (transportConfigMateriel[k] || "") === c ? "selected" : ""
-          }>${c}</option>`
-      )
-      .join("")}
-  </select>
-</td>
+                const currentCat = transportConfigMateriel[k] || "";
 
-                  <td>${k}</td>
-                  <td><input type="number" step="0.01" value="${
-                    val.tarif || 0
-                  }" onchange="transportConfigAssocie['${entry}']['${k}'].tarif = parseFloat(this.value) || 0; localStorage.setItem('transport_config_associe', JSON.stringify(transportConfigAssocie));" style="width:100%;"></td>
-                  <td><input type="number" step="0.01" value="${
-                    val.indice || 0
-                  }" onchange="transportConfigAssocie['${entry}']['${k}'].indice = parseFloat(this.value) || 0; localStorage.setItem('transport_config_associe', JSON.stringify(transportConfigAssocie));" style="width:100%;"></td>
-                  <td>
-                    <button class="del-matos-btn" title="Supprimer partout" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
-                  </td></tr>`;
+                let indiceAafficher = val.indice || 0;
+                let isUsingCategory = false;
+
+                if ((!val.indice || val.indice === 0) && currentCat) {
+                  if (
+                    transportConfigGroupInfo[entry] &&
+                    transportConfigGroupInfo[entry][currentCat]
+                  ) {
+                    indiceAafficher =
+                      transportConfigGroupInfo[entry][currentCat];
+                    isUsingCategory = true;
+                  }
+                }
+
+                html += `<tr>
+              ${
+                index === 0
+                  ? `
+                <td rowspan="${keys.length}" class="group-header">
+                  <strong>${entry}</strong><br>
+                  <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
+                  
+                  <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+  <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
+  ${categories
+    .map((cat) => {
+      const valIndice =
+        transportConfigGroupInfo[entry] && transportConfigGroupInfo[entry][cat]
+          ? transportConfigGroupInfo[entry][cat]
+          : 0;
+      return `
+      <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+          <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px; font-weight:bold;">X</button>
+        </div>
+        <input type="number" step="0.01" value="${valIndice}" 
+               onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)" 
+               style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+      </div>`;
+    })
+    .join("")}
+</div>
+                </td>`
+                  : ""
+              }
+              <td style="text-align:left; padding-left:10px;">
+                <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
+                  <option value="">-- Sans --</option>
+                  ${categories
+                    .map(
+                      (c) =>
+                        `<option value="${c}" ${
+                          currentCat === c ? "selected" : ""
+                        }>${c}</option>`
+                    )
+                    .join("")}
+                </select>
+              </td>
+              <td>${k}</td>
+              <td>
+                <input type="number" step="0.01" value="${val.tarif || 0}" 
+                       onchange="transportConfigAssocie['${entry}']['${k}'].tarif = parseFloat(this.value) || 0; localStorage.setItem('transport_config_associe', JSON.stringify(transportConfigAssocie)); refreshAllPlanningTarifs();" 
+                       style="width:100%;">
+              </td>
+              <td>
+                <input type="number" step="0.01" value="${indiceAafficher}" 
+                       placeholder="${isUsingCategory ? "Hérité" : ""}"
+                       onchange="transportConfigAssocie['${entry}']['${k}'].indice = parseFloat(this.value) || 0; localStorage.setItem('transport_config_associe', JSON.stringify(transportConfigAssocie)); renderConfigUI2(); refreshAllPlanningTarifs();" 
+                       style="width:100%; ${
+                         isUsingCategory
+                           ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
+                           : "font-weight: bold;"
+                       }">
+              </td>
+              <td>
+                <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
+              </td>
+            </tr>`;
               });
             }
-            html += `<tr style="height: 20px; border:none; background: transparent;"><td colspan="5" style="border:none;"></td></tr>`;
           });
         }
 
@@ -1237,24 +1442,20 @@
           .toUpperCase();
         if (!name || transportConfigAssocie[name]) return;
 
-        // 1. Créer la liste complète et unique des matériels existants
         const fullMatosList = new Set(defaultMatosList);
 
-        // On ajoute aussi tous les matériels déjà présents dans les Groupes
         for (let group in transportConfigGroup) {
           Object.keys(transportConfigGroup[group]).forEach((m) =>
             fullMatosList.add(m)
           );
         }
 
-        // On ajoute aussi les matériels des autres associés au cas où
         for (let associe in transportConfigAssocie) {
           Object.keys(transportConfigAssocie[associe]).forEach((m) =>
             fullMatosList.add(m)
           );
         }
 
-        // 2. Initialiser le nouvel associé avec TOUTE cette liste
         transportConfigAssocie[name] = {};
         fullMatosList.forEach((m) => {
           transportConfigAssocie[name][m] = { tarif: 0, indice: 0 };
@@ -1266,7 +1467,7 @@
         );
         document.getElementById("new-config2-name").value = "";
         renderConfigUI2();
-        updateMatosDatalist(); // Mise à jour des listes du planning
+        updateMatosDatalist();
       }
 
       function deleteEntry2(e) {
@@ -1285,20 +1486,17 @@
         const chauffeurListDatalist = document.getElementById("list-chauffeur");
         chauffeurListDatalist.innerHTML = "";
 
-        // On crée un Set pour mélanger les chauffeurs par défaut et ceux créés par l'utilisateur sans doublons
         const allChauffeurs = new Set([
           ...defaultChauffeursList,
           ...Object.keys(transportConfigChauffeur),
         ]);
 
-        // On remplit la liste déroulante du planning
         Array.from(allChauffeurs)
           .sort()
           .forEach((name) => {
             chauffeurListDatalist.innerHTML += `<option value="${name}">`;
           });
 
-        // Construction du tableau de gestion
         let html = `<table class="config-table"><thead><tr><th>Chauffeur</th><th>Actions</th></tr></thead><tbody>`;
 
         const sortedEntries = Object.keys(transportConfigChauffeur).sort();
@@ -1347,18 +1545,15 @@
       }
 
       function updateMatosDatalist() {
-        // 1. Liste des VÉHICULES (Matériels)
         const listVehicule = document.getElementById("list-vehicule");
         if (listVehicule) {
           const uniqueMatos = new Set(defaultMatosList);
 
-          // Ajout depuis les Groupes
           for (let group in transportConfigGroup) {
             Object.keys(transportConfigGroup[group]).forEach((m) =>
               uniqueMatos.add(m)
             );
           }
-          // Ajout depuis les Associés
           for (let associe in transportConfigAssocie) {
             Object.keys(transportConfigAssocie[associe]).forEach((m) =>
               uniqueMatos.add(m)
@@ -1375,11 +1570,9 @@
             });
         }
 
-        // 2. Liste des CLIENTS
         const listClient = document.getElementById("list-client");
         if (listClient) {
           listClient.innerHTML = "";
-          // On récupère les noms des clients configurés
           Object.keys(transportConfigClient)
             .sort()
             .forEach((c) => {
@@ -1653,25 +1846,22 @@
         );
 
         data.forEach((row) => {
-          row.date = dateFormatee; // 🔁 Mise à jour automatique de la date
+          row.date = dateFormatee;
           ajouterLigne(row);
         });
 
         saveCurrentDay();
       }
 
-      // --- INITIALISATION ---
       document.addEventListener("DOMContentLoaded", function () {
         const datePicker = document.getElementById("current-date-picker");
         const displayDate = document.getElementById("display-date");
 
-        // 1. Définir la date par défaut (aujourd'hui)
         const aujourdhui = new Date().toISOString().split("T")[0];
         datePicker.value = aujourdhui;
         displayDate.textContent =
           "Planning du " + new Date(aujourdhui).toLocaleDateString("fr-FR");
 
-        // 2. Charger les outils
         updateMatosDatalist();
         trierDatalist("list-associe");
         trierDatalist("list-chauffeur");
@@ -1679,7 +1869,6 @@
         renderConfigUI2();
         renderConfigUIChauffeur();
 
-        // 3. Charger le planning du jour
         const saved = localStorage.getItem("planning_" + aujourdhui);
         if (saved && JSON.parse(saved).length > 0) {
           JSON.parse(saved).forEach(ajouterLigne);
@@ -1687,7 +1876,6 @@
           ajouterLigne();
         }
 
-        // 4. Événements
         datePicker.addEventListener("change", function () {
           const nouvelleDate = this.value;
           displayDate.textContent =
@@ -1759,7 +1947,6 @@
             const veh = row.querySelector(".select-vehicule").value;
             const associe = row.querySelector(".select-associe").value;
 
-            // Calcul Tarif Client
             if (
               transportConfigClient[client] &&
               transportConfigClient[client][veh]
@@ -1772,7 +1959,6 @@
                 tarifBase.toFixed(2) + " €";
             }
 
-            // Calcul Tarif Affrété (Associé)
             if (
               transportConfigAssocie[associe] &&
               transportConfigAssocie[associe][veh]
@@ -1849,12 +2035,10 @@
               return;
             }
 
-            // 1. Déterminer le préfixe du mois (ex: "planning_2025-01")
             const monthPrefix = "planning_" + datePicker.substring(0, 7);
             const workbook = XLSX.utils.book_new();
             const allRows = [];
 
-            // 2. Définir les entêtes
             const headers = [
               "Date Planning",
               "Associé",
@@ -1879,7 +2063,6 @@
             ];
             allRows.push(headers);
 
-            // 3. Récupérer toutes les clés du localStorage et les trier
             const keys = [];
             for (let i = 0; i < localStorage.length; i++) {
               const key = localStorage.key(i);
@@ -1887,7 +2070,7 @@
                 keys.push(key);
               }
             }
-            keys.sort(); // Tri par date (planning_2025-01-01, 01-02, etc.)
+            keys.sort();
 
             let totalClient = 0;
             let totalSupplement_client = 0;
@@ -1898,7 +2081,7 @@
 
             keys.forEach((key) => {
               const dayData = JSON.parse(localStorage.getItem(key));
-              const dateDay = key.replace("planning_", ""); // YYYY-MM-DD
+              const dateDay = key.replace("planning_", "");
 
               dayData.forEach((row) => {
                 const tarif = parseFloat(
@@ -1967,7 +2150,6 @@
               return;
             }
 
-            // 5. Ajouter une ligne de total à la fin
             allRows.push([]);
             allRows.push([
               "",
@@ -1992,10 +2174,8 @@
               "",
             ]);
 
-            // 6. Génération du fichier
             const worksheet = XLSX.utils.aoa_to_sheet(allRows);
-            // Forcer l'affichage à 2 décimales dans Excel
-            const moneyCols = [13, 14, 15, 16]; // colonnes monétaires (0-based)
+            const moneyCols = [13, 14, 15, 16];
 
             for (let R = 1; R < allRows.length; R++) {
               moneyCols.forEach((C) => {
@@ -2004,15 +2184,14 @@
                   worksheet[cellRef] &&
                   typeof worksheet[cellRef].v === "number"
                 ) {
-                  worksheet[cellRef].t = "n"; // type nombre
-                  worksheet[cellRef].z = "0.00"; // FORCE 2 décimales
+                  worksheet[cellRef].t = "n";
+                  worksheet[cellRef].z = "0.00";
                 }
               });
             }
 
             XLSX.utils.book_append_sheet(workbook, worksheet, "Export Mensuel");
 
-            // Nom de fichier dynamique : Transport_2025-01.xlsx
             XLSX.writeFile(
               workbook,
               `Transport_${datePicker.substring(0, 7)}.xlsx`
@@ -2026,19 +2205,6 @@
         <strong style="display: block; margin-bottom: -5px">Note :</strong>
 
         <ul style="margin-top: 0; padding-left: 20px">
-          <li>
-            <i
-              style="
-                margin-bottom: 2px;
-                text-transform: uppercase;
-                color: #000;
-                font-weight: bold;
-              "
-              >Pensez à d'abord configurer tous les paramètres avant de rentrer
-              une information dans le planning.</i
-            >
-          </li>
-
           <li style="margin-bottom: 2px">
             <i>Cliquez dans les cases blanches pour saisir vos informations.</i>
           </li>
