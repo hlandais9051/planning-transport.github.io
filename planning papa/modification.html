@@ -1271,13 +1271,26 @@
         const cellICAffrete = tr.querySelector(".cell-IC-affrete");
 
         if (client && matos) {
-          cellTarifClient.textContent =
-            getTarifClient(client, matos).toFixed(2) + " €";
-          cellICClient.textContent =
-            getICClient(client, matos).toFixed(2) + " €";
+          const tarifC = getTarifClient(client, matos);
+          const icC = getICClient(client, matos);
+
+          cellTarifClient.textContent = tarifC.toFixed(2) + " €";
+          cellICClient.textContent = icC.toFixed(2) + " €";
+
+          if (icC > 0) {
+            cellICClient.style.color = "#28a745";
+            cellICClient.style.fontWeight = "bold";
+          } else if (icC < 0) {
+            cellICClient.style.color = "#dc3545";
+            cellICClient.style.fontWeight = "bold";
+          } else {
+            cellICClient.style.color = "#95a5a6";
+            cellICClient.style.fontWeight = "normal";
+          }
         } else {
           cellTarifClient.textContent = "0.00 €";
           cellICClient.textContent = "0.00 €";
+          cellICClient.style.color = "";
         }
 
         if (
@@ -1294,13 +1307,41 @@
         }
 
         if (associe && matos) {
-          const montantIC = getICAffrete(associe, matos);
-          cellICAffrete.textContent = montantIC.toFixed(2) + " €";
+          const icA = getICAffrete(associe, matos);
+          cellICAffrete.textContent = icA.toFixed(2) + " €";
+
+          if (icA > 0) {
+            cellICAffrete.style.color = "#28a745";
+            cellICAffrete.style.fontWeight = "bold";
+          } else if (icA < 0) {
+            cellICAffrete.style.color = "#dc3545";
+            cellICAffrete.style.fontWeight = "bold";
+          } else {
+            cellICAffrete.style.color = "#95a5a6";
+            cellICAffrete.style.fontWeight = "normal";
+          }
         } else {
           cellICAffrete.textContent = "0.00 €";
+          cellICAffrete.style.color = "";
         }
 
         saveCurrentDay();
+      }
+
+      function updateRowHighlight(tr) {
+        const bonCell = tr.querySelector(".cell-bon");
+        if (!bonCell) return;
+
+        const hasBon = bonCell.textContent.trim() !== "";
+        const cells = tr.querySelectorAll("td");
+
+        cells.forEach((td) => {
+          const isAssocieCell = td.querySelector(".select-associe");
+
+          if (!isAssocieCell) {
+            td.style.backgroundColor = hasBon ? "#d4edda" : "";
+          }
+        });
       }
 
       function refreshAllPlanningTarifs() {
@@ -1741,7 +1782,9 @@
                   }"></td>
                   <td contenteditable="true">${data ? data.n_commande : ""}</td>
                   <td contenteditable="true">${data ? data.n_chantier : ""}</td>
-                  <td contenteditable="true">${data ? data.n_bon : ""}</td>
+                  <td class="cell-bon" contenteditable="true">${
+                    data ? data.n_bon : ""
+                  }</td>                  
                   <td class="cell-tarif" contenteditable="true" style="padding:4px">${
                     data && data.tarif ? data.tarif : "0.00 €"
                   }</td>
@@ -1771,6 +1814,9 @@
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
           cell.addEventListener("input", () => {
             saveCurrentDay();
+            if (cell.classList.contains("cell-bon")) {
+              updateRowHighlight(tr);
+            }
           });
         });
         tr.querySelectorAll(".combo-input").forEach((input) => {
@@ -1789,6 +1835,7 @@
         calculerTotalAffrete();
         calculerTotalSupplement_affrete();
         calculerTotalIC_affrete();
+        updateRowHighlight(tr);
       }
 
       function copierJournee() {
