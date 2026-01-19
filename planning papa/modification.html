@@ -461,6 +461,43 @@
     <div id="capture-area">
       <h2 id="display-date">Planning du ...</h2>
       <div class="table-container">
+        <div
+          class="search-filters"
+          style="
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+          "
+        >
+          <strong style="margin-right: 10px">Filtres :</strong>
+          <input
+            type="text"
+            id="filter-associe"
+            placeholder="Filtrer par Associé..."
+            oninput="filterTable()"
+            style="
+              padding: 5px;
+              margin-right: 10px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+            "
+          />
+          <input
+            type="text"
+            id="filter-client"
+            placeholder="Filtrer par Client..."
+            oninput="filterTable()"
+            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
+          />
+          <button
+            onclick="resetFilters()"
+            style="margin-left: 10px; padding: 5px 10px; cursor: pointer"
+          >
+            Réinitialiser
+          </button>
+        </div>
         <table id="my-table">
           <thead>
             <tr>
@@ -643,6 +680,43 @@
         JSON.parse(localStorage.getItem("transportConfigGroupCat")) || {};
       let transportConfigGroupInfo =
         JSON.parse(localStorage.getItem("transportConfigGroupInfo")) || {};
+
+      function filterTable() {
+        const associeQuery = document
+          .getElementById("filter-associe")
+          .value.toUpperCase();
+        const clientQuery = document
+          .getElementById("filter-client")
+          .value.toUpperCase();
+        const rows = document.querySelectorAll("#table-body tr");
+
+        rows.forEach((tr) => {
+          // On récupère la valeur des inputs à l'intérieur des cellules
+          const associeVal = tr.querySelector(".select-associe")
+            ? tr.querySelector(".select-associe").value.toUpperCase()
+            : "";
+          const clientVal = tr.querySelector(".select-client")
+            ? tr.querySelector(".select-client").value.toUpperCase()
+            : "";
+
+          // On vérifie si les deux filtres correspondent
+          const matchesAssocie = associeVal.includes(associeQuery);
+          const matchesClient = clientVal.includes(clientQuery);
+
+          // On affiche la ligne seulement si elle valide les deux conditions
+          if (matchesAssocie && matchesClient) {
+            tr.style.display = "";
+          } else {
+            tr.style.display = "none";
+          }
+        });
+      }
+
+      function resetFilters() {
+        document.getElementById("filter-associe").value = "";
+        document.getElementById("filter-client").value = "";
+        filterTable();
+      }
 
       function trierDatalist(id) {
         const list = document.getElementById(id);
@@ -1836,6 +1910,7 @@
         calculerTotalSupplement_affrete();
         calculerTotalIC_affrete();
         updateRowHighlight(tr);
+        filterTable();
       }
 
       function copierJournee() {
