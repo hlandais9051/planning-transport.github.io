@@ -25,19 +25,22 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         display: flex;
         gap: 10px;
-        align-items: flex-start;
+        align-items: stretch;
         flex-wrap: wrap;
+        justify-content: space-between;
       }
       .button-group {
         display: flex;
-        flex-direction: column; /* Boutons l'un au-dessus de l'autre */
+        flex-direction: column;
         gap: 8px;
-        padding: 5px;
+        padding: 10px; /* Un peu plus de confort */
         background: #f8f9fa;
         border: 1px solid #e0e0e0;
         border-radius: 6px;
-        width: auto;
-        min-width: 140px;
+
+        /* MODIFICATIONS ICI */
+        flex: 1 0 180px; /* S'étire (1), ne rétrécit pas (0), base de 180px */
+        max-width: 100%; /* Sécurité pour ne pas déborder */
       }
       .button-group .btn {
         width: 100%; /* Les boutons prennent toute la largeur du groupe */
@@ -54,43 +57,57 @@
         border-bottom: 1px solid #ddd;
         padding-bottom: 3px;
       }
+      /* --- TABLETTE (768px) --- */
       @media (max-width: 768px) {
         .header-tools {
-          flex-direction: row; /* Garde les groupes côte à côte si possible */
+          display: flex;
+          flex-wrap: wrap; /* Permet aux boutons de passer à la ligne */
+          gap: 10px;
           justify-content: center;
         }
         .button-group {
-          flex: 1 1 30%; /* Met deux groupes par ligne */
+          flex: 1 1 calc(50% - 10px); /* Prend 50% de la largeur moins l'écart */
+          display: flex;
+        }
+        .button-group button {
+          width: 100%; /* Le bouton s'étire dans son groupe */
         }
       }
 
-      /* --- RESPONSIVE : Petit écran (Mobiles) --- */
+      /* --- MOBILE (480px) --- */
       @media (max-width: 480px) {
         .header-tools {
-          flex-direction: column; /* Tout en une seule colonne */
+          flex-direction: column;
           align-items: stretch;
         }
         .button-group {
-          flex: 1 1 45%; /* Un groupe par ligne */
+          flex: 1 1 100%; /* Prend toute la largeur de l'écran */
+        }
+        .button-group button {
+          width: 100%;
+          padding: 12px; /* Plus facile à cliquer sur mobile */
+          font-size: 16px;
         }
         .header-tools > div:first-child {
-          text-align: center; /* Centre la sélection de la date */
-          margin-bottom: 10px;
+          text-align: center;
+          margin-bottom: 15px;
+          width: 100%;
         }
       }
-      @media (max-width: 1024px) {
-        th,
-        td {
-          font-size: 12px;
-          height: auto;
-          padding: 5px;
-        }
-        #display-date {
-          font-size: 1.5rem;
-        }
-        .table-container {
-          display: block;
-        }
+      @keyframes clignoter-orange {
+        0% {
+          background-color: #ffc107;
+        } /* Orange normal */
+        50% {
+          background-color: #ffe082;
+        } /* Orange très clair */
+        100% {
+          background-color: #ffc107;
+        } /* Retour à l'orange */
+      }
+      .alerte-doublon {
+        animation: clignoter-orange 0.8s infinite; /* Clignote toutes les 0.8 secondes à l'infini */
+        font-weight: bold;
       }
       .search-filters {
         position: sticky;
@@ -159,7 +176,7 @@
         width: 10%;
       }
       .col-consigne {
-        width: 15%;
+        width: 10%;
       }
       .col-chauffeur {
         width: 10%;
@@ -192,10 +209,10 @@
         width: 10%;
       }
       .col-commentaire {
-        width: 12%;
+        width: 10%;
       }
       .col-actions {
-        width: 4%;
+        width: 8%;
       }
       .matos-cell {
         padding: 0 !important;
@@ -361,16 +378,23 @@
         <button id="reset-day" class="btn btn-reset">Tout supprimer</button>
       </div>
       <div class="button-group">
+        <div class="group-title">Copie</div>
+        <button id="copy-day" class="btn btn-copy-day">Copier journée</button>
+        <button id="paste-day" class="btn btn-paste-day">Coller journée</button>
+      </div>
+      <div class="button-group">
         <div class="group-title">Photo & Export</div>
         <button id="copy-image" class="btn btn-copy-img">
           Copier planning
         </button>
+        <button
+          id="copy-image-client"
+          class="btn"
+          style="background-color: #07cc00"
+        >
+          Copier Planning Client
+        </button>
         <button id="export-excel" class="btn btn-export">Exporter Excel</button>
-      </div>
-      <div class="button-group">
-        <div class="group-title">Copie</div>
-        <button id="copy-day" class="btn btn-copy-day">Copier journée</button>
-        <button id="paste-day" class="btn btn-paste-day">Coller journée</button>
       </div>
       <div class="button-group">
         <div class="group-title">Configurations</div>
@@ -1934,6 +1958,30 @@
         if (val) cell.classList.add("color-" + val.toLowerCase());
       }
 
+      function verifierDoublons() {
+        const lignes = document.querySelectorAll("#table-body tr");
+        const planningChauffeurs = {};
+
+        lignes.forEach((tr) => {
+          const inputChauffeur = tr.querySelector(".select-chauffeur");
+          if (inputChauffeur) inputChauffeur.classList.remove("alerte-doublon");
+        });
+
+        lignes.forEach((tr) => {
+          const inputChauffeur = tr.querySelector(".select-chauffeur");
+
+          const chauffeur = inputChauffeur?.value;
+
+          if (chauffeur && chauffeur.trim() !== "") {
+            if (planningChauffeurs[chauffeur]) {
+              inputChauffeur.classList.add("alerte-doublon");
+              planningChauffeurs[chauffeur].classList.add("alerte-doublon");
+            }
+            planningChauffeurs[chauffeur] = inputChauffeur;
+          }
+        });
+      }
+
       function ajouterLigne(data = null) {
         const tableBody = document.getElementById("table-body");
         const datePicker = document.getElementById("current-date-picker");
@@ -1999,7 +2047,12 @@
                   <td contenteditable="true">${
                     data ? data.commentaire : ""
                   }</td>
-                  <td class="hide-export" style="text-align:center"><button style="color:red; background:none; border:none; cursor:pointer;" onclick="if(confirm('Voulez-vous vraiment supprimer cette ligne ?')){this.closest('tr').remove(); saveCurrentDay();}">×</button></td>`;
+                  <td class="hide-export" style="text-align:center; white-space:nowrap;">
+                      <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px; margin-left: -5px; margin-right:-15px" 
+                              onclick="if(confirm('Voulez-vous vraiment supprimer cette ligne ?')){this.closest('tr').remove(); saveCurrentDay();}">×</button>
+                      <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" 
+                              onclick="dupliquerLigne(this)">📑</button>
+                  </td>`;
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
           cell.addEventListener("input", () => {
             saveCurrentDay();
@@ -2011,6 +2064,7 @@
         tr.querySelectorAll(".combo-input").forEach((input) => {
           input.addEventListener("change", () => {
             saveCurrentDay();
+            verifierDoublons();
             if (input.classList.contains("select-associe")) {
               appliquerCouleurAssocie(input);
               trierPlanningParAssocie();
@@ -2029,6 +2083,48 @@
         updateRowHighlight(tr);
         filterTable();
         trierPlanningParAssocie();
+        verifierDoublons();
+        setTimeout(() => {
+          updateRowTarif(tr);
+        }, 10);
+      }
+
+      function dupliquerLigne(bouton) {
+        const ligne = bouton.closest("tr");
+
+        // On extrait les données de la ligne actuelle
+        const data = {
+          associe: ligne.querySelector(".select-associe").value,
+          matin: ligne.cells[1].innerText,
+          apres: ligne.cells[2].innerText,
+          chantier: ligne.cells[3].innerText,
+          date: ligne.cells[4].innerText,
+          vehicule: ligne.querySelector(".select-vehicule").value,
+          client: ligne.querySelector(".select-client").value,
+          consigne: ligne.cells[7].innerText,
+          chauffeur: ligne.querySelector(".select-chauffeur").value,
+          n_commande: ligne.cells[9].innerText,
+          n_chantier: ligne.cells[10].innerText,
+          n_bon: ligne.cells[11].innerText,
+          tarif: ligne.cells[12].innerText,
+          supplement_client: ligne.cells[13].innerText,
+          IC_client: ligne.cells[14].innerText,
+          tarif_affrete: ligne.cells[15].innerText,
+          supplement_affrete: ligne.cells[16].innerText,
+          IC_affrete: ligne.cells[17].innerText,
+          commentaire: ligne.cells[18].innerText,
+        };
+
+        // On utilise ta fonction existante pour créer la nouvelle ligne avec ces données
+        ajouterLigne(data);
+        const tableBody = document.getElementById("table-body");
+        const nouvelleLigne = tableBody.lastElementChild;
+
+        // 4. On force la mise à jour des prix et des COULEURS
+        updateRowTarif(nouvelleLigne);
+
+        // Sauvegarde automatique
+        saveCurrentDay();
       }
 
       function copierJournee() {
@@ -2242,6 +2338,55 @@
           },
           true,
         );
+
+        document
+          .getElementById("copy-image-client")
+          .addEventListener("click", function () {
+            const table = document.getElementById("my-table");
+            const container = document.querySelector(".table-container");
+
+            // On définit l'index des colonnes (0 = Associé, 12 = Tarif Client)
+            const startCol = 0;
+            const endCol = 12;
+
+            // 1. Masquer temporairement les colonnes inutiles
+            const allRows = table.querySelectorAll("tr");
+            allRows.forEach((row) => {
+              Array.from(row.cells).forEach((cell, index) => {
+                if (index < startCol || index > endCol) {
+                  cell.style.display = "none";
+                }
+              });
+            });
+
+            // 2. Masquer les éléments hors tableau (titres de config, filtres, etc. si nécessaire)
+            // Ici on cible seulement la zone de capture définie dans votre HTML
+            const area = document.getElementById("capture-area");
+
+            // 3. Capturer
+            html2canvas(area, {
+              backgroundColor: "#ffffff",
+              scale: 2, // Meilleure qualité
+              logging: false,
+            }).then((canvas) => {
+              canvas.toBlob((blob) => {
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard.write([item]).then(() => {
+                  const sn = document.getElementById("save-notif");
+                  sn.textContent = "Capture Client copiée !";
+                  sn.style.display = "inline";
+                  setTimeout(() => (sn.style.display = "none"), 2000);
+                });
+              });
+
+              // 4. RÉAFFICHER les colonnes après la capture
+              allRows.forEach((row) => {
+                Array.from(row.cells).forEach((cell) => {
+                  cell.style.display = "";
+                });
+              });
+            });
+          });
 
         document
           .getElementById("copy-image")
