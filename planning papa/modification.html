@@ -25,8 +25,58 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         display: flex;
         gap: 10px;
-        align-items: center;
+        align-items: flex-start;
         flex-wrap: wrap;
+      }
+      .button-group {
+        display: flex;
+        flex-direction: column; /* Boutons l'un au-dessus de l'autre */
+        gap: 8px;
+        padding: 5px;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        width: auto;
+        min-width: 140px;
+      }
+      .button-group .btn {
+        width: 100%; /* Les boutons prennent toute la largeur du groupe */
+        white-space: nowrap; /* Évite que le texte du bouton revienne à la ligne */
+        font-size: 13px;
+        text-align: center;
+      }
+      .group-title {
+        font-size: 0.75rem;
+        font-weight: bold;
+        color: #666;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 3px;
+      }
+      @media (max-width: 768px) {
+        .header-tools {
+          flex-direction: row; /* Garde les groupes côte à côte si possible */
+          justify-content: center;
+        }
+        .button-group {
+          flex: 1 1 30%; /* Met deux groupes par ligne */
+        }
+      }
+
+      /* --- RESPONSIVE : Petit écran (Mobiles) --- */
+      @media (max-width: 480px) {
+        .header-tools {
+          flex-direction: column; /* Tout en une seule colonne */
+          align-items: stretch;
+        }
+        .button-group {
+          flex: 1 1 45%; /* Un groupe par ligne */
+        }
+        .header-tools > div:first-child {
+          text-align: center; /* Centre la sélection de la date */
+          margin-bottom: 10px;
+        }
       }
       @media (max-width: 1024px) {
         th,
@@ -295,34 +345,57 @@
     <datalist id="list-chauffeur"></datalist>
 
     <div class="header-tools">
-      <div>Le : <input type="date" id="current-date-picker" /></div>
-      <button id="add-row" class="btn btn-add">Ajouter une ligne</button>
-      <button id="copy-image" class="btn btn-copy-img">Copier planning</button>
-      <button id="export-excel" class="btn btn-export">Exporter Excel</button>
-      <button id="copy-day" class="btn btn-copy-day">Copier journée</button>
-      <button id="paste-day" class="btn btn-paste-day">Coller journée</button>
-      <button id="toggle-config-client" class="btn btn-config-client">
-        Configuration Clients
-      </button>
-      <button id="toggle-config-associe" class="btn btn-config-associe">
-        Configuration Associés
-      </button>
-      <button id="toggle-config-chauffeur" class="btn btn-config-chauffeur">
-        Configuration Chauffeurs
-      </button>
-      <button id="reset-day" class="btn btn-reset">Tout supprimer</button>
+      <div
+        style="
+          min-width: 100%;
+          margin-bottom: 10px;
+          border-bottom: 1px solid #eee;
+          padding-bottom: 10px;
+        "
+      >
+        <div>Le : <input type="date" id="current-date-picker" /></div>
+      </div>
+      <div class="button-group">
+        <div class="group-title">Lignes</div>
+        <button id="add-row" class="btn btn-add">Ajouter une ligne</button>
+        <button id="reset-day" class="btn btn-reset">Tout supprimer</button>
+      </div>
+      <div class="button-group">
+        <div class="group-title">Photo & Export</div>
+        <button id="copy-image" class="btn btn-copy-img">
+          Copier planning
+        </button>
+        <button id="export-excel" class="btn btn-export">Exporter Excel</button>
+      </div>
+      <div class="button-group">
+        <div class="group-title">Copie</div>
+        <button id="copy-day" class="btn btn-copy-day">Copier journée</button>
+        <button id="paste-day" class="btn btn-paste-day">Coller journée</button>
+      </div>
+      <div class="button-group">
+        <div class="group-title">Configurations</div>
+        <button id="toggle-config-client" class="btn btn-config-client">
+          Configuration Clients
+        </button>
+        <button id="toggle-config-associe" class="btn btn-config-associe">
+          Configuration Associés
+        </button>
+        <button id="toggle-config-chauffeur" class="btn btn-config-chauffeur">
+          Configuration Chauffeurs
+        </button>
+      </div>
       <span id="save-notif" class="save-notif">OK</span>
     </div>
 
     <div id="config-section-client">
       <button
         class="btn btn-reset"
-        style="float: right"
+        style="float: right; margin-top: 20px"
         onclick="closeConfigs('config-section-client')"
       >
         Fermer
       </button>
-      <h2>Configuration Clients</h2>
+      <h2 style="margin-top: 20px; padding-top: 10px">Configuration Clients</h2>
 
       <div
         style="
@@ -381,12 +454,14 @@
     <div id="config-section-associe">
       <button
         class="btn btn-reset"
-        style="float: right"
+        style="float: right; margin-top: 20px"
         onclick="closeConfigs('config-section-associe')"
       >
         Fermer
       </button>
-      <h2>Configuration Associés</h2>
+      <h2 style="margin-top: 20px; padding-top: 10px">
+        Configuration Associés
+      </h2>
 
       <div
         style="
@@ -438,12 +513,14 @@
     <div id="config-section-chauffeur">
       <button
         class="btn btn-reset"
-        style="float: right"
+        style="float: right; margin-top: 20px"
         onclick="closeConfigs('config-section-chauffeur')"
       >
         Fermer
       </button>
-      <h2>Configuration Chauffeurs</h2>
+      <h2 style="margin-top: 20px; padding-top: 10px">
+        Configuration Chauffeurs
+      </h2>
 
       <div
         style="
@@ -470,46 +547,47 @@
       <div id="config-container-chauffeur"></div>
     </div>
 
+    <div
+      class="search-filters"
+      style="
+        margin-bottom: 15px;
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      "
+    >
+      <strong style="margin-right: 10px">Filtres :</strong>
+      <input
+        type="text"
+        id="filter-associe"
+        placeholder="Filtrer par Associé..."
+        oninput="filterTable()"
+        style="
+          padding: 5px;
+          margin-right: 10px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        "
+      />
+      <input
+        type="text"
+        id="filter-client"
+        placeholder="Filtrer par Client..."
+        oninput="filterTable()"
+        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
+      />
+      <button
+        onclick="resetFilters()"
+        style="margin-left: 10px; padding: 5px 10px; cursor: pointer"
+      >
+        Réinitialiser
+      </button>
+    </div>
+
     <div id="capture-area">
       <h2 id="display-date">Planning du ...</h2>
       <div class="table-container">
-        <div
-          class="search-filters"
-          style="
-            margin-bottom: 15px;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-          "
-        >
-          <strong style="margin-right: 10px">Filtres :</strong>
-          <input
-            type="text"
-            id="filter-associe"
-            placeholder="Filtrer par Associé..."
-            oninput="filterTable()"
-            style="
-              padding: 5px;
-              margin-right: 10px;
-              border: 1px solid #ccc;
-              border-radius: 4px;
-            "
-          />
-          <input
-            type="text"
-            id="filter-client"
-            placeholder="Filtrer par Client..."
-            oninput="filterTable()"
-            style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
-          />
-          <button
-            onclick="resetFilters()"
-            style="margin-left: 10px; padding: 5px 10px; cursor: pointer"
-          >
-            Réinitialiser
-          </button>
-        </div>
         <table id="my-table">
           <thead>
             <tr>
@@ -703,7 +781,6 @@
         const rows = document.querySelectorAll("#table-body tr");
 
         rows.forEach((tr) => {
-          // On récupère la valeur des inputs à l'intérieur des cellules
           const associeVal = tr.querySelector(".select-associe")
             ? tr.querySelector(".select-associe").value.toUpperCase()
             : "";
@@ -711,11 +788,9 @@
             ? tr.querySelector(".select-client").value.toUpperCase()
             : "";
 
-          // On vérifie si les deux filtres correspondent
           const matchesAssocie = associeVal.includes(associeQuery);
           const matchesClient = clientVal.includes(clientQuery);
 
-          // On affiche la ligne seulement si elle valide les deux conditions
           if (matchesAssocie && matchesClient) {
             tr.style.display = "";
           } else {
@@ -890,6 +965,28 @@
             setTimeout(() => (sn.style.display = "none"), 2000);
           }
         }
+      }
+
+      function trierPlanningParAssocie() {
+        const tableBody = document.getElementById("table-body");
+        const rows = Array.from(tableBody.querySelectorAll("tr"));
+
+        const rowsToSort = rows.filter(
+          (tr) => !tr.classList.contains("group-separator"),
+        );
+
+        rowsToSort.sort((a, b) => {
+          const valA =
+            a.querySelector(".select-associe")?.value.toUpperCase() || "";
+          const valB =
+            b.querySelector(".select-associe")?.value.toUpperCase() || "";
+          if (valA === "" && valB === "") return 0;
+          if (valA === "") return 1;
+          if (valB === "") return -1;
+          return valA.localeCompare(valB);
+        });
+
+        rowsToSort.forEach((tr) => tableBody.appendChild(tr));
       }
 
       function renderConfigUI() {
@@ -1914,8 +2011,10 @@
         tr.querySelectorAll(".combo-input").forEach((input) => {
           input.addEventListener("change", () => {
             saveCurrentDay();
-            if (input.classList.contains("select-associe"))
+            if (input.classList.contains("select-associe")) {
               appliquerCouleurAssocie(input);
+              trierPlanningParAssocie();
+            }
           });
         });
         tableBody.appendChild(tr);
@@ -1929,6 +2028,7 @@
         calculerTotalIC_affrete();
         updateRowHighlight(tr);
         filterTable();
+        trierPlanningParAssocie();
       }
 
       function copierJournee() {
