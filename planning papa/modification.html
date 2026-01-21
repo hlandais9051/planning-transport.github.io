@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
@@ -39,9 +39,20 @@
           font-size: 1.5rem;
         }
         .table-container {
-          overflow-x: auto;
           display: block;
         }
+      }
+      .search-filters {
+        position: sticky;
+        top: 0;
+        background: #f0f2f5;
+        padding: 10px 0;
+      }
+      #my-table thead th {
+        position: sticky;
+        top: 50px;
+        color: white;
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
       }
       #capture-area {
         background: white;
@@ -224,7 +235,7 @@
         height: 100vh;
         background: white;
         z-index: 1000;
-        padding: 2vw;
+        padding: 0 2vw 2vw 2vw;
         overflow-y: auto;
       }
       .config-table {
@@ -245,6 +256,7 @@
         color: #333;
         position: sticky;
         top: 0;
+        z-index: 10;
       }
       .client-header,
       .group-header {
@@ -761,7 +773,7 @@
               transportConfigGroupInfo[groupeNom][catDuMatos]
             ) {
               indice = parseFloat(
-                transportConfigGroupInfo[groupeNom][catDuMatos]
+                transportConfigGroupInfo[groupeNom][catDuMatos],
               );
             }
           }
@@ -790,7 +802,7 @@
             transportConfigGroupInfo[associeNom][catDuMatos]
           ) {
             indice = parseFloat(
-              transportConfigGroupInfo[associeNom][catDuMatos]
+              transportConfigGroupInfo[associeNom][catDuMatos],
             );
           }
         }
@@ -819,11 +831,11 @@
 
         localStorage.setItem(
           "transport_config_group",
-          JSON.stringify(transportConfigGroup)
+          JSON.stringify(transportConfigGroup),
         );
         localStorage.setItem(
           "transport_config_associe",
-          JSON.stringify(transportConfigAssocie)
+          JSON.stringify(transportConfigAssocie),
         );
 
         document.getElementById(inputId).value = "";
@@ -835,7 +847,7 @@
       function deleteGlobalMatos(type, matosNom) {
         if (
           confirm(
-            `Supprimer définitivement "${matosNom}" de TOUS les Groupes (Clients) et de TOUS les Associés ?`
+            `Supprimer définitivement "${matosNom}" de TOUS les Groupes (Clients) et de TOUS les Associés ?`,
           )
         ) {
           for (let g in transportConfigGroup) {
@@ -856,15 +868,15 @@
 
           localStorage.setItem(
             "transport_config_group",
-            JSON.stringify(transportConfigGroup)
+            JSON.stringify(transportConfigGroup),
           );
           localStorage.setItem(
             "transport_config_associe",
-            JSON.stringify(transportConfigAssocie)
+            JSON.stringify(transportConfigAssocie),
           );
           localStorage.setItem(
             "transport_config_materiel",
-            JSON.stringify(transportConfigMateriel)
+            JSON.stringify(transportConfigMateriel),
           );
 
           renderConfigUI();
@@ -902,7 +914,10 @@
         if (groups.length === 0) {
           html += `<tr><td colspan="6"><i>Aucun groupe configuré...</i></td></tr>`;
         } else {
-          groups.forEach((group) => {
+          groups.forEach((group, index) => {
+            if (index > 0) {
+              html += `<tr style="background-color: white;"><td colspan="6" style="height: 25px; border: none;"></td></tr>`;
+            }
             let matosKeys = Object.keys(transportConfigGroup[group]).sort();
 
             if (matosKeys.length === 0) {
@@ -969,7 +984,7 @@
                         (c) =>
                           `<option value="${c}" ${
                             currentCat === c ? "selected" : ""
-                          }>${c}</option>`
+                          }>${c}</option>`,
                       )
                       .join("")}
                 </select>
@@ -1028,7 +1043,7 @@
                         (g) =>
                           `<option value="${g}" ${
                             assignedGroup === g ? "selected" : ""
-                          }>${g}</option>`
+                          }>${g}</option>`,
                       )
                       .join("")}
                   </select>
@@ -1050,7 +1065,7 @@
 
         localStorage.setItem(
           "transportConfigGroupInfo",
-          JSON.stringify(transportConfigGroupInfo)
+          JSON.stringify(transportConfigGroupInfo),
         );
 
         renderConfigUI();
@@ -1072,7 +1087,7 @@
         transportConfigGroup[group][matos].tarif = parseFloat(price) || 0;
         localStorage.setItem(
           "transport_config_group",
-          JSON.stringify(transportConfigGroup)
+          JSON.stringify(transportConfigGroup),
         );
         refreshAllPlanningTarifs();
       }
@@ -1084,7 +1099,7 @@
         transportConfigGroup[group][matos].indice = parseFloat(indice) || 0;
         localStorage.setItem(
           "transport_config_group",
-          JSON.stringify(transportConfigGroup)
+          JSON.stringify(transportConfigGroup),
         );
         refreshAllPlanningTarifs();
       }
@@ -1092,13 +1107,13 @@
       function deleteCategorie(catNom) {
         if (
           confirm(
-            `Voulez-vous vraiment supprimer la catégorie "${catNom}" ?\n(Les matériels n'auront plus de catégorie assignée).`
+            `Voulez-vous vraiment supprimer la catégorie "${catNom}" ?\n(Les matériels n'auront plus de catégorie assignée).`,
           )
         ) {
           delete transportConfigCategorie[catNom];
           localStorage.setItem(
             "transport_config_categorie",
-            JSON.stringify(transportConfigCategorie)
+            JSON.stringify(transportConfigCategorie),
           );
 
           for (let group in transportConfigGroupInfo) {
@@ -1108,7 +1123,7 @@
           }
           localStorage.setItem(
             "transportConfigGroupInfo",
-            JSON.stringify(transportConfigGroupInfo)
+            JSON.stringify(transportConfigGroupInfo),
           );
 
           for (let matos in transportConfigMateriel) {
@@ -1118,7 +1133,7 @@
           }
           localStorage.setItem(
             "transport_config_materiel",
-            JSON.stringify(transportConfigMateriel)
+            JSON.stringify(transportConfigMateriel),
           );
 
           renderConfigUI();
@@ -1138,7 +1153,7 @@
 
       function renderCategorieManager() {
         const container = document.getElementById(
-          "categorie-manager-container"
+          "categorie-manager-container",
         );
         if (!container) return;
 
@@ -1181,7 +1196,7 @@
 
         localStorage.setItem(
           "transport_config_client",
-          JSON.stringify(transportConfigClient)
+          JSON.stringify(transportConfigClient),
         );
         document.getElementById("new-client-name").value = "";
         renderConfigUI();
@@ -1193,7 +1208,7 @@
           delete transportConfigClient[c];
           localStorage.setItem(
             "transport_config_client",
-            JSON.stringify(transportConfigClient)
+            JSON.stringify(transportConfigClient),
           );
           renderConfigUI();
         }
@@ -1215,13 +1230,13 @@
 
         for (let group in transportConfigGroup) {
           Object.keys(transportConfigGroup[group]).forEach((m) =>
-            fullMatosList.add(m)
+            fullMatosList.add(m),
           );
         }
 
         for (let associe in transportConfigAssocie) {
           Object.keys(transportConfigAssocie[associe]).forEach((m) =>
-            fullMatosList.add(m)
+            fullMatosList.add(m),
           );
         }
 
@@ -1233,7 +1248,7 @@
 
         localStorage.setItem(
           "transport_config_group",
-          JSON.stringify(transportConfigGroup)
+          JSON.stringify(transportConfigGroup),
         );
 
         document.getElementById("new-group-name").value = "";
@@ -1255,11 +1270,11 @@
           }
           localStorage.setItem(
             "transport_config_group",
-            JSON.stringify(transportConfigGroup)
+            JSON.stringify(transportConfigGroup),
           );
           localStorage.setItem(
             "transport_config_client",
-            JSON.stringify(transportConfigClient)
+            JSON.stringify(transportConfigClient),
           );
           renderConfigUI();
         }
@@ -1276,7 +1291,7 @@
         transportConfigClient[client] = groupName;
         localStorage.setItem(
           "transport_config_client",
-          JSON.stringify(transportConfigClient)
+          JSON.stringify(transportConfigClient),
         );
         const sn = document.getElementById("save-notif");
         sn.textContent = "Client assigné au groupe !";
@@ -1301,7 +1316,7 @@
 
           localStorage.setItem(
             "transport_config_categorie",
-            JSON.stringify(transportConfigCategorie)
+            JSON.stringify(transportConfigCategorie),
           );
 
           input.value = "";
@@ -1319,7 +1334,7 @@
         transportConfigMateriel[matos] = categorieName;
         localStorage.setItem(
           "transport_config_materiel",
-          JSON.stringify(transportConfigMateriel)
+          JSON.stringify(transportConfigMateriel),
         );
 
         renderConfigUI();
@@ -1451,7 +1466,10 @@
         if (sortedEntries.length === 0) {
           html += `<tr><td colspan="6"><i>Aucun associé configuré manuellement. Utilisez le bouton "Créer Associé" pour définir des tarifs spécifiques.</i></td></tr>`;
         } else {
-          sortedEntries.forEach((entry) => {
+          sortedEntries.forEach((entry, index) => {
+            if (index > 0) {
+              html += `<tr style="background-color: white;"><td colspan="6" style="height: 25px; border: none;"></td></tr>`;
+            }
             let keys = Object.keys(transportConfigAssocie[entry]).sort();
             const categories = Object.keys(transportConfigCategorie).sort();
 
@@ -1516,7 +1534,7 @@
                       (c) =>
                         `<option value="${c}" ${
                           currentCat === c ? "selected" : ""
-                        }>${c}</option>`
+                        }>${c}</option>`,
                     )
                     .join("")}
                 </select>
@@ -1561,13 +1579,13 @@
 
         for (let group in transportConfigGroup) {
           Object.keys(transportConfigGroup[group]).forEach((m) =>
-            fullMatosList.add(m)
+            fullMatosList.add(m),
           );
         }
 
         for (let associe in transportConfigAssocie) {
           Object.keys(transportConfigAssocie[associe]).forEach((m) =>
-            fullMatosList.add(m)
+            fullMatosList.add(m),
           );
         }
 
@@ -1578,7 +1596,7 @@
 
         localStorage.setItem(
           "transport_config_associe",
-          JSON.stringify(transportConfigAssocie)
+          JSON.stringify(transportConfigAssocie),
         );
         document.getElementById("new-config2-name").value = "";
         renderConfigUI2();
@@ -1590,7 +1608,7 @@
           delete transportConfigAssocie[e];
           localStorage.setItem(
             "transport_config_associe",
-            JSON.stringify(transportConfigAssocie)
+            JSON.stringify(transportConfigAssocie),
           );
           renderConfigUI2();
         }
@@ -1642,7 +1660,7 @@
         transportConfigChauffeur[name] = {};
         localStorage.setItem(
           "transport_config_chauffeur",
-          JSON.stringify(transportConfigChauffeur)
+          JSON.stringify(transportConfigChauffeur),
         );
         document.getElementById("new-config-chauffeur-name").value = "";
         renderConfigUIChauffeur();
@@ -1653,7 +1671,7 @@
           delete transportConfigChauffeur[name];
           localStorage.setItem(
             "transport_config_chauffeur",
-            JSON.stringify(transportConfigChauffeur)
+            JSON.stringify(transportConfigChauffeur),
           );
           renderConfigUIChauffeur();
         }
@@ -1666,12 +1684,12 @@
 
           for (let group in transportConfigGroup) {
             Object.keys(transportConfigGroup[group]).forEach((m) =>
-              uniqueMatos.add(m)
+              uniqueMatos.add(m),
             );
           }
           for (let associe in transportConfigAssocie) {
             Object.keys(transportConfigAssocie[associe]).forEach((m) =>
-              uniqueMatos.add(m)
+              uniqueMatos.add(m),
             );
           }
 
@@ -1964,7 +1982,7 @@
 
         const datePicker = document.getElementById("current-date-picker");
         const dateFormatee = new Date(datePicker.value).toLocaleDateString(
-          "fr-FR"
+          "fr-FR",
         );
 
         data.forEach((row) => {
@@ -2122,7 +2140,7 @@
             calculerTotalSupplement_affrete();
             saveCurrentDay();
           },
-          true
+          true,
         );
 
         document
@@ -2148,11 +2166,11 @@
           .getElementById("export-excel")
           .addEventListener("click", function () {
             const datePicker = document.getElementById(
-              "current-date-picker"
+              "current-date-picker",
             ).value;
             if (!datePicker) {
               alert(
-                "Veuillez sélectionner une date pour définir le mois à exporter."
+                "Veuillez sélectionner une date pour définir le mois à exporter.",
               );
               return;
             }
@@ -2207,30 +2225,32 @@
 
               dayData.forEach((row) => {
                 const tarif = parseFloat(
-                  (row.tarif || "0").replace(/[€\s]/g, "").replace(",", ".")
+                  (row.tarif || "0").replace(/[€\s]/g, "").replace(",", "."),
                 );
                 const suppClient = parseFloat(
                   (row.supplement_client || "0")
                     .replace(/[€\s]/g, "")
-                    .replace(",", ".")
+                    .replace(",", "."),
                 );
                 const ICClient = parseFloat(
-                  (row.IC_client || "0").replace(/[€\s]/g, "").replace(",", ".")
+                  (row.IC_client || "0")
+                    .replace(/[€\s]/g, "")
+                    .replace(",", "."),
                 );
                 const tarifAff = parseFloat(
                   (row.tarif_affrete || "0")
                     .replace(/[€\s]/g, "")
-                    .replace(",", ".")
+                    .replace(",", "."),
                 );
                 const suppAff = parseFloat(
                   (row.supplement_affrete || "0")
                     .replace(/[€\s]/g, "")
-                    .replace(",", ".")
+                    .replace(",", "."),
                 );
                 const ICAffrete = parseFloat(
                   (row.IC_affrete || "0")
                     .replace(/[€\s]/g, "")
-                    .replace(",", ".")
+                    .replace(",", "."),
                 );
 
                 if (!isNaN(tarif)) totalClient += tarif;
@@ -2316,7 +2336,7 @@
 
             XLSX.writeFile(
               workbook,
-              `Transport_${datePicker.substring(0, 7)}.xlsx`
+              `Transport_${datePicker.substring(0, 7)}.xlsx`,
             );
           });
       });
