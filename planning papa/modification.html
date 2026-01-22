@@ -100,9 +100,31 @@
           background-color: #ffc107;
         } /* Retour à l'orange */
       }
-      .alerte-doublon {
-        animation: clignoter-orange 0.8s infinite; /* Clignote toutes les 0.8 secondes à l'infini */
+      /* Style du message d'alerte */
+      #notification-doublon {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #ff9800; /* Orange */
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        display: none; /* Caché par défaut */
         font-weight: bold;
+        animation: slideIn 0.5s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
       }
       .search-filters {
         position: sticky;
@@ -345,6 +367,7 @@
     </style>
   </head>
   <body>
+    <div id="notification-doublon"></div>
     <datalist id="list-associe"></datalist>
     <datalist id="list-vehicule"></datalist>
     <datalist id="list-client"></datalist>
@@ -473,7 +496,7 @@
         Fermer
       </button>
       <h2 style="margin-top: 20px; padding-top: 10px">
-        Configuration Associés
+        Configuration Associés - Affrétés
       </h2>
 
       <div
@@ -488,10 +511,10 @@
         "
       >
         <div>
-          <strong>Nouvel Associé :</strong><br />
+          <strong>Nouvel Affrété :</strong><br />
           <input type="text" id="new-config2-name" placeholder="Nom..." />
           <button onclick="addNewClient2()" class="btn btn-add">
-            Créer Associé
+            Créer Affrété
           </button>
         </div>
         <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
@@ -767,6 +790,18 @@
       const defaultChauffeursList = [];
 
       let isMouseDown = false;
+
+      function afficherNotification(message, couleur = "#ff9800") {
+        const notif = document.getElementById("notification-doublon");
+        notif.textContent = message;
+        notif.style.backgroundColor = couleur;
+        notif.style.display = "block";
+
+        // Disparaît après 3 secondes
+        setTimeout(() => {
+          notif.style.display = "none";
+        }, 3000);
+      }
 
       document
         .getElementById("my-table")
@@ -2195,28 +2230,33 @@
         }
       }
 
-      function verifierDoublons() {
-        const lignes = document.querySelectorAll("#table-body tr");
-        const planningChauffeurs = {};
+      function verifierDoublon(inputModifie) {
+        const nomSaisi = inputModifie.value.trim();
+        if (nomSaisi === "") return;
 
-        lignes.forEach((tr) => {
+        const toutesLesLignes = document.querySelectorAll("#table-body tr");
+        let existeDeja = false;
+
+        toutesLesLignes.forEach((tr) => {
           const inputChauffeur = tr.querySelector(".select-chauffeur");
-          if (inputChauffeur) inputChauffeur.classList.remove("alerte-doublon");
-        });
-
-        lignes.forEach((tr) => {
-          const inputChauffeur = tr.querySelector(".select-chauffeur");
-
-          const chauffeur = inputChauffeur?.value;
-
-          if (chauffeur && chauffeur.trim() !== "") {
-            if (planningChauffeurs[chauffeur]) {
-              inputChauffeur.classList.add("alerte-doublon");
-              planningChauffeurs[chauffeur].classList.add("alerte-doublon");
+          // On compare avec les autres lignes uniquement
+          if (inputChauffeur && inputChauffeur !== inputModifie) {
+            if (inputChauffeur.value.trim() === nomSaisi) {
+              existeDeja = true;
             }
-            planningChauffeurs[chauffeur] = inputChauffeur;
           }
         });
+
+        if (existeDeja) {
+          if (
+            !confirm(
+              `ATTENTION : ${nomSaisi} est déjà sur le planning.\n\nVoulez-vous quand même l'ajouter ?`,
+            )
+          ) {
+            inputModifie.value = "";
+            saveCurrentDay();
+          }
+        }
       }
 
       function ajouterLigne(data = null) {
@@ -2309,7 +2349,6 @@
         tr.querySelectorAll(".combo-input").forEach((input) => {
           input.addEventListener("change", () => {
             saveCurrentDay();
-            verifierDoublons();
             if (input.classList.contains("select-associe")) {
               appliquerCouleurAssocie(input); // Applique le Gris ou la couleur de base
               trierPlanningParAssocie(); // Trie avec priorité ALLARD, LANDAIS, STD
@@ -2330,7 +2369,6 @@
         updateRowHighlight(tr);
         filterTable();
         trierPlanningParAssocie();
-        verifierDoublons();
 
         // Délai court pour laisser le DOM s'installer avant le premier calcul de tarif
         setTimeout(() => {
@@ -2429,10 +2467,7 @@
         if (rows.length === 0) return;
 
         localStorage.setItem("planning_copy_buffer", JSON.stringify(rows));
-        const sn = document.getElementById("save-notif");
-        sn.textContent = "Planning copié !";
-        sn.style.display = "inline";
-        setTimeout(() => (sn.style.display = "none"), 2000);
+        afficherNotification("Journée copiée", "#2196F3");
       }
 
       function collerJournee() {
@@ -2460,6 +2495,7 @@
         });
 
         saveCurrentDay();
+        afficherNotification("Journée collée", "#2196F3");
       }
 
       document.addEventListener("DOMContentLoaded", function () {
@@ -2563,6 +2599,15 @@
           saveCurrentDay();
         });
 
+        document
+          .getElementById("table-body")
+          .addEventListener("change", (e) => {
+            if (e.target.classList.contains("select-chauffeur")) {
+              // On n'appelle la vérification que sur l'élément qui vient d'être modifié
+              verifierDoublon(e.target);
+            }
+          });
+
         document.getElementById("table-body").addEventListener(
           "blur",
           function (e) {
@@ -2632,10 +2677,7 @@
               canvas.toBlob((blob) => {
                 const item = new ClipboardItem({ "image/png": blob });
                 navigator.clipboard.write([item]).then(() => {
-                  const sn = document.getElementById("save-notif");
-                  sn.textContent = "Capture Client copiée !";
-                  sn.style.display = "inline";
-                  setTimeout(() => (sn.style.display = "none"), 2000);
+                  afficherNotification("Planning copié", "#2196F3");
                 });
               });
 
@@ -2679,10 +2721,7 @@
               canvas.toBlob((blob) => {
                 const item = new ClipboardItem({ "image/png": blob });
                 navigator.clipboard.write([item]).then(() => {
-                  const sn = document.getElementById("save-notif");
-                  sn.textContent = "Capture Planning (sans tarifs) copiée !";
-                  sn.style.display = "inline";
-                  setTimeout(() => (sn.style.display = "none"), 2000);
+                  afficherNotification("Planning copié", "#2196F3");
                 });
               });
 
