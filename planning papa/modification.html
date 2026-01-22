@@ -37,8 +37,6 @@
         background: #f8f9fa;
         border: 1px solid #e0e0e0;
         border-radius: 6px;
-
-        /* MODIFICATIONS ICI */
         flex: 1 0 180px; /* S'étire (1), ne rétrécit pas (0), base de 180px */
         max-width: 100%; /* Sécurité pour ne pas déborder */
       }
@@ -57,7 +55,6 @@
         border-bottom: 1px solid #ddd;
         padding-bottom: 3px;
       }
-      /* --- TABLETTE (768px) --- */
       @media (max-width: 768px) {
         .header-tools {
           display: flex;
@@ -73,8 +70,6 @@
           width: 100%; /* Le bouton s'étire dans son groupe */
         }
       }
-
-      /* --- MOBILE (480px) --- */
       @media (max-width: 480px) {
         .header-tools {
           flex-direction: column;
@@ -278,12 +273,6 @@
       .color-std {
         background-color: #e27aff !important;
       }
-      .color-tendron,
-      .color-goulard,
-      .color-pinon,
-      .color-mahe {
-        background-color: #c0c7d3 !important;
-      }
       .save-notif {
         color: #28a745;
         font-weight: bold;
@@ -373,26 +362,26 @@
         <div>Le : <input type="date" id="current-date-picker" /></div>
       </div>
       <div class="button-group">
-        <div class="group-title">Lignes</div>
+        <div class="group-title">Ajouter & Supprimer</div>
         <button id="add-row" class="btn btn-add">Ajouter une ligne</button>
         <button id="reset-day" class="btn btn-reset">Tout supprimer</button>
       </div>
       <div class="button-group">
-        <div class="group-title">Copie</div>
+        <div class="group-title">Copie/Colle</div>
         <button id="copy-day" class="btn btn-copy-day">Copier journée</button>
         <button id="paste-day" class="btn btn-paste-day">Coller journée</button>
       </div>
       <div class="button-group">
-        <div class="group-title">Photo & Export</div>
+        <div class="group-title">Photos & Export</div>
         <button id="copy-image" class="btn btn-copy-img">
-          Copier planning
+          Copier planning (Image)
         </button>
         <button
           id="copy-image-client"
           class="btn"
           style="background-color: #07cc00"
         >
-          Copier Planning Client
+          Copier Planning (Gueno)
         </button>
         <button id="export-excel" class="btn btn-export">Exporter Excel</button>
       </div>
@@ -696,15 +685,7 @@
         "8x2 AMP GRUE",
       ];
 
-      const defaultAssociesList = [
-        "LANDAIS",
-        "ALLARD",
-        "STD",
-        "TENDRON",
-        "GOULARD",
-        "PINON",
-        "MAHE",
-      ];
+      const defaultAssociesList = ["LANDAIS", "ALLARD", "STD"];
 
       const defaultChauffeursList = [];
 
@@ -877,7 +858,7 @@
             }
           }
 
-          return tarif * indice;
+          return tarif * (indice / 100);
         }
         return 0;
       }
@@ -906,7 +887,7 @@
           }
         }
 
-        return tarif * indice;
+        return tarif * (indice / 100);
       }
 
       function addGlobalMatos(type) {
@@ -1566,8 +1547,11 @@
       function renderConfigUI2() {
         const container = document.getElementById("config-container-2");
         const associeListDatalist = document.getElementById("list-associe");
+        if (!container) return;
+
         associeListDatalist.innerHTML = "";
 
+        // 1. Liste de tous les associés (par défaut + manuels)
         const allAssocies = new Set([
           ...defaultAssociesList,
           ...Object.keys(transportConfigAssocie),
@@ -1581,112 +1565,134 @@
 
         let html = `<table class="config-table"><thead><tr><th>Associé</th><th>Catégorie</th><th>Matériel</th><th>Tarif (€)</th><th>Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
 
-        const sortedEntries = Object.keys(transportConfigAssocie).sort();
+        const sortedEntries = Array.from(allAssocies).sort();
         const categories = Object.keys(transportConfigCategorie).sort();
+        // Liste de tous les matériels de base existants
+        const allGlobalMaterials = Object.keys(transportConfigMateriel).sort();
 
         if (sortedEntries.length === 0) {
-          html += `<tr><td colspan="6"><i>Aucun associé configuré manuellement. Utilisez le bouton "Créer Associé" pour définir des tarifs spécifiques.</i></td></tr>`;
+          html += `<tr><td colspan="6"><i>Aucun associé configuré.</i></td></tr>`;
         } else {
           sortedEntries.forEach((entry, index) => {
             if (index > 0) {
               html += `<tr style="background-color: white;"><td colspan="6" style="height: 25px; border: none;"></td></tr>`;
             }
-            let keys = Object.keys(transportConfigAssocie[entry]).sort();
-            const categories = Object.keys(transportConfigCategorie).sort();
 
-            if (keys.length === 0) {
-              html += `<tr><td class="client-header">${entry}</td><td colspan="5"><i>Aucun matériel</i> - <button onclick="deleteEntry2('${entry}')" class="btn-delete">Supprimer</button></td></tr>`;
-            } else {
-              keys.forEach((k, index) => {
-                const val = transportConfigAssocie[entry][k];
-                const currentCat = transportConfigMateriel[k] || "";
-
-                let indiceAafficher = val.indice || 0;
-                let isUsingCategory = false;
-
-                if ((!val.indice || val.indice === 0) && currentCat) {
-                  if (
-                    transportConfigGroupInfo[entry] &&
-                    transportConfigGroupInfo[entry][currentCat]
-                  ) {
-                    indiceAafficher =
-                      transportConfigGroupInfo[entry][currentCat];
-                    isUsingCategory = true;
-                  }
-                }
-
-                html += `<tr>
-              ${
-                index === 0
-                  ? `
-                <td rowspan="${keys.length}" class="group-header">
-                  <strong>${entry}</strong><br>
-                  <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
-                  
-                  <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-  <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
-  ${categories
-    .map((cat) => {
-      const valIndice =
-        transportConfigGroupInfo[entry] && transportConfigGroupInfo[entry][cat]
-          ? transportConfigGroupInfo[entry][cat]
-          : 0;
-      return `
-      <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
-          <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px; font-weight:bold;">X</button>
-        </div>
-        <input type="number" step="0.01" value="${valIndice}" 
-               onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)" 
-               style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
-      </div>`;
-    })
-    .join("")}
-</div>
-                </td>`
-                  : ""
-              }
-              <td style="text-align:left; padding-left:10px;">
-                <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
-                  <option value="">-- Sans --</option>
-                  ${categories
-                    .map(
-                      (c) =>
-                        `<option value="${c}" ${
-                          currentCat === c ? "selected" : ""
-                        }>${c}</option>`,
-                    )
-                    .join("")}
-                </select>
-              </td>
-              <td>${k}</td>
-              <td>
-                <input type="number" step="0.01" value="${val.tarif || 0}" 
-                       onchange="transportConfigAssocie['${entry}']['${k}'].tarif = parseFloat(this.value) || 0; localStorage.setItem('transport_config_associe', JSON.stringify(transportConfigAssocie)); refreshAllPlanningTarifs();" 
-                       style="width:100%;">
-              </td>
-              <td>
-                <input type="number" step="0.01" value="${indiceAafficher}" 
-                       placeholder="${isUsingCategory ? "Hérité" : ""}"
-                       onchange="transportConfigAssocie['${entry}']['${k}'].indice = parseFloat(this.value) || 0; localStorage.setItem('transport_config_associe', JSON.stringify(transportConfigAssocie)); renderConfigUI2(); refreshAllPlanningTarifs();" 
-                       style="width:100%; ${
-                         isUsingCategory
-                           ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
-                           : "font-weight: bold;"
-                       }">
-              </td>
-              <td>
-                <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
-              </td>
-            </tr>`;
-              });
+            // Initialiser l'objet dans transportConfigAssocie s'il n'existe pas encore
+            if (!transportConfigAssocie[entry]) {
+              transportConfigAssocie[entry] = {};
             }
+
+            // Fusionner les matériels existants de l'associé avec la liste globale des matériels de base
+            const keys = Array.from(
+              new Set([
+                ...allGlobalMaterials,
+                ...Object.keys(transportConfigAssocie[entry]),
+              ]),
+            ).sort();
+
+            const rowSpanCount = Math.max(1, keys.length);
+
+            // Bloc de gauche (Nom de l'associé + Indices carburant)
+            const leftBlockHTML = `
+        <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
+          <strong>${entry}</strong><br>
+          <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
+          
+          <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+            <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
+            ${categories
+              .map((cat) => {
+                const valIndice =
+                  (transportConfigGroupInfo[entry] &&
+                    transportConfigGroupInfo[entry][cat]) ||
+                  0;
+                return `
+                <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                  </div>
+                  <input type="number" step="0.01" value="${valIndice}" 
+                         onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)" 
+                         style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                </div>`;
+              })
+              .join("")}
+          </div>
+        </td>`;
+
+            keys.forEach((k, idx) => {
+              // Si le matériel n'existe pas encore pour cet associé, on crée une structure par défaut à 0
+              if (!transportConfigAssocie[entry][k]) {
+                transportConfigAssocie[entry][k] = { tarif: 0, indice: 0 };
+              }
+
+              const val = transportConfigAssocie[entry][k];
+              const currentCat = transportConfigMateriel[k] || "";
+              let indiceAafficher = val.indice || 0;
+              let isUsingCategory = false;
+
+              // Calcul de l'héritage de l'indice si l'indice propre au matériel est 0
+              if ((!val.indice || val.indice === 0) && currentCat) {
+                if (
+                  transportConfigGroupInfo[entry] &&
+                  transportConfigGroupInfo[entry][currentCat]
+                ) {
+                  indiceAafficher = transportConfigGroupInfo[entry][currentCat];
+                  isUsingCategory = true;
+                }
+              }
+
+              html += `<tr>
+          ${idx === 0 ? leftBlockHTML : ""}
+          <td style="text-align:left; padding-left:10px;">
+            <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
+              <option value="">-- Sans --</option>
+              ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
+            </select>
+          </td>
+          <td>${k}</td>
+          <td>
+            <input type="number" step="0.01" value="${val.tarif || 0}" 
+                   onchange="updateAssocieTarif('${entry}', '${k}', this.value)" 
+                   style="width:100%;">
+          </td>
+          <td>
+            <input type="number" step="0.01" value="${indiceAafficher}" 
+                   placeholder="${isUsingCategory ? "Hérité" : ""}"
+                   onchange="updateAssocieIndice('${entry}', '${k}', this.value)" 
+                   style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
+          </td>
+          <td>
+            <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
+          </td>
+        </tr>`;
+            });
           });
         }
 
         container.innerHTML = html + `</tbody></table>`;
         trierDatalist("list-associe");
+      }
+
+      // Fonctions utilitaires pour simplifier les onchange
+      function updateAssocieTarif(entry, mat, val) {
+        transportConfigAssocie[entry][mat].tarif = parseFloat(val) || 0;
+        localStorage.setItem(
+          "transport_config_associe",
+          JSON.stringify(transportConfigAssocie),
+        );
+        refreshAllPlanningTarifs();
+      }
+
+      function updateAssocieIndice(entry, mat, val) {
+        transportConfigAssocie[entry][mat].indice = parseFloat(val) || 0;
+        localStorage.setItem(
+          "transport_config_associe",
+          JSON.stringify(transportConfigAssocie),
+        );
+        renderConfigUI2();
+        refreshAllPlanningTarifs();
       }
 
       function addNewClient2() {
@@ -1953,9 +1959,26 @@
 
       function appliquerCouleurAssocie(input) {
         const cell = input.parentElement;
-        cell.className = "matos-cell";
+        cell.className = "matos-cell"; // Reset les classes
         const val = input.value.toUpperCase();
-        if (val) cell.classList.add("color-" + val.toLowerCase());
+
+        if (val) {
+          const baseAssocies = ["LANDAIS", "ALLARD", "STD"];
+
+          if (baseAssocies.includes(val)) {
+            // C'est un des 3 de base : on met la classe spécifique (ex: color-landais)
+            cell.classList.add("color-" + val.toLowerCase());
+          } else {
+            // C'est un nouvel affrété : on met la couleur grise
+            // Tu peux soit créer une classe .color-affrete dans ton CSS
+            // Soit l'appliquer directement ici :
+            cell.style.backgroundColor = "#e9ecef";
+            cell.style.color = "#000"; // Texte noir pour la lisibilité
+          }
+        } else {
+          // Si la case est vide, on enlève la couleur directe au cas où
+          cell.style.backgroundColor = "";
+        }
       }
 
       function verifierDoublons() {
@@ -2092,7 +2115,6 @@
       function dupliquerLigne(bouton) {
         const ligne = bouton.closest("tr");
 
-        // On extrait les données de la ligne actuelle
         const data = {
           associe: ligne.querySelector(".select-associe").value,
           matin: ligne.cells[1].innerText,
@@ -2115,15 +2137,12 @@
           commentaire: ligne.cells[18].innerText,
         };
 
-        // On utilise ta fonction existante pour créer la nouvelle ligne avec ces données
         ajouterLigne(data);
         const tableBody = document.getElementById("table-body");
         const nouvelleLigne = tableBody.lastElementChild;
 
-        // 4. On force la mise à jour des prix et des COULEURS
         updateRowTarif(nouvelleLigne);
 
-        // Sauvegarde automatique
         saveCurrentDay();
       }
 
@@ -2345,11 +2364,9 @@
             const table = document.getElementById("my-table");
             const container = document.querySelector(".table-container");
 
-            // On définit l'index des colonnes (0 = Associé, 12 = Tarif Client)
             const startCol = 0;
             const endCol = 12;
 
-            // 1. Masquer temporairement les colonnes inutiles
             const allRows = table.querySelectorAll("tr");
             allRows.forEach((row) => {
               Array.from(row.cells).forEach((cell, index) => {
@@ -2359,11 +2376,8 @@
               });
             });
 
-            // 2. Masquer les éléments hors tableau (titres de config, filtres, etc. si nécessaire)
-            // Ici on cible seulement la zone de capture définie dans votre HTML
             const area = document.getElementById("capture-area");
 
-            // 3. Capturer
             html2canvas(area, {
               backgroundColor: "#ffffff",
               scale: 2, // Meilleure qualité
@@ -2379,7 +2393,6 @@
                 });
               });
 
-              // 4. RÉAFFICHER les colonnes après la capture
               allRows.forEach((row) => {
                 Array.from(row.cells).forEach((cell) => {
                   cell.style.display = "";
