@@ -616,64 +616,141 @@
               <th class="col-ncommande">N° Commande</th>
               <th class="col-nchantier">N° Chantier</th>
               <th class="col-nbon">N° Bon</th>
-              <th class="col-tarif">Tarif-client</th>
-              <th class="col-supplement-client">Supplément-client</th>
-              <th class="col-IC-client">IC-client</th>
-              <th class="col-tarif-affrete">Tarif-affrété</th>
-              <th class="col-supplement-affrete">Supplément-affrété</th>
-              <th class="col-IC-affrete">IC-affrété</th>
-              <th class="col-commentaire">Commentaire</th>
+              <th class="col-tarif hide-export">Tarif-client</th>
+              <th class="col-supplement-client hide-export">
+                Supplément-client
+              </th>
+              <th class="col-IC-client hide-export">IC-client</th>
+              <th class="col-tarif-affrete hide-export">Tarif-affrété</th>
+              <th class="col-supplement-affrete hide-export">
+                Supplément-affrété
+              </th>
+              <th class="col-IC-affrete hide-export">IC-affrété</th>
+              <th class="col-commentaire hide-export">Commentaire</th>
               <th class="col-actions hide-export">Del</th>
             </tr>
           </thead>
+
           <tbody id="table-body"></tbody>
-          <tfoot>
-            <tr style="background: #f8f9fa; font-weight: bold">
-              <td
-                colspan="20"
-                style="text-align: right; padding-right: 15px; height: 30px"
-              >
-                TOTAL CLIENTS :
-                <span
-                  id="total-price"
-                  style="color: #007bff; margin-right: 15px"
-                  >0.00 €</span
-                >
-                TOTAL SUPPLÉMENTS-CLIENTS :
-                <span
-                  id="total-price-supplement-client"
-                  style="color: #007bff; margin-right: 15px"
-                  >0.00 €</span
-                >
-                TOTAL IC-CLIENTS :
-                <span
-                  id="total-price-IC-client"
-                  style="color: #007bff; margin-right: 15px"
-                  >0.00 €</span
-                >
-                TOTAL AFFRÉTÉS :
-                <span
-                  id="total-price-affrete"
-                  style="color: #dc3545; margin-right: 15px"
-                  >0.00 €</span
-                >
-                TOTAL SUPPLÉMENTS-AFFRETES :
-                <span
-                  id="total-price-supplement-affrete"
-                  style="color: #dc3545; margin-right: 15px"
-                  >0.00 €</span
-                >
-                TOTAL IC-AFFRETES :
-                <span id="total-price-IC-affrete" style="color: #dc3545"
-                  >0.00 €</span
-                >
-              </td>
-            </tr>
-          </tfoot>
         </table>
       </div>
     </div>
 
+    <div id="totals-container" class="hide-export">
+      <table style="width: 100%; border-collapse: collapse; margin-top: 10px">
+        <tfoot>
+          <tr
+            style="
+              background: #f8f9fa;
+              font-weight: bold;
+              border: 1px solid #ccc;
+            "
+          >
+            <td style="padding: 15px">
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: flex-start;
+                "
+              >
+                <div style="flex: 1; text-align: left; line-height: 1.8">
+                  <div style="display: inline-block">
+                    <strong style="color: #007bff">SECTION CLIENT</strong>
+                  </div>
+                  <div style="font-size: 1.1em">
+                    Tarif :
+                    <span
+                      id="total-price"
+                      style="color: #007bff; margin-right: 10px"
+                      >0.00 €</span
+                    >
+                    Supp :
+                    <span
+                      id="total-price-supplement-client"
+                      style="color: #007bff; margin-right: 10px"
+                      >0.00 €</span
+                    >
+                    IC :
+                    <span id="total-price-IC-client" style="color: #007bff"
+                      >0.00 €</span
+                    >
+                  </div>
+                  <div>
+                    TOTAL GÉNÉRAL :
+                    <span
+                      id="total-marge-client"
+                      style="color: #007bff; font-size: 1.1em"
+                      >0.00 €</span
+                    >
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    flex: 1;
+                    text-align: left;
+                    line-height: 1.8;
+                    padding-left: 50px;
+                  "
+                >
+                  <div style="display: inline-block">
+                    <strong style="color: #dc3545">SECTION AFFRÉTÉ</strong>
+                  </div>
+                  <div style="font-size: 1.1em">
+                    Tarif :
+                    <span
+                      id="total-price-affrete"
+                      style="color: #dc3545; margin-right: 10px"
+                      >0.00 €</span
+                    >
+                    Supp :
+                    <span
+                      id="total-price-supplement-affrete"
+                      style="color: #dc3545; margin-right: 10px"
+                      >0.00 €</span
+                    >
+                    IC :
+                    <span id="total-price-IC-affrete" style="color: #dc3545"
+                      >0.00 €</span
+                    >
+                  </div>
+                  <div>
+                    TOTAL GÉNÉRAL :
+                    <span
+                      id="total-marge-affrete"
+                      style="color: #dc3545; font-size: 1.1em"
+                      >0.00 €</span
+                    >
+                  </div>
+                </div>
+
+                <div
+                  style="
+                    flex: 1;
+                    text-align: left;
+                    line-height: 1.8;
+                    padding-left: 100px;
+                  "
+                >
+                  <div style="display: inline-block">
+                    <strong style="color: #000000">RESULTAT DU JOUR</strong>
+                  </div>
+                  <div>
+                    MARGE NETTE :
+                    <span
+                      id="marge-nette"
+                      style="color: #28a745; font-size: 1.1em"
+                      >0.00 €</span
+                    >
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
     <script>
       const defaultMatosList = [
         "6x4",
@@ -975,6 +1052,7 @@
       function trierPlanningParAssocie() {
         const tableBody = document.getElementById("table-body");
         const rows = Array.from(tableBody.querySelectorAll("tr"));
+        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
 
         const rowsToSort = rows.filter(
           (tr) => !tr.classList.contains("group-separator"),
@@ -985,9 +1063,19 @@
             a.querySelector(".select-associe")?.value.toUpperCase() || "";
           const valB =
             b.querySelector(".select-associe")?.value.toUpperCase() || "";
+
           if (valA === "" && valB === "") return 0;
           if (valA === "") return 1;
           if (valB === "") return -1;
+
+          const isABase = baseAssocies.includes(valA);
+          const isBBase = baseAssocies.includes(valB);
+
+          // Règle de priorité
+          if (isABase && !isBBase) return -1;
+          if (!isABase && isBBase) return 1;
+
+          // Tri alphabétique pour le reste
           return valA.localeCompare(valB);
         });
 
@@ -1461,59 +1549,102 @@
         const cellICClient = tr.querySelector(".cell-IC-client");
         const cellICAffrete = tr.querySelector(".cell-IC-affrete");
 
+        // --- PARTIE CLIENT ---
         if (client && matos) {
-          const tarifC = getTarifClient(client, matos);
-          const icC = getICClient(client, matos);
+          let tarifC =
+            parseFloat(
+              cellTarifClient.textContent
+                .replace(/[€\s]/g, "")
+                .replace(",", "."),
+            ) || 0;
 
-          cellTarifClient.textContent = tarifC.toFixed(2) + " €";
+          if (tarifC === 0) {
+            tarifC = getTarifClient(client, matos);
+          }
+
+          // PROTECTION : On ne formate le texte (toFixed + €) que si l'utilisateur n'est pas dans la case
+          if (document.activeElement !== cellTarifClient) {
+            cellTarifClient.textContent = tarifC.toFixed(2) + " €";
+          }
+
+          // Calcul de l'IC (Reste inchangé)
+          const groupeNom = transportConfigClient[client];
+          let indiceC = 0;
+          if (
+            transportConfigGroup[groupeNom] &&
+            transportConfigGroup[groupeNom][matos]
+          ) {
+            indiceC =
+              parseFloat(transportConfigGroup[groupeNom][matos].indice) || 0;
+            if (indiceC === 0) {
+              const cat = transportConfigMateriel[matos];
+              if (cat && transportConfigGroupInfo[groupeNom]) {
+                indiceC =
+                  parseFloat(transportConfigGroupInfo[groupeNom][cat]) || 0;
+              }
+            }
+          }
+          const icC = tarifC * (indiceC / 100);
           cellICClient.textContent = icC.toFixed(2) + " €";
 
-          if (icC > 0) {
-            cellICClient.style.color = "#28a745";
-            cellICClient.style.fontWeight = "bold";
-          } else if (icC < 0) {
-            cellICClient.style.color = "#dc3545";
-            cellICClient.style.fontWeight = "bold";
-          } else {
-            cellICClient.style.color = "#95a5a6";
-            cellICClient.style.fontWeight = "normal";
-          }
+          // Style de l'IC
+          cellICClient.style.color =
+            icC > 0 ? "#28a745" : icC < 0 ? "#dc3545" : "#95a5a6";
+          cellICClient.style.fontWeight = icC !== 0 ? "bold" : "normal";
         } else {
-          cellTarifClient.textContent = "0.00 €";
+          if (document.activeElement !== cellTarifClient)
+            cellTarifClient.textContent = "0.00 €";
           cellICClient.textContent = "0.00 €";
-          cellICClient.style.color = "";
         }
 
-        if (
-          associe &&
-          matos &&
-          transportConfigAssocie[associe] &&
-          transportConfigAssocie[associe][matos]
-        ) {
-          const base =
-            parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
-          cellTarifAffrete.textContent = base.toFixed(2) + " €";
-        } else {
-          cellTarifAffrete.textContent = "0.00 €";
-        }
-
+        // --- PARTIE AFFRÉTÉ ---
         if (associe && matos) {
-          const icA = getICAffrete(associe, matos);
+          let tarifA =
+            parseFloat(
+              cellTarifAffrete.textContent
+                .replace(/[€\s]/g, "")
+                .replace(",", "."),
+            ) || 0;
+
+          if (
+            tarifA === 0 &&
+            transportConfigAssocie[associe] &&
+            transportConfigAssocie[associe][matos]
+          ) {
+            tarifA =
+              parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
+          }
+
+          // PROTECTION : Pareil pour la cellule affrété
+          if (document.activeElement !== cellTarifAffrete) {
+            cellTarifAffrete.textContent = tarifA.toFixed(2) + " €";
+          }
+
+          let indiceA = 0;
+          if (
+            transportConfigAssocie[associe] &&
+            transportConfigAssocie[associe][matos]
+          ) {
+            indiceA =
+              parseFloat(transportConfigAssocie[associe][matos].indice) || 0;
+            if (indiceA === 0) {
+              const catA = transportConfigMateriel[matos];
+              if (catA && transportConfigGroupInfo[associe]) {
+                indiceA =
+                  parseFloat(transportConfigGroupInfo[associe][catA]) || 0;
+              }
+            }
+          }
+          const icA = tarifA * (indiceA / 100);
           cellICAffrete.textContent = icA.toFixed(2) + " €";
 
-          if (icA > 0) {
-            cellICAffrete.style.color = "#28a745";
-            cellICAffrete.style.fontWeight = "bold";
-          } else if (icA < 0) {
-            cellICAffrete.style.color = "#dc3545";
-            cellICAffrete.style.fontWeight = "bold";
-          } else {
-            cellICAffrete.style.color = "#95a5a6";
-            cellICAffrete.style.fontWeight = "normal";
-          }
+          cellICAffrete.style.color =
+            icA > 0 ? "#28a745" : icA < 0 ? "#dc3545" : "#95a5a6";
+          cellICAffrete.style.fontWeight = icA !== 0 ? "bold" : "normal";
         } else {
+          if (document.activeElement !== cellTarifAffrete)
+            cellTarifAffrete.textContent = "0.00 €";
           cellICAffrete.textContent = "0.00 €";
-          cellICAffrete.style.color = "";
         }
 
         saveCurrentDay();
@@ -1565,7 +1696,26 @@
 
         let html = `<table class="config-table"><thead><tr><th>Associé</th><th>Catégorie</th><th>Matériel</th><th>Tarif (€)</th><th>Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
 
-        const sortedEntries = Array.from(allAssocies).sort();
+        // 1. Définir les associés de base
+        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
+
+        // 2. Récupérer tous les noms (base + stockés)
+        const allAssociesSet = new Set([
+          ...baseAssocies,
+          ...Object.keys(transportConfigAssocie),
+        ]);
+
+        // 3. Trier avec la règle de priorité
+        const sortedEntries = Array.from(allAssociesSet).sort((a, b) => {
+          const isABase = baseAssocies.includes(a);
+          const isBBase = baseAssocies.includes(b);
+
+          if (isABase && !isBBase) return -1; // a est prioritaire
+          if (!isABase && isBBase) return 1; // b est prioritaire
+
+          // Si les deux sont dans le même groupe (base ou affrétés), tri alphabétique normal
+          return a.localeCompare(b);
+        });
         const categories = Object.keys(transportConfigCategorie).sort();
         // Liste de tous les matériels de base existants
         const allGlobalMaterials = Object.keys(transportConfigMateriel).sort();
@@ -1882,6 +2032,34 @@
           total.toFixed(2) + " €";
       }
 
+      function calculerMarge_Client() {
+        let totalMarge = 0;
+        const rows = document.querySelectorAll("#table-body tr");
+
+        rows.forEach((tr) => {
+          // Extraction des valeurs numériques des 3 colonnes concernées
+          const tarif =
+            parseFloat(tr.querySelector(".cell-tarif")?.textContent) || 0;
+          const supp =
+            parseFloat(
+              tr.querySelector(".cell-supplement-client")?.textContent,
+            ) || 0;
+          const ic =
+            parseFloat(tr.querySelector(".cell-IC-client")?.textContent) || 0;
+
+          // Somme pour la ligne actuelle
+          totalMarge += tarif + supp + ic;
+        });
+
+        // Mise à jour de l'affichage dans le footer (si vous avez un ID dédié)
+        const displayMarge = document.getElementById("total-marge-client");
+        if (displayMarge) {
+          displayMarge.textContent = totalMarge.toFixed(2) + " €";
+        }
+
+        return totalMarge;
+      }
+
       function calculerTotalAffrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
@@ -1921,6 +2099,47 @@
           total.toFixed(2) + " €";
       }
 
+      function calculerMarge_Affrete() {
+        let totalMarge = 0;
+        const rows = document.querySelectorAll("#table-body tr");
+
+        rows.forEach((tr) => {
+          // Extraction des valeurs numériques des 3 colonnes concernées
+          const tarif =
+            parseFloat(tr.querySelector(".cell-tarif-affrete")?.textContent) ||
+            0;
+          const supp =
+            parseFloat(
+              tr.querySelector(".cell-supplement-affrete")?.textContent,
+            ) || 0;
+          const ic =
+            parseFloat(tr.querySelector(".cell-IC-affrete")?.textContent) || 0;
+
+          // Somme pour la ligne actuelle
+          totalMarge += tarif + supp + ic;
+        });
+
+        // Mise à jour de l'affichage dans le footer (si vous avez un ID dédié)
+        const displayMarge = document.getElementById("total-marge-affrete");
+        if (displayMarge) {
+          displayMarge.textContent = totalMarge.toFixed(2) + " €";
+        }
+
+        return totalMarge;
+      }
+
+      function calculerMargeReelle() {
+        const totalClient = calculerMarge_Client();
+        const totalAffrete = calculerMarge_Affrete();
+        const margeNette = totalClient - totalAffrete;
+
+        const display = document.getElementById("marge-nette");
+        if (display) {
+          display.textContent = margeNette.toFixed(2) + " €";
+          display.style.color = margeNette >= 0 ? "#28a745" : "#dc3545";
+        }
+      }
+
       function saveCurrentDay() {
         const date = document.getElementById("current-date-picker").value;
         if (!date) return;
@@ -1949,12 +2168,7 @@
           });
         });
         localStorage.setItem("planning_" + date, JSON.stringify(rows));
-        calculerTotal();
-        calculerTotalSupplement_client();
-        calculerTotalIC_client();
-        calculerTotalAffrete();
-        calculerTotalSupplement_affrete();
-        calculerTotalIC_affrete();
+        calculerTousLesTotaux();
       }
 
       function appliquerCouleurAssocie(input) {
@@ -2017,99 +2231,139 @@
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-                  <td class="matos-cell"><input class="combo-input select-associe" list="list-associe" value="${
-                    data ? data.associe : ""
-                  }"onchange="updateRowTarif(this.closest('tr'))"></td>
-                  <td contenteditable="true">${data ? data.matin : "0.5"}</td>
-                  <td contenteditable="true">${data ? data.apres : "0.5"}</td>
-                  <td contenteditable="true">${data ? data.chantier : ""}</td>
-                  <td contenteditable="true">${
-                    data ? data.date : dateFormatee
-                  }</td>
-                  <td class="matos-cell">
-                      <input class="combo-input select-vehicule" list="list-vehicule" 
-                          value="${data ? data.vehicule : ""}" 
-                          onchange="updateRowTarif(this.closest('tr'))">
-                  </td>
-                  <td class="matos-cell">
-                      <input class="combo-input select-client" list="list-client" 
-                          value="${data ? data.client : ""}" 
-                          onchange="updateRowTarif(this.closest('tr'))">
-                  </td>
-                  <td contenteditable="true">${data ? data.consigne : ""}</td>
-                  <td class="matos-cell"><input class="combo-input select-chauffeur" list="list-chauffeur" value="${
-                    data ? data.chauffeur : ""
-                  }"></td>
-                  <td contenteditable="true">${data ? data.n_commande : ""}</td>
-                  <td contenteditable="true">${data ? data.n_chantier : ""}</td>
-                  <td class="cell-bon" contenteditable="true">${
-                    data ? data.n_bon : ""
-                  }</td>                  
-                  <td class="cell-tarif" contenteditable="true" style="padding:4px">${
-                    data && data.tarif ? data.tarif : "0.00 €"
-                  }</td>
-                  <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${
-                    data && data.supplement_client
-                      ? data.supplement_client
-                      : "0.00 €"
-                  }</td>
-                  <td class="cell-IC-client" contenteditable="true" style="padding:4px">${
-                    data && data.IC_client ? data.IC_client : "0.00 €"
-                  }</td>
-                  <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${
-                    data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"
-                  }</td>
-                  <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${
-                    data && data.supplement_affrete
-                      ? data.supplement_affrete
-                      : "0.00 €"
-                  }</td>
-                  <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${
-                    data && data.IC_affrete ? data.IC_affrete : "0.00 €"
-                  }</td>
-                  <td contenteditable="true">${
-                    data ? data.commentaire : ""
-                  }</td>
-                  <td class="hide-export" style="text-align:center; white-space:nowrap;">
-                      <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px; margin-left: 0px; margin-right:-5px" 
-                              onclick="if(confirm('Voulez-vous vraiment supprimer cette ligne ?')){this.closest('tr').remove(); saveCurrentDay();}">×</button>
-                      <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" 
-                              onclick="dupliquerLigne(this)">📑</button>
-                  </td>`;
+        <td class="matos-cell">
+            <input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" onchange="updateRowTarif(this.closest('tr'))">
+        </td>
+        <td contenteditable="true">${data ? data.matin : "0.5"}</td>
+        <td contenteditable="true">${data ? data.apres : "0.5"}</td>
+        <td contenteditable="true">${data ? data.chantier : ""}</td>
+        <td contenteditable="true">${data ? data.date : dateFormatee}</td>
+        <td class="matos-cell">
+            <input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" onchange="updateRowTarif(this.closest('tr'))">
+        </td>
+        <td class="matos-cell">
+            <input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" onchange="updateRowTarif(this.closest('tr'))">
+        </td>
+        <td contenteditable="true">${data ? data.consigne : ""}</td>
+        <td class="matos-cell">
+            <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}">
+        </td>
+        <td contenteditable="true">${data ? data.n_commande : ""}</td>
+        <td contenteditable="true">${data ? data.n_chantier : ""}</td>
+        <td class="cell-bon" contenteditable="true">${data ? data.n_bon : ""}</td>                  
+        <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
+        <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
+        <td class="cell-IC-client" contenteditable="false" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
+        <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"}</td>
+        <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
+        <td class="cell-IC-affrete" contenteditable="false" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
+        <td contenteditable="true">${data ? data.commentaire : ""}</td>
+        <td class="hide-export" style="text-align:center; white-space:nowrap;">
+            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px; margin-left: 0px; margin-right:-5px" onclick="if(confirm('Voulez-vous vraiment supprimer cette ligne ?')){this.closest('tr').remove(); saveCurrentDay();}">×</button>
+            <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
+        </td>`;
+
+        // Écouteurs pour les cellules éditables (Texte)
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
           cell.addEventListener("input", () => {
-            saveCurrentDay();
+            // Si on modifie manuellement un tarif, on recalcule l'IC immédiatement
+            if (
+              cell.classList.contains("cell-tarif") ||
+              cell.classList.contains("cell-tarif-affrete")
+            ) {
+              updateRowTarif(tr);
+            }
             if (cell.classList.contains("cell-bon")) {
               updateRowHighlight(tr);
             }
+            saveCurrentDay();
+          });
+
+          cell.addEventListener("blur", () => {
+            if (
+              cell.classList.contains("cell-tarif") ||
+              cell.classList.contains("cell-tarif-affrete")
+            ) {
+              let val = parseFloat(cell.textContent.replace(",", ".")) || 0;
+              cell.textContent = val.toFixed(2) + " €";
+
+              // On relance les totaux du bas car le tarif a été validé
+              calculerTousLesTotaux();
+            }
+          });
+
+          // 3. AU CLIC (FOCUS) : On enlève le "€" pour faciliter la modification
+          cell.addEventListener("focus", () => {
+            if (
+              cell.classList.contains("cell-tarif") ||
+              cell.classList.contains("cell-tarif-affrete")
+            ) {
+              let val = cell.textContent.replace(" €", "").trim();
+              if (val === "0.00") cell.textContent = "";
+              else cell.textContent = val;
+            }
           });
         });
+
+        // Écouteurs pour les menus déroulants (Associe, Client, Véhicule)
         tr.querySelectorAll(".combo-input").forEach((input) => {
           input.addEventListener("change", () => {
             saveCurrentDay();
             verifierDoublons();
             if (input.classList.contains("select-associe")) {
-              appliquerCouleurAssocie(input);
-              trierPlanningParAssocie();
+              appliquerCouleurAssocie(input); // Applique le Gris ou la couleur de base
+              trierPlanningParAssocie(); // Trie avec priorité ALLARD, LANDAIS, STD
             }
           });
         });
+
         tableBody.appendChild(tr);
-        if (data || tr.querySelector(".select-associe").value)
-          appliquerCouleurAssocie(tr.querySelector(".select-associe"));
-        calculerTotal();
-        calculerTotalSupplement_client();
-        calculerTotalIC_client();
-        calculerTotalAffrete();
-        calculerTotalSupplement_affrete();
-        calculerTotalIC_affrete();
+
+        // Initialisation immédiate de la ligne
+        const inputAssocie = tr.querySelector(".select-associe");
+        if (data || inputAssocie.value) {
+          appliquerCouleurAssocie(inputAssocie);
+        }
+
+        // Calculs globaux
+        calculerTousLesTotaux(); // Une fonction regroupant tes fonctions calculerTotal...
         updateRowHighlight(tr);
         filterTable();
         trierPlanningParAssocie();
         verifierDoublons();
+
+        // Délai court pour laisser le DOM s'installer avant le premier calcul de tarif
         setTimeout(() => {
           updateRowTarif(tr);
-        }, 10);
+        }, 50);
+      }
+
+      function calculerTousLesTotaux() {
+        // 1. Calculer les sous-totaux (vos fonctions existantes)
+        if (typeof calculerTotal === "function") calculerTotal();
+        if (typeof calculerTotalSupplement_client === "function")
+          calculerTotalSupplement_client();
+        if (typeof calculerTotalIC_client === "function")
+          calculerTotalIC_client();
+        if (typeof calculerTotalAffrete === "function") calculerTotalAffrete();
+        if (typeof calculerTotalSupplement_affrete === "function")
+          calculerTotalSupplement_affrete();
+        if (typeof calculerTotalIC_affrete === "function")
+          calculerTotalIC_affrete();
+
+        // 2. Calculer les Totaux Généraux (Marge Client et Coût Affrété)
+        const totalCA = calculerMarge_Client();
+        const totalCout = calculerMarge_Affrete();
+
+        // 3. Calculer la Marge Nette (Bénéfice)
+        const margeNette = totalCA - totalCout;
+        const displayMarge = document.getElementById("marge-nette");
+
+        if (displayMarge) {
+          displayMarge.textContent = margeNette.toFixed(2) + " €";
+          // Devient rouge si la marge est négative, vert si positive
+          displayMarge.style.color = margeNette >= 0 ? "#28a745" : "#dc3545";
+        }
       }
 
       function dupliquerLigne(bouton) {
@@ -2242,12 +2496,7 @@
           } else {
             ajouterLigne();
           }
-          calculerTotal();
-          calculerTotalSupplement_client();
-          calculerTotalIC_client();
-          calculerTotalAffrete();
-          calculerTotalSupplement_affrete();
-          calculerTotalIC_affrete();
+          calculerTousLesTotaux();
         });
 
         document
@@ -2289,50 +2538,48 @@
           const row = e.target.closest("tr");
           if (!row) return;
 
+          // SI L'UTILISATEUR EST EN TRAIN DE TAPER DANS UNE CELLULE (Tarif, Commande, etc.)
+          // On ne fait RIEN, on le laisse finir d'écrire.
+          if (e.target.isContentEditable) {
+            saveCurrentDay();
+            return;
+          }
+
+          // 1. Gérer la couleur de l'associé immédiatement (Menu déroulant)
           if (e.target.classList.contains("select-associe")) {
             appliquerCouleurAssocie(e.target);
           }
 
+          // 2. Uniquement pour les menus déroulants (Changement via liste)
           if (
             e.target.classList.contains("select-client") ||
             e.target.classList.contains("select-vehicule") ||
             e.target.classList.contains("select-associe")
           ) {
-            const client = row.querySelector(".select-client").value;
-            const veh = row.querySelector(".select-vehicule").value;
-            const associe = row.querySelector(".select-associe").value;
-
-            if (
-              transportConfigClient[client] &&
-              transportConfigClient[client][veh]
-            ) {
-              const config = transportConfigClient[client][veh];
-              let tarifBase =
-                typeof config === "object" ? config.tarif : config;
-              let indice = typeof config === "object" ? config.indice || 0 : 0;
-              row.querySelector(".cell-tarif").textContent =
-                tarifBase.toFixed(2) + " €";
-            }
-
-            if (
-              transportConfigAssocie[associe] &&
-              transportConfigAssocie[associe][veh]
-            ) {
-              const configA = transportConfigAssocie[associe][veh];
-              let tarifBaseA =
-                typeof configA === "object" ? configA.tarif : configA;
-              let indiceA =
-                typeof configA === "object" ? configA.indice || 0 : 0;
-              row.querySelector(".cell-tarif-affrete").textContent =
-                tarifBaseA.toFixed(2) + " €";
-            }
+            // Ici on appelle updateRowTarif car c'est un changement de menu, pas une saisie clavier
+            updateRowTarif(row);
           }
+
           saveCurrentDay();
         });
 
         document.getElementById("table-body").addEventListener(
           "blur",
           function (e) {
+            const row = e.target.closest("tr");
+            if (!row) return;
+
+            // AJOUT : Si on quitte une case de tarif (Client ou Affrété)
+            if (
+              e.target.classList.contains("cell-tarif") ||
+              e.target.classList.contains("cell-tarif-affrete")
+            ) {
+              updateRowTarif(row); // Formatage et calcul final une fois la saisie terminée
+              saveCurrentDay();
+              return; // On sort pour éviter de traiter la suite
+            }
+
+            // Votre code existant pour les suppléments (inchangé)
             if (
               !e.target.classList.contains("cell-supplement-client") &&
               !e.target.classList.contains("cell-supplement-affrete")
@@ -2342,7 +2589,6 @@
             let value = e.target.textContent
               .replace(/[€\s]/g, "")
               .replace(",", ".");
-
             const number = parseFloat(value);
 
             if (!isNaN(number)) {
@@ -2365,7 +2611,7 @@
             const container = document.querySelector(".table-container");
 
             const startCol = 0;
-            const endCol = 12;
+            const endCol = 13;
 
             const allRows = table.querySelectorAll("tr");
             allRows.forEach((row) => {
@@ -2404,20 +2650,48 @@
         document
           .getElementById("copy-image")
           .addEventListener("click", function () {
+            const table = document.getElementById("my-table");
             const area = document.getElementById("capture-area");
-            const toHide = document.querySelectorAll(".hide-export");
-            toHide.forEach((el) => (el.style.display = "none"));
-            html2canvas(area, { scale: 2 }).then((canvas) => {
-              canvas.toBlob((blob) => {
-                navigator.clipboard
-                  .write([new ClipboardItem({ "image/png": blob })])
-                  .then(() => {
-                    const sn = document.getElementById("save-notif");
-                    sn.style.display = "inline";
-                    setTimeout(() => (sn.style.display = "none"), 2000);
-                  });
+
+            // 1. Définir les colonnes à garder pour la photo "Planning"
+            // On s'arrête juste avant les tarifs (colonne 12 : N° Bon)
+            const startCol = 0;
+            const endCol = 11; // S'arrête à "N° Bon" (la 12ème colonne)
+
+            const allRows = table.querySelectorAll("tr");
+
+            // 2. On masque physiquement les cellules de tarifs et d'actions
+            allRows.forEach((row) => {
+              Array.from(row.cells).forEach((cell, index) => {
+                // Masque tout ce qui est après N° Bon OU ce qui a la classe hide-export
+                if (index > endCol || cell.classList.contains("hide-export")) {
+                  cell.style.display = "none";
+                }
               });
-              toHide.forEach((el) => (el.style.display = ""));
+            });
+
+            // 3. Capture de la zone
+            html2canvas(area, {
+              backgroundColor: "#ffffff",
+              scale: 2,
+              logging: false,
+            }).then((canvas) => {
+              canvas.toBlob((blob) => {
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard.write([item]).then(() => {
+                  const sn = document.getElementById("save-notif");
+                  sn.textContent = "Capture Planning (sans tarifs) copiée !";
+                  sn.style.display = "inline";
+                  setTimeout(() => (sn.style.display = "none"), 2000);
+                });
+              });
+
+              // 4. RÉAFFICHAGE de toutes les colonnes après la capture
+              allRows.forEach((row) => {
+                Array.from(row.cells).forEach((cell) => {
+                  cell.style.display = "";
+                });
+              });
             });
           });
         document
