@@ -14,8 +14,8 @@
         padding: 1vw;
         background-color: #f0f2f5;
         margin: 0;
-        width: 100vw;
-        overflow-x: hidden;
+        width: 100%;
+        overflow-x: auto;
       }
       .header-tools {
         background: white;
@@ -129,13 +129,14 @@
       .search-filters {
         position: sticky;
         top: 0;
+        z-index: 500;
         background: #f0f2f5;
         padding: 10px 0;
       }
       #my-table thead th {
         position: sticky;
-        top: 50px;
-        color: white;
+        top: 0; /* Ou 60px si vous avez une barre de menu fixe */
+        background-color: #007bff;
         box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
       }
       #capture-area {
@@ -146,14 +147,16 @@
       }
       .table-container {
         width: 100%;
+        max-height: 75vh; /* Hauteur max pour activer le scroll vertical */
+        overflow: auto; /* Active scroll H + V */
+        position: relative; /* Référence pour le sticky des titres */
         background: white;
-        border-radius: 4px;
         border: 1px solid #ddd;
       }
       table {
         border-collapse: collapse;
         width: 100%;
-        table-layout: fixed;
+        table-layout: auto;
       }
       th,
       td {
@@ -161,7 +164,7 @@
         text-align: left;
         vertical-align: top;
         height: 3vw;
-        font-size: 0.85vw;
+        font-size: 13px;
         padding: 0.2vw;
       }
       th {
@@ -175,61 +178,51 @@
         margin-bottom: 1vw;
       }
       .col-associe {
-        width: 10%;
+        min-width: 100px;
       }
       .col-temps {
-        width: 5%;
+        min-width: 40px;
       }
       .col-chantier {
-        width: 10%;
+        min-width: 100px;
       }
       .col-date {
-        width: 10%;
+        min-width: 80px;
       }
       .col-matos {
-        width: 10%;
+        min-width: 100px;
       }
       .col-client {
-        width: 10%;
+        min-width: 100px;
       }
       .col-consigne {
-        width: 10%;
+        min-width: 195px;
       }
       .col-chauffeur {
-        width: 10%;
+        min-width: 140px;
       }
-      .col-ncommande {
-        width: 14%;
-      }
-      .col-nchantier {
-        width: 11%;
-      }
+      .col-ncommande,
+      .col-nchantier,
       .col-nbon {
-        width: 8%;
+        min-width: 110px;
       }
-      .col-tarif {
-        width: 10%;
-      }
-      .col-supplement-client {
-        width: 12%;
-      }
-      .col-IC-client {
-        width: 10%;
-      }
+      .col-tarif,
       .col-tarif-affrete {
-        width: 10%;
+        min-width: 80px;
       }
+      .col-supplement-client,
       .col-supplement-affrete {
-        width: 12%;
+        min-width: 90px;
       }
+      .col-IC-client,
       .col-IC-affrete {
-        width: 10%;
+        min-width: 70px;
       }
       .col-commentaire {
-        width: 10%;
+        min-width: 120px;
       }
       .col-actions {
-        width: 8%;
+        min-width: 50px;
       }
       .matos-cell {
         padding: 0 !important;
@@ -650,7 +643,7 @@
               </th>
               <th class="col-IC-affrete hide-export">IC-affrété</th>
               <th class="col-commentaire hide-export">Commentaire</th>
-              <th class="col-actions hide-export">Del</th>
+              <th class="col-actions hide-export">Actions</th>
             </tr>
           </thead>
 
