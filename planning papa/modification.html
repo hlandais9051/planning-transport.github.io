@@ -17,6 +17,11 @@
         width: 100%;
         overflow-x: auto;
       }
+      .placeholder-style {
+        color: #a0a0a0 !important;
+        font-style: italic;
+        font-size: 0.9em;
+      }
       .header-tools {
         background: white;
         padding: 10px;
@@ -178,13 +183,13 @@
         margin-bottom: 1vw;
       }
       .col-associe {
-        min-width: 100px;
+        min-width: 90px;
       }
       .col-temps {
         min-width: 40px;
       }
       .col-chantier {
-        min-width: 100px;
+        min-width: 90px;
       }
       .col-date {
         min-width: 80px;
@@ -195,16 +200,19 @@
       .col-client {
         min-width: 100px;
       }
+      .col-telephone {
+        min-width: 115px;
+      }
       .col-consigne {
-        min-width: 195px;
+        min-width: 170px;
       }
       .col-chauffeur {
-        min-width: 140px;
+        min-width: 110px;
       }
       .col-ncommande,
       .col-nchantier,
       .col-nbon {
-        min-width: 110px;
+        min-width: 97px;
       }
       .col-tarif,
       .col-tarif-affrete {
@@ -273,6 +281,9 @@
       .btn-config-chauffeur {
         background-color: #9b1594;
       }
+      .btn-config-telephone {
+        background-color: #ff5722;
+      }
       .btn-copy-day {
         background-color: #ff00b7;
       }
@@ -297,7 +308,8 @@
       }
       #config-section-client,
       #config-section-associe,
-      #config-section-chauffeur {
+      #config-section-chauffeur,
+      #config-section-telephone {
         display: none;
         position: fixed;
         top: 0;
@@ -365,6 +377,7 @@
     <datalist id="list-vehicule"></datalist>
     <datalist id="list-client"></datalist>
     <datalist id="list-chauffeur"></datalist>
+    <datalist id="list-telephone"></datalist>
 
     <div class="header-tools">
       <div
@@ -411,6 +424,9 @@
         </button>
         <button id="toggle-config-chauffeur" class="btn btn-config-chauffeur">
           Configuration Chauffeurs
+        </button>
+        <button id="toggle-config-telephone" class="btn btn-config-telephone">
+          Configuration Téléphones
         </button>
       </div>
       <span id="save-notif" class="save-notif">OK</span>
@@ -576,6 +592,47 @@
       <div id="config-container-chauffeur"></div>
     </div>
 
+    <div id="config-section-telephone">
+      <button
+        class="btn btn-reset"
+        style="float: right; margin-top: 20px"
+        onclick="closeConfigs('config-section-telephone')"
+      >
+        Fermer
+      </button>
+
+      <h2 style="margin-top: 20px; padding-top: 10px">
+        Configuration Téléphones Clients
+      </h2>
+
+      <div
+        style="
+          background: #e9ecef;
+          padding: 15px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          display: flex;
+          gap: 10px;
+        "
+      >
+        <div>
+          <strong>Nouveau contact :</strong><br />
+          <input
+            type="text"
+            id="new-config-telephone-name"
+            placeholder="Nom..."
+          />
+          <input
+            type="text"
+            id="new-config-telephone-number"
+            placeholder="06 00 00..."
+          />
+          <button onclick="addNewTelephone()" class="btn btn-add">Créer</button>
+        </div>
+      </div>
+      <div id="config-container-telephone"></div>
+    </div>
+
     <div
       class="search-filters"
       style="
@@ -615,7 +672,103 @@
     </div>
 
     <div id="capture-area">
-      <h2 id="display-date">Planning du ...</h2>
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between; /* Titre à gauche, boutons à droite */
+          gap: 10px;
+          margin-bottom: 1vw;
+          flex-wrap: wrap; /* Évite les bugs sur mobile */
+        "
+      >
+        <h2 id="display-date" style="margin: 0">Planning du ...</h2>
+
+        <div
+          id="color-picker-tools"
+          class="hide-export"
+          style="
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: #fff;
+            padding: 5px 10px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+          "
+        >
+          <small style="color: #666; font-weight: bold; margin-right: 5px"
+            >MARQUER :</small
+          >
+          <div
+            onclick="setColorToSelectedRow('#ffffff')"
+            style="
+              width: 20px;
+              height: 20px;
+              background: #fff;
+              border: 1px solid #ccc;
+              cursor: pointer;
+              border-radius: 3px;
+            "
+            title="Effacer"
+          ></div>
+          <div
+            onclick="setColorToSelectedRow('#ffeb3b')"
+            style="
+              width: 20px;
+              height: 20px;
+              background: #ffeb3b;
+              cursor: pointer;
+              border-radius: 3px;
+            "
+            title="Jaune"
+          ></div>
+          <div
+            onclick="setColorToSelectedRow('#ff9800')"
+            style="
+              width: 20px;
+              height: 20px;
+              background: #ff9800;
+              cursor: pointer;
+              border-radius: 3px;
+            "
+            title="Orange"
+          ></div>
+          <div
+            onclick="setColorToSelectedRow('#4caf50')"
+            style="
+              width: 20px;
+              height: 20px;
+              background: #4caf50;
+              cursor: pointer;
+              border-radius: 3px;
+            "
+            title="Vert"
+          ></div>
+          <div
+            onclick="setColorToSelectedRow('#2196f3')"
+            style="
+              width: 20px;
+              height: 20px;
+              background: #2196f3;
+              cursor: pointer;
+              border-radius: 3px;
+            "
+            title="Bleu"
+          ></div>
+          <div
+            onclick="setColorToSelectedRow('#f44336')"
+            style="
+              width: 20px;
+              height: 20px;
+              background: #f44336;
+              cursor: pointer;
+              border-radius: 3px;
+            "
+            title="Rouge"
+          ></div>
+        </div>
+      </div>
       <div class="table-container">
         <table id="my-table">
           <thead>
@@ -627,6 +780,7 @@
               <th class="col-date">Date</th>
               <th class="col-matos">Matériel</th>
               <th class="col-client">Client</th>
+              <th class="col-telephone">Contact Client</th>
               <th class="col-consigne">Consigne</th>
               <th class="col-chauffeur">Chauffeur</th>
               <th class="col-ncommande">N° Commande</th>
@@ -662,29 +816,31 @@
               border: 1px solid #ccc;
             "
           >
-            <td style="padding: 15px">
+            <td style="padding: 10px">
               <div
                 style="
                   display: flex;
-                  justify-content: space-between;
-                  align-items: flex-start;
+                  flex-wrap: nowrap;
+                  justify-content: space-between; /* Utilise tout l'espace disponible */
+                  align-items: left;
+                  gap: 30px;
+                  width: 100%;
+                  overflow: hidden;
+                  font-size: clamp(0.4rem, 1vw, 0.7rem);
                 "
               >
-                <div style="flex: 1; text-align: left; line-height: 1.8">
-                  <div style="display: inline-block">
-                    <strong style="color: #007bff">SECTION CLIENT</strong>
-                  </div>
-                  <div style="font-size: 1.1em">
-                    Tarif :
-                    <span
-                      id="total-price"
-                      style="color: #007bff; margin-right: 10px"
-                      >0.00 €</span
-                    >
-                    Supp :
+                <div style="flex: 1; text-align: left; line-height: 1.4">
+                  <strong
+                    style="color: #007bff; font-size: 1.2em; display: block"
+                    >SECTION CLIENT</strong
+                  >
+                  <div style="white-space: nowrap; margin-top: 5px">
+                    TARIF :
+                    <span id="total-price" style="color: #007bff">0.00 €</span>
+                    SUPPLEMENT :
                     <span
                       id="total-price-supplement-client"
-                      style="color: #007bff; margin-right: 10px"
+                      style="color: #007bff"
                       >0.00 €</span
                     >
                     IC :
@@ -692,38 +848,28 @@
                       >0.00 €</span
                     >
                   </div>
-                  <div>
-                    TOTAL GÉNÉRAL :
-                    <span
-                      id="total-marge-client"
-                      style="color: #007bff; font-size: 1.1em"
+                  <div style="font-size: 1em">
+                    TOTAL GENERAL :
+                    <span id="total-marge-client" style="color: #007bff"
                       >0.00 €</span
                     >
                   </div>
                 </div>
 
-                <div
-                  style="
-                    flex: 1;
-                    text-align: left;
-                    line-height: 1.8;
-                    padding-left: 50px;
-                  "
-                >
-                  <div style="display: inline-block">
-                    <strong style="color: #dc3545">SECTION AFFRÉTÉ</strong>
-                  </div>
-                  <div style="font-size: 1.1em">
-                    Tarif :
-                    <span
-                      id="total-price-affrete"
-                      style="color: #dc3545; margin-right: 10px"
+                <div style="flex: 1; text-align: left; line-height: 1.4">
+                  <strong
+                    style="color: #dc3545; font-size: 1.2em; display: block"
+                    >SECTION AFFRÉTÉ</strong
+                  >
+                  <div style="white-space: nowrap; margin-top: 5px">
+                    TARIF :
+                    <span id="total-price-affrete" style="color: #dc3545"
                       >0.00 €</span
                     >
-                    Supp :
+                    SUPPLEMENT :
                     <span
                       id="total-price-supplement-affrete"
-                      style="color: #dc3545; margin-right: 10px"
+                      style="color: #dc3545"
                       >0.00 €</span
                     >
                     IC :
@@ -731,34 +877,28 @@
                       >0.00 €</span
                     >
                   </div>
-                  <div>
-                    TOTAL GÉNÉRAL :
-                    <span
-                      id="total-marge-affrete"
-                      style="color: #dc3545; font-size: 1.1em"
+                  <div style="font-size: 1em">
+                    TOTAL GENERAL :
+                    <span id="total-marge-affrete" style="color: #dc3545"
                       >0.00 €</span
                     >
                   </div>
                 </div>
 
-                <div
-                  style="
-                    flex: 1;
-                    text-align: left;
-                    line-height: 1.8;
-                    padding-left: 100px;
-                  "
-                >
-                  <div style="display: inline-block">
-                    <strong style="color: #000000">RESULTAT DU JOUR</strong>
-                  </div>
-                  <div>
+                <div style="flex: 1; text-align: left; line-height: 1.4">
+                  <strong
+                    style="color: #000000; font-size: 1.2em; display: block"
+                    >RÉSULTAT DU JOUR</strong
+                  >
+                  <div
+                    style="
+                      font-size: 1.1em;
+                      white-space: nowrap;
+                      margin-top: 5px;
+                    "
+                  >
                     MARGE NETTE :
-                    <span
-                      id="marge-nette"
-                      style="color: #28a745; font-size: 1.1em"
-                      >0.00 €</span
-                    >
+                    <span id="marge-nette" style="color: #28a745">0.00 €</span>
                   </div>
                 </div>
               </div>
@@ -786,11 +926,20 @@
 
       function afficherNotification(message, couleur = "#ff9800") {
         const notif = document.getElementById("notification-doublon");
+
+        // Sécurité : si l'élément n'existe pas, on met un message en console
+        if (!notif) {
+          console.warn(
+            "L'élément #notification-doublon est absent du HTML. Message : " +
+              message,
+          );
+          return;
+        }
+
         notif.textContent = message;
         notif.style.backgroundColor = couleur;
         notif.style.display = "block";
 
-        // Disparaît après 3 secondes
         setTimeout(() => {
           notif.style.display = "none";
         }, 3000);
@@ -870,6 +1019,8 @@
         JSON.parse(localStorage.getItem("transport_config_associe")) || {};
       let transportConfigChauffeur =
         JSON.parse(localStorage.getItem("transport_config_chauffeur")) || {};
+      let transportConfigTelephone =
+        JSON.parse(localStorage.getItem("transport_config_telephone")) || {};
       let transportConfigGroup =
         JSON.parse(localStorage.getItem("transport_config_group")) || {};
       let transportConfigMateriel =
@@ -880,6 +1031,37 @@
         JSON.parse(localStorage.getItem("transportConfigGroupCat")) || {};
       let transportConfigGroupInfo =
         JSON.parse(localStorage.getItem("transportConfigGroupInfo")) || {};
+
+      function setColorToSelectedRow(color) {
+        const rows = document.querySelectorAll(
+          "tr:has(.cell-selected), .row-marked",
+        );
+        const savedColors = JSON.parse(
+          localStorage.getItem("planningColors") || "{}",
+        );
+
+        if (rows.length > 0) {
+          rows.forEach((row) => {
+            const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
+
+            const cells = row.querySelectorAll("td");
+            cells.forEach((td, index) => {
+              const hasSpecificColor =
+                td.style.backgroundColor !== "" &&
+                td.style.backgroundColor !== "transparent";
+              if (index === 0 && hasSpecificColor) return;
+
+              td.style.backgroundColor = color;
+            });
+
+            savedColors[rowId] = color;
+          });
+
+          localStorage.setItem("planningColors", JSON.stringify(savedColors));
+        } else {
+          alert("Veuillez d'abord sélectionner au moins une ligne.");
+        }
+      }
 
       function filterTable() {
         const associeQuery = document
@@ -2021,6 +2203,110 @@
         }
       }
 
+      // Initialisation au chargement
+      updateTelephoneDatalist();
+      renderConfigTelephoneUI();
+
+      function addNewTelephone() {
+        const nameInput = document.getElementById("new-config-telephone-name");
+        const numInput = document.getElementById("new-config-telephone-number");
+        const name = nameInput.value.trim().toUpperCase();
+
+        // ICI : On formate le numéro avant de l'enregistrer
+        const numero = formatPhoneNumber(numInput.value.trim());
+
+        if (name) {
+          transportConfigTelephone[name] = { numero: numero };
+          localStorage.setItem(
+            "transport_config_telephone",
+            JSON.stringify(transportConfigTelephone),
+          );
+
+          nameInput.value = "";
+          numInput.value = "";
+          updateTelephoneDatalist();
+          renderConfigTelephoneUI();
+        }
+      }
+
+      function updateTelephoneDatalist() {
+        const dl = document.getElementById("list-telephone");
+        if (!dl) return;
+        dl.innerHTML = "";
+
+        Object.keys(transportConfigTelephone)
+          .sort()
+          .forEach((name) => {
+            const data = transportConfigTelephone[name];
+            const opt = document.createElement("option");
+
+            // Si un numéro existe, on affiche "NOM - 06 00..." sinon juste "NOM"
+            const label = data.numero ? `${name} - ${data.numero}` : name;
+
+            opt.value = label;
+            dl.appendChild(opt);
+          });
+      }
+
+      function renderConfigTelephoneUI() {
+        const container = document.getElementById("config-container-telephone");
+        if (!container) return;
+
+        let html = `<table class="config-table">
+  <thead><tr><th>Contact</th><th>Numéro de Téléphone</th><th>Action</th></tr></thead>
+  <tbody>`;
+
+        const contacts = Object.keys(transportConfigTelephone).sort();
+        if (contacts.length === 0) {
+          html += `<tr><td colspan="3"><i>Aucun contact configuré...</i></td></tr>`;
+        } else {
+          contacts.forEach((name) => {
+            const tel = transportConfigTelephone[name].numero || "";
+            html += `<tr>
+          <td><strong>${name}</strong></td>
+          <td contenteditable="true" onblur="updateTelInConfig('${name}', this.innerText)">${tel}</td>
+          <td><button onclick="deleteTelephone('${name}')" class="btn-delete">Supprimer</button></td>
+      </tr>`;
+          });
+        }
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+      }
+
+      function updateTelInConfig(name, newNum) {
+        // On formate la saisie manuelle
+        const formattedNum = formatPhoneNumber(newNum);
+
+        transportConfigTelephone[name].numero = formattedNum;
+        localStorage.setItem(
+          "transport_config_telephone",
+          JSON.stringify(transportConfigTelephone),
+        );
+
+        // On rafraîchit l'affichage pour que l'utilisateur voie les espaces apparaître
+        renderConfigTelephoneUI();
+        updateTelephoneDatalist();
+      }
+
+      function deleteTelephone(name) {
+        if (confirm("Supprimer " + name + " ?")) {
+          delete transportConfigTelephone[name];
+          localStorage.setItem(
+            "transport_config_telephone",
+            JSON.stringify(transportConfigTelephone),
+          );
+          updateTelephoneDatalist();
+          renderConfigTelephoneUI();
+        }
+      }
+
+      function formatPhoneNumber(value) {
+        // On ne garde que les chiffres
+        const numbers = value.replace(/\D/g, "");
+        // On les regroupe par deux avec un espace
+        return numbers.match(/.{1,2}/g)?.join(" ") || numbers;
+      }
+
       function calculerTotal() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
@@ -2181,18 +2467,19 @@
             date: tr.cells[4].innerText,
             vehicule: tr.querySelector(".select-vehicule").value,
             client: tr.querySelector(".select-client").value,
-            consigne: tr.cells[7].innerText,
+            telephone: tr.querySelector(".select-telephone").value,
+            consigne: tr.cells[8].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[9].innerText,
-            n_chantier: tr.cells[10].innerText,
-            n_bon: tr.cells[11].innerText,
-            tarif: tr.cells[12].innerText,
-            supplement_client: tr.cells[13].innerText,
-            IC_client: tr.cells[14].innerText,
-            tarif_affrete: tr.cells[15].innerText,
-            supplement_affrete: tr.cells[16].innerText,
-            IC_affrete: tr.cells[17].innerText,
-            commentaire: tr.cells[18].innerText,
+            n_commande: tr.cells[10].innerText,
+            n_chantier: tr.cells[11].innerText,
+            n_bon: tr.cells[12].innerText,
+            tarif: tr.cells[13].innerText,
+            supplement_client: tr.cells[14].innerText,
+            IC_client: tr.cells[15].innerText,
+            tarif_affrete: tr.cells[16].innerText,
+            supplement_affrete: tr.cells[17].innerText,
+            IC_affrete: tr.cells[18].innerText,
+            commentaire: tr.cells[19].innerText,
           });
         });
         localStorage.setItem("planning_" + date, JSON.stringify(rows));
@@ -2265,34 +2552,36 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
         <td class="matos-cell">
-            <input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" onchange="updateRowTarif(this.closest('tr'))">
+            <input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé...">
         </td>
         <td contenteditable="true">${data ? data.matin : "0.5"}</td>
         <td contenteditable="true">${data ? data.apres : "0.5"}</td>
-        <td contenteditable="true">${data ? data.chantier : ""}</td>
-        <td contenteditable="true">${data ? data.date : dateFormatee}</td>
+        <td contenteditable="true" class="${!data || !data.chantier ? "placeholder-style" : ""}">${data ? data.chantier : "Chantier..."}</td>        <td contenteditable="true">${data ? data.date : dateFormatee}</td>
         <td class="matos-cell">
-            <input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" onchange="updateRowTarif(this.closest('tr'))">
+            <input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" placeholder="Véhicule...">
         </td>
         <td class="matos-cell">
-            <input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" onchange="updateRowTarif(this.closest('tr'))">
+            <input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" placeholder="Client...">
         </td>
-        <td contenteditable="true">${data ? data.consigne : ""}</td>
         <td class="matos-cell">
-            <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}">
+            <input class="combo-input select-telephone" list="list-telephone" value="${data ? data.telephone : ""}" placeholder="Contact...">
         </td>
-        <td contenteditable="true">${data ? data.n_commande : ""}</td>
-        <td contenteditable="true">${data ? data.n_chantier : ""}</td>
-        <td class="cell-bon" contenteditable="true">${data ? data.n_bon : ""}</td>                  
+        <td contenteditable="true" class="${!data || !data.consigne ? "placeholder-style" : ""}">${data ? data.consigne : "Consigne..."}</td>        
+        <td class="matos-cell">
+            <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur...">
+        </td>
+        <td contenteditable="true" class="${!data || !data.n_commande ? "placeholder-style" : ""}">${data ? data.n_commande : "N° Commande..."}</td>
+        <td contenteditable="true" class="${!data || !data.n_chantier ? "placeholder-style" : ""}">${data ? data.n_chantier : "N° Chantier..."}</td>
+        <td contenteditable="true" class="${!data || !data.n_bon ? "placeholder-style" : ""}">${data ? data.n_bon : "N° Bon..."}</td>                  
         <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
         <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
         <td class="cell-IC-client" contenteditable="false" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
         <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"}</td>
         <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
         <td class="cell-IC-affrete" contenteditable="false" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
-        <td contenteditable="true">${data ? data.commentaire : ""}</td>
+        <td contenteditable="true" class="${!data || !data.commentaire ? "placeholder-style" : ""}">${data ? data.commentaire : "Commentaire..."}</td>
         <td class="hide-export" style="text-align:center; white-space:nowrap;">
-            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px; margin-left: 0px; margin-right:-5px" onclick="if(confirm('Voulez-vous vraiment supprimer cette ligne ?')){this.closest('tr').remove(); saveCurrentDay();}">×</button>
+            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="if(confirm('Voulez-vous vraiment supprimer cette ligne ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
             <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
         </td>`;
 
@@ -2408,18 +2697,19 @@
           date: ligne.cells[4].innerText,
           vehicule: ligne.querySelector(".select-vehicule").value,
           client: ligne.querySelector(".select-client").value,
-          consigne: ligne.cells[7].innerText,
+          telephone: ligne.querySelector(".select-telephone").value,
+          consigne: ligne.cells[8].innerText,
           chauffeur: ligne.querySelector(".select-chauffeur").value,
-          n_commande: ligne.cells[9].innerText,
-          n_chantier: ligne.cells[10].innerText,
-          n_bon: ligne.cells[11].innerText,
-          tarif: ligne.cells[12].innerText,
-          supplement_client: ligne.cells[13].innerText,
-          IC_client: ligne.cells[14].innerText,
-          tarif_affrete: ligne.cells[15].innerText,
-          supplement_affrete: ligne.cells[16].innerText,
-          IC_affrete: ligne.cells[17].innerText,
-          commentaire: ligne.cells[18].innerText,
+          n_commande: ligne.cells[10].innerText,
+          n_chantier: ligne.cells[11].innerText,
+          n_bon: ligne.cells[12].innerText,
+          tarif: ligne.cells[13].innerText,
+          supplement_client: ligne.cells[14].innerText,
+          IC_client: ligne.cells[15].innerText,
+          tarif_affrete: ligne.cells[16].innerText,
+          supplement_affrete: ligne.cells[17].innerText,
+          IC_affrete: ligne.cells[18].innerText,
+          commentaire: ligne.cells[19].innerText,
         };
 
         ajouterLigne(data);
@@ -2427,7 +2717,7 @@
         const nouvelleLigne = tableBody.lastElementChild;
 
         updateRowTarif(nouvelleLigne);
-
+        calculerTousLesTotaux();
         saveCurrentDay();
       }
 
@@ -2442,18 +2732,19 @@
             date: tr.cells[4].innerText,
             vehicule: tr.querySelector(".select-vehicule").value,
             client: tr.querySelector(".select-client").value,
-            consigne: tr.cells[7].innerText,
+            telephone: tr.querySelector(".select-telephone").value,
+            consigne: tr.cells[8].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[9].innerText,
-            n_chantier: tr.cells[10].innerText,
-            n_bon: tr.cells[11].innerText,
-            tarif: tr.cells[12].innerText,
-            supplement_client: tr.cells[13].innerText,
-            IC_client: tr.cells[14].innerText,
-            tarif_affrete: tr.cells[15].innerText,
-            supplement_affrete: tr.cells[16].innerText,
-            IC_affrete: tr.cells[17].innerText,
-            commentaire: tr.cells[18].innerText,
+            n_commande: tr.cells[10].innerText,
+            n_chantier: tr.cells[11].innerText,
+            n_bon: tr.cells[12].innerText,
+            tarif: tr.cells[13].innerText,
+            supplement_client: tr.cells[14].innerText,
+            IC_client: tr.cells[15].innerText,
+            tarif_affrete: tr.cells[16].innerText,
+            supplement_affrete: tr.cells[17].innerText,
+            IC_affrete: tr.cells[18].innerText,
+            commentaire: tr.cells[19].innerText,
           });
         });
 
@@ -2506,6 +2797,7 @@
         renderConfigUI();
         renderConfigUI2();
         renderConfigUIChauffeur();
+        renderConfigTelephoneUI();
 
         const saved = localStorage.getItem("planning_" + aujourdhui);
         if (saved && JSON.parse(saved).length > 0) {
@@ -2552,14 +2844,37 @@
             document.getElementById("config-section-chauffeur").style.display =
               "block";
           });
+        document
+          .getElementById("toggle-config-telephone")
+          .addEventListener("click", () => {
+            document.getElementById("config-section-telephone").style.display =
+              "block";
+          });
         document.getElementById("add-row").addEventListener("click", () => {
           ajouterLigne();
           saveCurrentDay();
         });
         document.getElementById("reset-day").addEventListener("click", () => {
-          if (confirm("Supprimer toutes les lignes ?")) {
-            document.getElementById("table-body").innerHTML = "";
-            saveCurrentDay();
+          if (confirm("Supprimer toutes les lignes et recommencer ?")) {
+            const tableBody = document.getElementById("table-body");
+            tableBody.innerHTML = "";
+
+            // On recrée la ligne vide
+            if (typeof ajouterLigne === "function") ajouterLigne();
+
+            // On sécurise les appels de fonction pour que la notification s'affiche QUOI QU'IL ARRIVE
+            if (typeof calculerTousLesTotaux === "function")
+              calculerTousLesTotaux();
+
+            // On vérifie quel est le nom de ta fonction de sauvegarde
+            if (typeof saveCurrentDay === "function") {
+              saveCurrentDay();
+            } else if (typeof saveData === "function") {
+              saveData();
+            }
+
+            // On appelle ta notification avec ton ID spécifique
+            afficherNotification("Planning réinitialisé", "#dc3545");
           }
         });
 
@@ -2567,29 +2882,24 @@
           const row = e.target.closest("tr");
           if (!row) return;
 
-          // SI L'UTILISATEUR EST EN TRAIN DE TAPER DANS UNE CELLULE (Tarif, Commande, etc.)
-          // On ne fait RIEN, on le laisse finir d'écrire.
-          if (e.target.isContentEditable) {
-            saveCurrentDay();
-            return;
-          }
-
-          // 1. Gérer la couleur de l'associé immédiatement (Menu déroulant)
-          if (e.target.classList.contains("select-associe")) {
-            appliquerCouleurAssocie(e.target);
-          }
-
-          // 2. Uniquement pour les menus déroulants (Changement via liste)
-          if (
-            e.target.classList.contains("select-client") ||
-            e.target.classList.contains("select-vehicule") ||
-            e.target.classList.contains("select-associe")
-          ) {
-            // Ici on appelle updateRowTarif car c'est un changement de menu, pas une saisie clavier
+          // 1. Si c'est un menu déroulant (Associe, Client, Véhicule)
+          if (e.target.classList.contains("combo-input")) {
+            if (e.target.classList.contains("select-associe")) {
+              appliquerCouleurAssocie(e.target);
+              trierPlanningParAssocie();
+            }
+            // Met à jour le tarif automatiquement selon la config
             updateRowTarif(row);
           }
 
-          saveCurrentDay();
+          // 2. Si c'est du texte éditable (Tarif manuel, N° Bon, etc.)
+          if (e.target.isContentEditable) {
+            if (e.target.classList.contains("cell-bon")) {
+              updateRowHighlight(row);
+            }
+            // On ne formate pas pendant la saisie, on sauvegarde juste
+            saveCurrentDay();
+          }
         });
 
         document
@@ -2649,7 +2959,7 @@
             const container = document.querySelector(".table-container");
 
             const startCol = 0;
-            const endCol = 13;
+            const endCol = 14;
 
             const allRows = table.querySelectorAll("tr");
             allRows.forEach((row) => {
@@ -2691,7 +3001,7 @@
             // 1. Définir les colonnes à garder pour la photo "Planning"
             // On s'arrête juste avant les tarifs (colonne 12 : N° Bon)
             const startCol = 0;
-            const endCol = 11; // S'arrête à "N° Bon" (la 12ème colonne)
+            const endCol = 12; // S'arrête à "N° Bon" (la 12ème colonne)
 
             const allRows = table.querySelectorAll("tr");
 
@@ -2752,6 +3062,7 @@
               "Date Chantier",
               "Véhicule",
               "Client",
+              "Téléphone",
               "Consigne",
               "Chauffeur",
               "N° Commande",
@@ -2833,6 +3144,7 @@
                   row.date,
                   row.vehicule,
                   row.client,
+                  row.telephone,
                   row.consigne,
                   row.chauffeur,
                   row.n_commande,
@@ -2903,6 +3215,30 @@
               `Transport_${datePicker.substring(0, 7)}.xlsx`,
             );
           });
+      });
+      window.addEventListener("load", () => {
+        const savedColors = JSON.parse(
+          localStorage.getItem("planningColors") || "{}",
+        );
+        const rows = document.querySelectorAll("table tr");
+
+        rows.forEach((row) => {
+          const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
+          if (savedColors[rowId]) {
+            const color = savedColors[rowId];
+            const cells = row.querySelectorAll("td");
+
+            cells.forEach((td, index) => {
+              // On applique la même logique de protection pour l'Associé
+              const hasSpecificColor =
+                td.style.backgroundColor !== "" &&
+                td.style.backgroundColor !== "transparent";
+              if (index === 0 && hasSpecificColor) return;
+
+              td.style.backgroundColor = color;
+            });
+          }
+        });
       });
     </script>
 
