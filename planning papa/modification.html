@@ -17,10 +17,18 @@
         width: 100%;
         overflow-x: auto;
       }
+      /* Style pour l'état "vide / gris" */
       .placeholder-style {
         color: #a0a0a0 !important;
-        font-style: italic;
-        font-size: 0.9em;
+        -webkit-text-fill-color: #a0a0a0 !important; /* Force pour les navigateurs basés sur Chrome */
+        font-size: 13px;
+      }
+
+      /* Style pour l'état "saisi / noir" */
+      .text-filled {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        font-size: 13px;
       }
       .header-tools {
         background: white;
@@ -619,8 +627,13 @@
           <strong>Nouveau contact :</strong><br />
           <input
             type="text"
+            id="new-config-telephone-client"
+            placeholder="Nom Client..."
+          />
+          <input
+            type="text"
             id="new-config-telephone-name"
-            placeholder="Nom..."
+            placeholder="Nom Contact..."
           />
           <input
             type="text"
@@ -927,7 +940,6 @@
       function afficherNotification(message, couleur = "#ff9800") {
         const notif = document.getElementById("notification-doublon");
 
-        // Sécurité : si l'élément n'existe pas, on met un message en console
         if (!notif) {
           console.warn(
             "L'élément #notification-doublon est absent du HTML. Message : " +
@@ -1296,17 +1308,17 @@
         const container = document.getElementById("config-container");
 
         let html = `<h3>Tarifs par Groupe</h3>
-          <table class="config-table">
-            <thead>
-              <tr>
-                <th>Groupe</th>
-                <th>Catégorie</th>
-                <th>Matériel</th>
-                <th>Tarif (€)</th>
-                <th>Indice (%)</th>
-                <th>Action</th>
-              </tr>
-            </thead><tbody>`;
+              <table class="config-table">
+                <thead>
+                  <tr>
+                    <th>Groupe</th>
+                    <th>Catégorie</th>
+                    <th>Matériel</th>
+                    <th>Tarif (€)</th>
+                    <th>Indice (%)</th>
+                    <th>Action</th>
+                  </tr>
+                </thead><tbody>`;
 
         const groups = Object.keys(transportConfigGroup).sort();
         const categorie = Object.keys(transportConfigCategorie).sort();
@@ -1322,9 +1334,9 @@
 
             if (matosKeys.length === 0) {
               html += `<tr>
-                    <td class="group-header"><strong>${group}</strong></td>
-                    <td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
-                  </tr>`;
+                        <td class="group-header"><strong>${group}</strong></td>
+                        <td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
+                      </tr>`;
             } else {
               matosKeys.forEach((matos, index) => {
                 const val = transportConfigGroup[group][matos];
@@ -1345,71 +1357,71 @@
                 }
 
                 html += `<tr>
-            ${
-              index === 0
-                ? `<td rowspan="${matosKeys.length}" class="group-header">
-                    <strong>${group}</strong><br>
-                    <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
-                    <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-                      <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>
-                      ${categorie
-                        .map((cat) => {
-                          const valIndice =
-                            transportConfigGroupInfo[group] &&
-                            transportConfigGroupInfo[group][cat]
-                              ? transportConfigGroupInfo[group][cat]
-                              : 0;
-                          return `
-                            <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
-                              <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
-                                <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
-                              </div>
-                              <input type="number" step="0.01" value="${valIndice}" 
-                                    onchange="updateGroupCatIndice('${group}', '${cat}', this.value)" 
-                                    style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
-                            </div>
-                          `;
-                        })
-                        .join("")}
-                    </div>
-                  </td>`
-                : ""
-            }
-            <td style="text-align:left; padding-left:10px;">
-                <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
-                    <option value="">-- Sans --</option>
-                    ${categorie
-                      .map(
-                        (c) =>
-                          `<option value="${c}" ${
-                            currentCat === c ? "selected" : ""
-                          }>${c}</option>`,
-                      )
-                      .join("")}
-                </select>
-            </td>
-            <td>${matos}</td>
-            <td>
-              <input type="number" step="0.01" value="${val.tarif}"
-                onchange="updateGroupPrice('${group}', '${matos}', this.value)"
-                style="width:100%;">
-            </td>
-            <td>
-              <input type="number" step="0.01" 
-                value="${indiceAafficher}" 
-                placeholder="${isUsingCategory ? "Hérité" : ""}"
-                onchange="updateGroupIndice('${group}', '${matos}', this.value)"
-                style="width:100%; ${
-                  isUsingCategory
-                    ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
-                    : "font-weight: bold;"
-                }">
-            </td>
-            <td>
-                <button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
-            </td>
-          </tr>`;
+                ${
+                  index === 0
+                    ? `<td rowspan="${matosKeys.length}" class="group-header">
+                        <strong>${group}</strong><br>
+                        <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
+                        <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+                          <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>
+                          ${categorie
+                            .map((cat) => {
+                              const valIndice =
+                                transportConfigGroupInfo[group] &&
+                                transportConfigGroupInfo[group][cat]
+                                  ? transportConfigGroupInfo[group][cat]
+                                  : 0;
+                              return `
+                                <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                                    <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
+                                  </div>
+                                  <input type="number" step="0.01" value="${valIndice}"
+                                        onchange="updateGroupCatIndice('${group}', '${cat}', this.value)"
+                                        style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                                </div>
+                              `;
+                            })
+                            .join("")}
+                        </div>
+                      </td>`
+                    : ""
+                }
+                <td style="text-align:left; padding-left:10px;">
+                    <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
+                        <option value="">-- Sans --</option>
+                        ${categorie
+                          .map(
+                            (c) =>
+                              `<option value="${c}" ${
+                                currentCat === c ? "selected" : ""
+                              }>${c}</option>`,
+                          )
+                          .join("")}
+                    </select>
+                </td>
+                <td>${matos}</td>
+                <td>
+                  <input type="number" step="0.01" value="${val.tarif}"
+                    onchange="updateGroupPrice('${group}', '${matos}', this.value)"
+                    style="width:100%;">
+                </td>
+                <td>
+                  <input type="number" step="0.01"
+                    value="${indiceAafficher}"
+                    placeholder="${isUsingCategory ? "Hérité" : ""}"
+                    onchange="updateGroupIndice('${group}', '${matos}', this.value)"
+                    style="width:100%; ${
+                      isUsingCategory
+                        ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
+                        : "font-weight: bold;"
+                    }">
+                </td>
+                <td>
+                    <button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
+                </td>
+              </tr>`;
               });
             }
           });
@@ -1418,14 +1430,14 @@
         html += `</tbody></table>`;
 
         html += `<h3 style="margin-top:30px;">Assignation des Clients</h3>
-           <table class="config-table">
-             <thead>
-               <tr>
-                 <th>Client</th>
-                 <th>Groupe assigné</th>
-                 <th>Action</th>
-               </tr>
-             </thead><tbody>`;
+               <table class="config-table">
+                 <thead>
+                   <tr>
+                     <th>Client</th>
+                     <th>Groupe assigné</th>
+                     <th>Action</th>
+                   </tr>
+                 </thead><tbody>`;
 
         const clients = Object.keys(transportConfigClient).sort();
         if (clients.length === 0) {
@@ -1434,22 +1446,22 @@
           clients.forEach((client) => {
             const assignedGroup = transportConfigClient[client];
             html += `<tr>
-                <td><strong>${client}</strong></td>
-                <td>
-                  <select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;">
-                    <option value="">-- Aucun groupe --</option>
-                    ${groups
-                      .map(
-                        (g) =>
-                          `<option value="${g}" ${
-                            assignedGroup === g ? "selected" : ""
-                          }>${g}</option>`,
-                      )
-                      .join("")}
-                  </select>
-                </td>
-                <td><button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button></td>
-              </tr>`;
+                    <td><strong>${client}</strong></td>
+                    <td>
+                      <select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;">
+                        <option value="">-- Aucun groupe --</option>
+                        ${groups
+                          .map(
+                            (g) =>
+                              `<option value="${g}" ${
+                                assignedGroup === g ? "selected" : ""
+                              }>${g}</option>`,
+                          )
+                          .join("")}
+                      </select>
+                    </td>
+                    <td><button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button></td>
+                  </tr>`;
           });
         }
 
@@ -1560,17 +1572,17 @@
         const cats = Object.keys(transportConfigCategorie).sort();
 
         let html = `<h3>Gestion des Catégories</h3>
-                <ul style="list-style: none; padding: 0; max-width: 400px;">`;
+                    <ul style="list-style: none; padding: 0; max-width: 400px;">`;
 
         cats.forEach((cat) => {
           html += `
-            <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;">
-                <span>${cat}</span>
-                <button onclick="deleteCategorie('${cat}')" 
-                        style="color: white; background: #dc3545; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
-                    Supprimer
-                </button>
-            </li>`;
+                <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;">
+                    <span>${cat}</span>
+                    <button onclick="deleteCategorie('${cat}')"
+                            style="color: white; background: #dc3545; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+                        Supprimer
+                    </button>
+                </li>`;
         });
 
         html += `</ul>`;
@@ -1750,6 +1762,11 @@
       }
 
       function updateRowTarif(tr) {
+        // AJOUT : Définir si le changement vient d'une liste déroulante
+        const eventTrigger = window.event ? window.event.target : null;
+        const isComboChange =
+          eventTrigger && eventTrigger.classList.contains("combo-input");
+
         const client = tr.querySelector(".select-client").value;
         const associe = tr.querySelector(".select-associe").value;
         const matos = tr.querySelector(".select-vehicule").value;
@@ -1768,16 +1785,15 @@
                 .replace(",", "."),
             ) || 0;
 
-          if (tarifC === 0) {
+          // Utilisation de isComboChange pour forcer la mise à jour
+          if (isComboChange || tarifC === 0) {
             tarifC = getTarifClient(client, matos);
           }
 
-          // PROTECTION : On ne formate le texte (toFixed + €) que si l'utilisateur n'est pas dans la case
           if (document.activeElement !== cellTarifClient) {
             cellTarifClient.textContent = tarifC.toFixed(2) + " €";
           }
 
-          // Calcul de l'IC (Reste inchangé)
           const groupeNom = transportConfigClient[client];
           let indiceC = 0;
           if (
@@ -1796,8 +1812,6 @@
           }
           const icC = tarifC * (indiceC / 100);
           cellICClient.textContent = icC.toFixed(2) + " €";
-
-          // Style de l'IC
           cellICClient.style.color =
             icC > 0 ? "#28a745" : icC < 0 ? "#dc3545" : "#95a5a6";
           cellICClient.style.fontWeight = icC !== 0 ? "bold" : "normal";
@@ -1816,16 +1830,17 @@
                 .replace(",", "."),
             ) || 0;
 
-          if (
-            tarifA === 0 &&
-            transportConfigAssocie[associe] &&
-            transportConfigAssocie[associe][matos]
-          ) {
-            tarifA =
-              parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
+          // Désormais isComboChange est bien reconnu ici aussi
+          if (isComboChange || tarifA === 0) {
+            if (
+              transportConfigAssocie[associe] &&
+              transportConfigAssocie[associe][matos]
+            ) {
+              tarifA =
+                parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
+            }
           }
 
-          // PROTECTION : Pareil pour la cellule affrété
           if (document.activeElement !== cellTarifAffrete) {
             cellTarifAffrete.textContent = tarifA.toFixed(2) + " €";
           }
@@ -1847,7 +1862,6 @@
           }
           const icA = tarifA * (indiceA / 100);
           cellICAffrete.textContent = icA.toFixed(2) + " €";
-
           cellICAffrete.style.color =
             icA > 0 ? "#28a745" : icA < 0 ? "#dc3545" : "#95a5a6";
           cellICAffrete.style.fontWeight = icA !== 0 ? "bold" : "normal";
@@ -1955,31 +1969,31 @@
 
             // Bloc de gauche (Nom de l'associé + Indices carburant)
             const leftBlockHTML = `
-        <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
-          <strong>${entry}</strong><br>
-          <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
-          
-          <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-            <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
-            ${categories
-              .map((cat) => {
-                const valIndice =
-                  (transportConfigGroupInfo[entry] &&
-                    transportConfigGroupInfo[entry][cat]) ||
-                  0;
-                return `
-                <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
-                  </div>
-                  <input type="number" step="0.01" value="${valIndice}" 
-                         onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)" 
-                         style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
-                </div>`;
-              })
-              .join("")}
-          </div>
-        </td>`;
+            <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
+              <strong>${entry}</strong><br>
+              <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
+
+              <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+                <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
+                ${categories
+                  .map((cat) => {
+                    const valIndice =
+                      (transportConfigGroupInfo[entry] &&
+                        transportConfigGroupInfo[entry][cat]) ||
+                      0;
+                    return `
+                    <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                      </div>
+                      <input type="number" step="0.01" value="${valIndice}"
+                             onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
+                             style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                    </div>`;
+                  })
+                  .join("")}
+              </div>
+            </td>`;
 
             keys.forEach((k, idx) => {
               // Si le matériel n'existe pas encore pour cet associé, on crée une structure par défaut à 0
@@ -2004,29 +2018,29 @@
               }
 
               html += `<tr>
-          ${idx === 0 ? leftBlockHTML : ""}
-          <td style="text-align:left; padding-left:10px;">
-            <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
-              <option value="">-- Sans --</option>
-              ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
-            </select>
-          </td>
-          <td>${k}</td>
-          <td>
-            <input type="number" step="0.01" value="${val.tarif || 0}" 
-                   onchange="updateAssocieTarif('${entry}', '${k}', this.value)" 
-                   style="width:100%;">
-          </td>
-          <td>
-            <input type="number" step="0.01" value="${indiceAafficher}" 
-                   placeholder="${isUsingCategory ? "Hérité" : ""}"
-                   onchange="updateAssocieIndice('${entry}', '${k}', this.value)" 
-                   style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
-          </td>
-          <td>
-            <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
-          </td>
-        </tr>`;
+              ${idx === 0 ? leftBlockHTML : ""}
+              <td style="text-align:left; padding-left:10px;">
+                <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
+                  <option value="">-- Sans --</option>
+                  ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
+                </select>
+              </td>
+              <td>${k}</td>
+              <td>
+                <input type="number" step="0.01" value="${val.tarif || 0}"
+                       onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
+                       style="width:100%;">
+              </td>
+              <td>
+                <input type="number" step="0.01" value="${indiceAafficher}"
+                       placeholder="${isUsingCategory ? "Hérité" : ""}"
+                       onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
+                       style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
+              </td>
+              <td>
+                <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
+              </td>
+            </tr>`;
             });
           });
         }
@@ -2126,9 +2140,9 @@
         } else {
           sortedEntries.forEach((entry) => {
             html += `<tr>
-                  <td class="client-header">${entry}</td>
-                  <td><button class="btn btn-reset" onclick="deleteChauffeur('${entry}')">Suppr. Chauffeur</button></td>
-                  </tr>`;
+                      <td class="client-header">${entry}</td>
+                      <td><button class="btn btn-reset" onclick="deleteChauffeur('${entry}')">Suppr. Chauffeur</button></td>
+                      </tr>`;
           });
         }
 
@@ -2203,25 +2217,27 @@
         }
       }
 
-      // Initialisation au chargement
       updateTelephoneDatalist();
       renderConfigTelephoneUI();
 
       function addNewTelephone() {
+        const clientInput = document.getElementById(
+          "new-config-telephone-client",
+        );
         const nameInput = document.getElementById("new-config-telephone-name");
         const numInput = document.getElementById("new-config-telephone-number");
         const name = nameInput.value.trim().toUpperCase();
-
-        // ICI : On formate le numéro avant de l'enregistrer
+        const client = clientInput.value.trim().toUpperCase();
         const numero = formatPhoneNumber(numInput.value.trim());
 
         if (name) {
-          transportConfigTelephone[name] = { numero: numero };
+          transportConfigTelephone[name] = { numero: numero, client: client };
           localStorage.setItem(
             "transport_config_telephone",
             JSON.stringify(transportConfigTelephone),
           );
 
+          clientInput.value = "";
           nameInput.value = "";
           numInput.value = "";
           updateTelephoneDatalist();
@@ -2235,38 +2251,84 @@
         dl.innerHTML = "";
 
         Object.keys(transportConfigTelephone)
-          .sort()
+          .sort((a, b) =>
+            (transportConfigTelephone[a].client || "").localeCompare(
+              transportConfigTelephone[b].client || "",
+            ),
+          )
           .forEach((name) => {
             const data = transportConfigTelephone[name];
             const opt = document.createElement("option");
 
-            // Si un numéro existe, on affiche "NOM - 06 00..." sinon juste "NOM"
-            const label = data.numero ? `${name} - ${data.numero}` : name;
+            const clientLabel = data.client ? `${data.client} | ` : "";
+            const telLabel = data.numero ? ` - ${data.numero}` : "";
 
-            opt.value = label;
+            opt.value = `${clientLabel}${name}${telLabel}`;
             dl.appendChild(opt);
           });
+      }
+
+      function updateClientInConfig(name, newClientName) {
+        transportConfigTelephone[name].client = newClientName
+          .trim()
+          .toUpperCase();
+        localStorage.setItem(
+          "transport_config_telephone",
+          JSON.stringify(transportConfigTelephone),
+        );
+      }
+
+      function updateNameInConfig(oldName, newName) {
+        if (oldName === newName) return;
+
+        transportConfigTelephone[newName] = transportConfigTelephone[oldName];
+        delete transportConfigTelephone[oldName];
+
+        localStorage.setItem(
+          "transport_config_telephone",
+          JSON.stringify(transportConfigTelephone),
+        );
+
+        renderConfigTelephoneUI();
+        updateTelephoneDatalist();
       }
 
       function renderConfigTelephoneUI() {
         const container = document.getElementById("config-container-telephone");
         if (!container) return;
 
-        let html = `<table class="config-table">
-  <thead><tr><th>Contact</th><th>Numéro de Téléphone</th><th>Action</th></tr></thead>
-  <tbody>`;
+        let html = `<table class="config-table" style="width:100%; table-layout: fixed; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="width: 25%;">Client</th>
+            <th style="width: 25%;">Contact</th>
+            <th style="width: 30%;">Numéro de Téléphone</th>
+            <th style="width: 20%;">Action</th>
+          </tr>
+        </thead>
+        <tbody>`;
 
-        const contacts = Object.keys(transportConfigTelephone).sort();
+        const contacts = Object.keys(transportConfigTelephone).sort((a, b) => {
+          const clientA = transportConfigTelephone[a].client || "";
+          const clientB = transportConfigTelephone[b].client || "";
+          return clientA.localeCompare(clientB) || a.localeCompare(b);
+        });
+
         if (contacts.length === 0) {
-          html += `<tr><td colspan="3"><i>Aucun contact configuré...</i></td></tr>`;
+          html += `<tr><td colspan="4" style="text-align:center;"><i>Aucun contact configuré...</i></td></tr>`;
         } else {
           contacts.forEach((name) => {
             const tel = transportConfigTelephone[name].numero || "";
+            const client = transportConfigTelephone[name].client || ""; // On récupère le nom du client
+
             html += `<tr>
-          <td><strong>${name}</strong></td>
-          <td contenteditable="true" onblur="updateTelInConfig('${name}', this.innerText)">${tel}</td>
-          <td><button onclick="deleteTelephone('${name}')" class="btn-delete">Supprimer</button></td>
-      </tr>`;
+              <td style="padding: 8px;" contenteditable="true" onblur="updateClientInConfig('${name}', this.innerText)">${client}</td>
+              <td style="padding: 8px;" contenteditable="true" onblur="updateNameInConfig('${name}', this.innerText)">${name}</td>
+              <td style="text-align: center;" contenteditable="true" onblur="updateTelInConfig('${name}', this.innerText)">${tel}</td>
+              <td style="text-align: center;">
+                <button onclick="deleteTelephone('${name}')" class="btn-delete">Supprimer</button>
+              </td>
+          </tr>`;
           });
         }
         html += `</tbody></table>`;
@@ -2274,7 +2336,6 @@
       }
 
       function updateTelInConfig(name, newNum) {
-        // On formate la saisie manuelle
         const formattedNum = formatPhoneNumber(newNum);
 
         transportConfigTelephone[name].numero = formattedNum;
@@ -2283,7 +2344,6 @@
           JSON.stringify(transportConfigTelephone),
         );
 
-        // On rafraîchit l'affichage pour que l'utilisateur voie les espaces apparaître
         renderConfigTelephoneUI();
         updateTelephoneDatalist();
       }
@@ -2301,9 +2361,7 @@
       }
 
       function formatPhoneNumber(value) {
-        // On ne garde que les chiffres
         const numbers = value.replace(/\D/g, "");
-        // On les regroupe par deux avec un espace
         return numbers.match(/.{1,2}/g)?.join(" ") || numbers;
       }
 
@@ -2539,6 +2597,25 @@
         }
       }
 
+      function supprimerLigne(btn) {
+        const tableBody = document.getElementById("table-body");
+
+        // 1. On demande confirmation
+        if (confirm("Voulez-vous vraiment supprimer cette ligne ?")) {
+          // 2. On supprime la ligne
+          btn.closest("tr").remove();
+
+          // 3. SI c'était la dernière ligne, on en rajoute une vide
+          if (tableBody.querySelectorAll("tr").length === 0) {
+            ajouterLigne(); // Appelle ta fonction existante pour recréer une ligne
+          }
+
+          // 4. On met à jour les données et les totaux
+          saveCurrentDay();
+          calculerTousLesTotaux();
+        }
+      }
+
       function ajouterLigne(data = null) {
         const tableBody = document.getElementById("table-body");
         const datePicker = document.getElementById("current-date-picker");
@@ -2550,45 +2627,64 @@
         });
 
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-        <td class="matos-cell">
-            <input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé...">
-        </td>
-        <td contenteditable="true">${data ? data.matin : "0.5"}</td>
-        <td contenteditable="true">${data ? data.apres : "0.5"}</td>
-        <td contenteditable="true" class="${!data || !data.chantier ? "placeholder-style" : ""}">${data ? data.chantier : "Chantier..."}</td>        <td contenteditable="true">${data ? data.date : dateFormatee}</td>
-        <td class="matos-cell">
-            <input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" placeholder="Véhicule...">
-        </td>
-        <td class="matos-cell">
-            <input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" placeholder="Client...">
-        </td>
-        <td class="matos-cell">
-            <input class="combo-input select-telephone" list="list-telephone" value="${data ? data.telephone : ""}" placeholder="Contact...">
-        </td>
-        <td contenteditable="true" class="${!data || !data.consigne ? "placeholder-style" : ""}">${data ? data.consigne : "Consigne..."}</td>        
-        <td class="matos-cell">
-            <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur...">
-        </td>
-        <td contenteditable="true" class="${!data || !data.n_commande ? "placeholder-style" : ""}">${data ? data.n_commande : "N° Commande..."}</td>
-        <td contenteditable="true" class="${!data || !data.n_chantier ? "placeholder-style" : ""}">${data ? data.n_chantier : "N° Chantier..."}</td>
-        <td contenteditable="true" class="${!data || !data.n_bon ? "placeholder-style" : ""}">${data ? data.n_bon : "N° Bon..."}</td>                  
-        <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
-        <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
-        <td class="cell-IC-client" contenteditable="false" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
-        <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"}</td>
-        <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
-        <td class="cell-IC-affrete" contenteditable="false" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
-        <td contenteditable="true" class="${!data || !data.commentaire ? "placeholder-style" : ""}">${data ? data.commentaire : "Commentaire..."}</td>
-        <td class="hide-export" style="text-align:center; white-space:nowrap;">
-            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="if(confirm('Voulez-vous vraiment supprimer cette ligne ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
-            <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
-        </td>`;
 
-        // Écouteurs pour les cellules éditables (Texte)
+        const getPlaceholderClass = (val, defaultText) => {
+          return !val || val === defaultText ? "placeholder-style" : "";
+        };
+
+        const valChantier = data ? data.chantier : "Chantier...";
+        const valConsigne = data ? data.consigne : "Consigne...";
+        const valCommande = data ? data.n_commande : "N° Commande...";
+        const valChantierNum = data ? data.n_chantier : "N° Chantier...";
+        const valBon = data ? data.n_bon : "N° Bon...";
+        const valComm = data ? data.commentaire : "Commentaire...";
+
+        tr.innerHTML = `
+            <td class="matos-cell">
+                <input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé...">
+            </td>
+            <td contenteditable="true">${data ? data.matin : "0.5"}</td>
+            <td contenteditable="true">${data ? data.apres : "0.5"}</td>
+
+            <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
+
+            <td contenteditable="true">${data ? data.date : dateFormatee}</td>
+            <td class="matos-cell">
+                <input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" placeholder="Véhicule...">
+            </td>
+            <td class="matos-cell">
+                <input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" placeholder="Client...">
+            </td>
+            <td class="matos-cell">
+                <input class="combo-input select-telephone" list="list-telephone" value="${data ? data.telephone : ""}" placeholder="Contact...">
+            </td>
+
+            <td contenteditable="true" class="${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
+
+            <td class="matos-cell">
+                <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur...">
+            </td>
+
+            <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
+            <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
+            <td contenteditable="true" class="${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
+
+            <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
+            <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
+            <td class="cell-IC-client" contenteditable="false" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
+            <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"}</td>
+            <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
+            <td class="cell-IC-affrete" contenteditable="false" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
+
+            <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
+
+            <td class="hide-export" style="text-align:center; white-space:nowrap;">
+                <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="supprimerLigne(this)">×</button>
+                <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
+            </td>`;
+
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
           cell.addEventListener("input", () => {
-            // Si on modifie manuellement un tarif, on recalcule l'IC immédiatement
             if (
               cell.classList.contains("cell-tarif") ||
               cell.classList.contains("cell-tarif-affrete")
@@ -2608,18 +2704,43 @@
             ) {
               let val = parseFloat(cell.textContent.replace(",", ".")) || 0;
               cell.textContent = val.toFixed(2) + " €";
-
-              // On relance les totaux du bas car le tarif a été validé
               calculerTousLesTotaux();
+            } else if (cell.textContent.trim() === "") {
+              const index = cell.cellIndex;
+              const map = {
+                3: "Chantier...",
+                8: "Consigne...",
+                10: "N° Commande...",
+                11: "N° Chantier...",
+                12: "N° Bon...",
+                19: "Commentaire...",
+              };
+              if (map[index]) {
+                cell.textContent = map[index];
+                cell.classList.add("placeholder-style");
+              }
             }
+            saveCurrentDay();
           });
 
-          // 3. AU CLIC (FOCUS) : On enlève le "€" pour faciliter la modification
           cell.addEventListener("focus", () => {
             if (
-              cell.classList.contains("cell-tarif") ||
-              cell.classList.contains("cell-tarif-affrete")
+              !cell.classList.contains("cell-tarif") &&
+              !cell.classList.contains("cell-tarif-affrete")
             ) {
+              const placeholders = [
+                "Chantier...",
+                "Consigne...",
+                "N° Commande...",
+                "N° Chantier...",
+                "N° Bon...",
+                "Commentaire...",
+              ];
+              if (placeholders.includes(cell.textContent.trim())) {
+                cell.textContent = "";
+                cell.classList.remove("placeholder-style");
+              }
+            } else {
               let val = cell.textContent.replace(" €", "").trim();
               if (val === "0.00") cell.textContent = "";
               else cell.textContent = val;
@@ -2627,7 +2748,6 @@
           });
         });
 
-        // Écouteurs pour les menus déroulants (Associe, Client, Véhicule)
         tr.querySelectorAll(".combo-input").forEach((input) => {
           input.addEventListener("change", () => {
             saveCurrentDay();
@@ -2640,19 +2760,16 @@
 
         tableBody.appendChild(tr);
 
-        // Initialisation immédiate de la ligne
         const inputAssocie = tr.querySelector(".select-associe");
         if (data || inputAssocie.value) {
           appliquerCouleurAssocie(inputAssocie);
         }
 
-        // Calculs globaux
         calculerTousLesTotaux(); // Une fonction regroupant tes fonctions calculerTotal...
         updateRowHighlight(tr);
         filterTable();
         trierPlanningParAssocie();
 
-        // Délai court pour laisser le DOM s'installer avant le premier calcul de tarif
         setTimeout(() => {
           updateRowTarif(tr);
         }, 50);
@@ -2917,7 +3034,6 @@
             const row = e.target.closest("tr");
             if (!row) return;
 
-            // AJOUT : Si on quitte une case de tarif (Client ou Affrété)
             if (
               e.target.classList.contains("cell-tarif") ||
               e.target.classList.contains("cell-tarif-affrete")
@@ -2927,7 +3043,6 @@
               return; // On sort pour éviter de traiter la suite
             }
 
-            // Votre code existant pour les suppléments (inchangé)
             if (
               !e.target.classList.contains("cell-supplement-client") &&
               !e.target.classList.contains("cell-supplement-affrete")
@@ -2952,16 +3067,51 @@
           true,
         );
 
+        // Force l'affichage de la liste complète au clic, même si la case est remplie
+        document
+          .getElementById("table-body")
+          .addEventListener("mousedown", function (e) {
+            if (e.target.list && e.target.classList.contains("combo-input")) {
+              const input = e.target;
+              const currentVal = input.value;
+
+              // Au moment où l'utilisateur clique
+              input.value = "";
+
+              // On attend un tout petit peu que le navigateur ouvre la liste complète
+              setTimeout(() => {
+                if (input.value === "") {
+                  input.value = currentVal;
+                }
+              }, 1);
+            }
+          });
+
         document
           .getElementById("copy-image-client")
           .addEventListener("click", function () {
             const table = document.getElementById("my-table");
-            const container = document.querySelector(".table-container");
+            const area = document.getElementById("capture-area");
+            area.querySelectorAll(".combo-input").forEach((input) => {
+              if (input.value === "") {
+                input.classList.add("placeholder-style");
+                input.classList.remove("text-filled");
+              } else {
+                input.classList.add("text-filled");
+                input.classList.remove("placeholder-style");
+              }
+            });
+            const marquerBlock =
+              document.querySelector(".marquer-container") ||
+              document.getElementById("color-picker-tools");
 
             const startCol = 0;
             const endCol = 14;
 
             const allRows = table.querySelectorAll("tr");
+
+            if (marquerBlock) marquerBlock.style.visibility = "hidden";
+
             allRows.forEach((row) => {
               Array.from(row.cells).forEach((cell, index) => {
                 if (index < startCol || index > endCol) {
@@ -2970,23 +3120,26 @@
               });
             });
 
-            const area = document.getElementById("capture-area");
-
             html2canvas(area, {
               backgroundColor: "#ffffff",
-              scale: 2, // Meilleure qualité
+              scale: 2,
               logging: false,
+              useCORS: true, // Utile si tu as des ressources externes
             }).then((canvas) => {
               canvas.toBlob((blob) => {
-                const item = new ClipboardItem({ "image/png": blob });
-                navigator.clipboard.write([item]).then(() => {
-                  afficherNotification("Planning copié", "#2196F3");
-                });
+                if (blob) {
+                  const item = new ClipboardItem({ "image/png": blob });
+                  navigator.clipboard.write([item]).then(() => {
+                    afficherNotification("Planning copié", "#2196F3");
+                  });
+                }
               });
+
+              if (marquerBlock) marquerBlock.style.visibility = "visible";
 
               allRows.forEach((row) => {
                 Array.from(row.cells).forEach((cell) => {
-                  cell.style.display = "";
+                  cell.style.display = ""; // On retire le display: none
                 });
               });
             });
@@ -2997,25 +3150,32 @@
           .addEventListener("click", function () {
             const table = document.getElementById("my-table");
             const area = document.getElementById("capture-area");
-
-            // 1. Définir les colonnes à garder pour la photo "Planning"
-            // On s'arrête juste avant les tarifs (colonne 12 : N° Bon)
-            const startCol = 0;
-            const endCol = 12; // S'arrête à "N° Bon" (la 12ème colonne)
-
+            const marquerBlock = document.getElementById("color-picker-tools");
             const allRows = table.querySelectorAll("tr");
+            const endCol = 12;
 
-            // 2. On masque physiquement les cellules de tarifs et d'actions
+            area.querySelectorAll(".combo-input").forEach((input) => {
+              if (input.value === "") {
+                input.classList.add("placeholder-style");
+                input.classList.remove("text-filled");
+              } else {
+                input.classList.add("text-filled");
+                input.classList.remove("placeholder-style");
+              }
+            });
+
+            if (marquerBlock) marquerBlock.style.visibility = "hidden";
+
             allRows.forEach((row) => {
               Array.from(row.cells).forEach((cell, index) => {
-                // Masque tout ce qui est après N° Bon OU ce qui a la classe hide-export
                 if (index > endCol || cell.classList.contains("hide-export")) {
                   cell.style.display = "none";
                 }
+                if (index === 8) cell.style.width = "100%";
+                else if (index <= endCol) cell.style.width = "1px";
               });
             });
 
-            // 3. Capture de la zone
             html2canvas(area, {
               backgroundColor: "#ffffff",
               scale: 2,
@@ -3028,14 +3188,19 @@
                 });
               });
 
-              // 4. RÉAFFICHAGE de toutes les colonnes après la capture
+              if (marquerBlock) marquerBlock.style.visibility = "visible";
+
               allRows.forEach((row) => {
                 Array.from(row.cells).forEach((cell) => {
                   cell.style.display = "";
+                  cell.style.width = "";
+                  cell.style.minWidth = "";
+                  cell.style.whiteSpace = "";
                 });
               });
             });
-          });
+          }); // Fin du EventListener
+
         document
           .getElementById("export-excel")
           .addEventListener("click", function () {
