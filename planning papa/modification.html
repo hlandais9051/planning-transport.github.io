@@ -1111,8 +1111,26 @@
 
       function trierDatalist(id) {
         const list = document.getElementById(id);
+        if (!list) return;
+
         const options = Array.from(list.options);
-        options.sort((a, b) => a.value.localeCompare(b.value));
+        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
+
+        options.sort((a, b) => {
+          const valA = a.value.toUpperCase();
+          const valB = b.value.toUpperCase();
+
+          if (id === "list-associe") {
+            const isABase = baseAssocies.includes(valA);
+            const isBBase = baseAssocies.includes(valB);
+
+            if (isABase && !isBBase) return -1; // a est prioritaire, il monte
+            if (!isABase && isBBase) return 1; // b est prioritaire, il monte
+          }
+
+          return valA.localeCompare(valB);
+        });
+
         list.innerHTML = "";
         options.forEach((opt) => list.appendChild(opt));
       }
@@ -1878,14 +1896,23 @@
         const bonCell = tr.querySelector(".cell-bon");
         if (!bonCell) return;
 
-        const hasBon = bonCell.textContent.trim() !== "";
+        const texte = bonCell.textContent.trim();
+        // La ligne est considérée "remplie" si elle n'est pas vide ET qu'elle ne contient pas le placeholder
+        const hasBon = texte !== "" && texte !== "N° Bon...";
+
         const cells = tr.querySelectorAll("td");
 
         cells.forEach((td) => {
-          const isAssocieCell = td.querySelector(".select-associe");
-
-          if (!isAssocieCell) {
-            td.style.backgroundColor = hasBon ? "#d4edda" : "";
+          if (hasBon) {
+            td.style.backgroundColor = "#d4edda"; // Vert si bon rempli
+          } else {
+            // Si pas de bon, on laisse la logique de appliquerCouleurAssocie gérer
+            // On ne remet en blanc que les cellules qui ne sont pas l'associé
+            if (!td.querySelector(".select-associe")) {
+              td.style.backgroundColor = "";
+            } else {
+              appliquerCouleurAssocie(td.querySelector(".select-associe"));
+            }
           }
         });
       }
@@ -1906,7 +1933,6 @@
 
         associeListDatalist.innerHTML = "";
 
-        // 1. Liste de tous les associés (par défaut + manuels)
         const allAssocies = new Set([
           ...defaultAssociesList,
           ...Object.keys(transportConfigAssocie),
@@ -1920,16 +1946,13 @@
 
         let html = `<table class="config-table"><thead><tr><th>Associé</th><th>Catégorie</th><th>Matériel</th><th>Tarif (€)</th><th>Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
 
-        // 1. Définir les associés de base
         const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
 
-        // 2. Récupérer tous les noms (base + stockés)
         const allAssociesSet = new Set([
           ...baseAssocies,
           ...Object.keys(transportConfigAssocie),
         ]);
 
-        // 3. Trier avec la règle de priorité
         const sortedEntries = Array.from(allAssociesSet).sort((a, b) => {
           const isABase = baseAssocies.includes(a);
           const isBBase = baseAssocies.includes(b);
@@ -1937,11 +1960,9 @@
           if (isABase && !isBBase) return -1; // a est prioritaire
           if (!isABase && isBBase) return 1; // b est prioritaire
 
-          // Si les deux sont dans le même groupe (base ou affrétés), tri alphabétique normal
           return a.localeCompare(b);
         });
         const categories = Object.keys(transportConfigCategorie).sort();
-        // Liste de tous les matériels de base existants
         const allGlobalMaterials = Object.keys(transportConfigMateriel).sort();
 
         if (sortedEntries.length === 0) {
@@ -1952,12 +1973,10 @@
               html += `<tr style="background-color: white;"><td colspan="6" style="height: 25px; border: none;"></td></tr>`;
             }
 
-            // Initialiser l'objet dans transportConfigAssocie s'il n'existe pas encore
             if (!transportConfigAssocie[entry]) {
               transportConfigAssocie[entry] = {};
             }
 
-            // Fusionner les matériels existants de l'associé avec la liste globale des matériels de base
             const keys = Array.from(
               new Set([
                 ...allGlobalMaterials,
@@ -1967,7 +1986,6 @@
 
             const rowSpanCount = Math.max(1, keys.length);
 
-            // Bloc de gauche (Nom de l'associé + Indices carburant)
             const leftBlockHTML = `
             <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
               <strong>${entry}</strong><br>
@@ -1996,7 +2014,6 @@
             </td>`;
 
             keys.forEach((k, idx) => {
-              // Si le matériel n'existe pas encore pour cet associé, on crée une structure par défaut à 0
               if (!transportConfigAssocie[entry][k]) {
                 transportConfigAssocie[entry][k] = { tarif: 0, indice: 0 };
               }
@@ -2006,7 +2023,6 @@
               let indiceAafficher = val.indice || 0;
               let isUsingCategory = false;
 
-              // Calcul de l'héritage de l'indice si l'indice propre au matériel est 0
               if ((!val.indice || val.indice === 0) && currentCat) {
                 if (
                   transportConfigGroupInfo[entry] &&
@@ -2049,7 +2065,6 @@
         trierDatalist("list-associe");
       }
 
-      // Fonctions utilitaires pour simplifier les onchange
       function updateAssocieTarif(entry, mat, val) {
         transportConfigAssocie[entry][mat].tarif = parseFloat(val) || 0;
         localStorage.setItem(
@@ -2628,6 +2643,9 @@
 
         const tr = document.createElement("tr");
 
+        tr.style.backgroundColor = "";
+        tr.removeAttribute("style");
+
         const getPlaceholderClass = (val, defaultText) => {
           return !val || val === defaultText ? "placeholder-style" : "";
         };
@@ -2667,7 +2685,7 @@
 
             <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
             <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
-            <td contenteditable="true" class="${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
+            <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
 
             <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
             <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
@@ -2698,14 +2716,36 @@
           });
 
           cell.addEventListener("blur", () => {
+            const contenuSaisi = cell.textContent.trim();
+            const placeholders = [
+              "Chantier...",
+              "Consigne...",
+              "N° Commande...",
+              "N° Chantier...",
+              "N° Bon...",
+              "Commentaire...",
+            ];
+
+            // --- LOGIQUE NOUVELLE LIGNE AU DÉCLIC ---
+            const estDerniereLigne = !tr.nextElementSibling;
+            // On crée la ligne si c'est la dernière et qu'on a tapé quelque chose de réel
+            if (
+              estDerniereLigne &&
+              contenuSaisi !== "" &&
+              !placeholders.includes(contenuSaisi)
+            ) {
+              ajouterLigne();
+            }
+            // ----------------------------------------
+
             if (
               cell.classList.contains("cell-tarif") ||
               cell.classList.contains("cell-tarif-affrete")
             ) {
-              let val = parseFloat(cell.textContent.replace(",", ".")) || 0;
+              let val = parseFloat(contenuSaisi.replace(",", ".")) || 0;
               cell.textContent = val.toFixed(2) + " €";
               calculerTousLesTotaux();
-            } else if (cell.textContent.trim() === "") {
+            } else if (contenuSaisi === "") {
               const index = cell.cellIndex;
               const map = {
                 3: "Chantier...",
@@ -2724,18 +2764,18 @@
           });
 
           cell.addEventListener("focus", () => {
+            const placeholders = [
+              "Chantier...",
+              "Consigne...",
+              "N° Commande...",
+              "N° Chantier...",
+              "N° Bon...",
+              "Commentaire...",
+            ];
             if (
               !cell.classList.contains("cell-tarif") &&
               !cell.classList.contains("cell-tarif-affrete")
             ) {
-              const placeholders = [
-                "Chantier...",
-                "Consigne...",
-                "N° Commande...",
-                "N° Chantier...",
-                "N° Bon...",
-                "Commentaire...",
-              ];
               if (placeholders.includes(cell.textContent.trim())) {
                 cell.textContent = "";
                 cell.classList.remove("placeholder-style");
@@ -2750,6 +2790,10 @@
 
         tr.querySelectorAll(".combo-input").forEach((input) => {
           input.addEventListener("change", () => {
+            const estDerniereLigne = !tr.nextElementSibling;
+            if (estDerniereLigne && input.value.trim() !== "") {
+              ajouterLigne();
+            }
             saveCurrentDay();
             if (input.classList.contains("select-associe")) {
               appliquerCouleurAssocie(input); // Applique le Gris ou la couleur de base
@@ -2761,11 +2805,32 @@
         tableBody.appendChild(tr);
 
         const inputAssocie = tr.querySelector(".select-associe");
-        if (data || inputAssocie.value) {
+        const cells = tr.querySelectorAll("td"); // On récupère toutes les cellules
+
+        if (data) {
+          appliquerCouleurAssocie(inputAssocie);
+
+          if (data.couleur) {
+            tr.style.backgroundColor = data.couleur;
+            cells.forEach((td) => {
+              if (!td.classList.contains("matos-cell")) {
+                td.style.backgroundColor = data.couleur;
+              }
+            });
+          }
+        } else {
+          tr.style.backgroundColor = "";
+          tr.removeAttribute("style");
+
+          cells.forEach((td) => {
+            td.style.backgroundColor = ""; // On enlève l'orange fantôme
+            td.style.color = ""; // On remet le texte en noir
+          });
+
           appliquerCouleurAssocie(inputAssocie);
         }
 
-        calculerTousLesTotaux(); // Une fonction regroupant tes fonctions calculerTotal...
+        calculerTousLesTotaux();
         updateRowHighlight(tr);
         filterTable();
         trierPlanningParAssocie();
@@ -2776,7 +2841,6 @@
       }
 
       function calculerTousLesTotaux() {
-        // 1. Calculer les sous-totaux (vos fonctions existantes)
         if (typeof calculerTotal === "function") calculerTotal();
         if (typeof calculerTotalSupplement_client === "function")
           calculerTotalSupplement_client();
@@ -2973,24 +3037,18 @@
         });
         document.getElementById("reset-day").addEventListener("click", () => {
           if (confirm("Supprimer toutes les lignes et recommencer ?")) {
-            const tableBody = document.getElementById("table-body");
-            tableBody.innerHTML = "";
+            const date = document.getElementById("current-date-picker").value;
 
-            // On recrée la ligne vide
-            if (typeof ajouterLigne === "function") ajouterLigne();
+            // 1. On vide les deux mémoires
+            localStorage.removeItem("planning_" + date);
+            localStorage.removeItem("planningColors"); // <--- AJOUT CRUCIAL
 
-            // On sécurise les appels de fonction pour que la notification s'affiche QUOI QU'IL ARRIVE
-            if (typeof calculerTousLesTotaux === "function")
-              calculerTousLesTotaux();
+            // 2. Nettoyage de l'écran
+            document.getElementById("table-body").innerHTML = "";
 
-            // On vérifie quel est le nom de ta fonction de sauvegarde
-            if (typeof saveCurrentDay === "function") {
-              saveCurrentDay();
-            } else if (typeof saveData === "function") {
-              saveData();
-            }
+            // 3. Création de la ligne neuve
+            ajouterLigne();
 
-            // On appelle ta notification avec ton ID spécifique
             afficherNotification("Planning réinitialisé", "#dc3545");
           }
         });
