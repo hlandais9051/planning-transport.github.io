@@ -194,33 +194,37 @@
         min-width: 90px;
       }
       .col-temps {
-        min-width: 40px;
+        min-width: 40px !important;
       }
       .col-chantier {
         min-width: 90px;
       }
       .col-date {
-        min-width: 80px;
+        min-width: 60px;
       }
       .col-matos {
-        min-width: 100px;
+        min-width: 120px;
       }
       .col-client {
-        min-width: 100px;
-      }
-      .col-telephone {
-        min-width: 115px;
-      }
-      .col-consigne {
         min-width: 170px;
       }
-      .col-chauffeur {
-        min-width: 110px;
+      .col-telephone {
+        min-width: 170px;
       }
-      .col-ncommande,
-      .col-nchantier,
+      .col-consigne {
+        min-width: 100px;
+      }
+      .col-chauffeur {
+        min-width: 100px;
+      }
+      .col-ncommande {
+        min-width: 100px;
+      }
+      .col-nchantier {
+        min-width: 80px;
+      }
       .col-nbon {
-        min-width: 97px;
+        min-width: 70px;
       }
       .col-tarif,
       .col-tarif-affrete {
@@ -377,6 +381,66 @@
         transition: background 0.3s;
         margin-top: 5px;
       }
+      .dropdown-content {
+        position: absolute; /* Le menu "flotte" au dessus du contenu */
+        z-index: 1000;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 5px;
+        background: #f9f9f9;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        min-width: 160px;
+      }
+
+      .button-group {
+        position: relative; /* Nécessaire pour le position: absolute au dessus */
+        display: inline-block;
+      }
+      .save-notif2 {
+        position: fixed;
+        top: 50%; /* Positionne le haut à 50% de la hauteur */
+        left: 50%; /* Positionne la gauche à 50% de la largeur */
+        transform: translate(-50%, -50%) scale(0);
+        background-color: #07cc00;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 30px;
+        font-weight: bold;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        z-index: 10000;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        opacity: 0;
+        text-align: center;
+        white-space: pre-line; /* Permet les retours à la ligne */
+        min-width: fit-content;
+        display: block;
+        pointer-events: none; /* Empêche de cliquer dessus quand elle est invisible */
+      }
+
+      .notif-visible {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1); /* Revient à sa taille normale */
+        pointer-events: auto;
+      }
+      .alerte-flash {
+        animation: blink-red 0.5s infinite;
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+      }
+      @keyframes blink-red {
+        0% {
+          background-color: #ff0000;
+          transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+          background-color: #b30000;
+          transform: translate(-50%, -50%) scale(1.1); /* Légère pulsation */
+        }
+        100% {
+          background-color: #ff0000;
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
     </style>
   </head>
   <body>
@@ -388,65 +452,149 @@
     <datalist id="list-telephone"></datalist>
 
     <div class="header-tools">
-      <div
-        style="
-          min-width: 100%;
-          margin-bottom: 10px;
-          border-bottom: 1px solid #eee;
-          padding-bottom: 10px;
-        "
-      >
-        <div>
-          Le : <input type="date" id="current-date-picker" />
+      <div class="button-group">
+        <button
+          onclick="toggleMenu('sous-menu-add', event)"
+          class="btn"
+          style="
+            background-color: #ff0000;
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+            font-size: 15px;
+          "
+        >
+          ➕ Lignes ▼
+        </button>
+        <div id="sous-menu-add" class="dropdown-content" style="display: none">
           <button
-            onclick="resetTout()"
-            class="btn btn-reset"
-            style="float: right; bottom: top"
+            id="add-row"
+            class="btn btn-add"
+            style="width: 100%; margin-bottom: 5px"
           >
-            Réinitialiser tout le site
+            Ajouter une ligne
+          </button>
+          <button id="reset-day" class="btn btn-reset" style="width: 100%">
+            Tout supprimer
           </button>
         </div>
       </div>
+
       <div class="button-group">
-        <div class="group-title">Ajouter & Supprimer</div>
-        <button id="add-row" class="btn btn-add">Ajouter une ligne</button>
-        <button id="reset-day" class="btn btn-reset">Tout supprimer</button>
-      </div>
-      <div class="button-group">
-        <div class="group-title">Copie/Colle</div>
-        <button id="copy-day" class="btn btn-copy-day">Copier journée</button>
-        <button id="paste-day" class="btn btn-paste-day">Coller journée</button>
-      </div>
-      <div class="button-group">
-        <div class="group-title">Photos & Export</div>
-        <button id="copy-image" class="btn btn-copy-img">
-          Copier planning (Image)
-        </button>
         <button
-          id="copy-image-client"
+          onclick="toggleMenu('sous-menu-copy', event)"
           class="btn"
-          style="background-color: #07cc00"
+          style="
+            background-color: #ff0000;
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+            font-size: 15px;
+          "
         >
-          Copier Planning (Gueno)
+          📋 Copier ▼
         </button>
-        <button id="export-excel" class="btn btn-export">Exporter Excel</button>
+        <div id="sous-menu-copy" class="dropdown-content" style="display: none">
+          <button
+            id="copy-day"
+            class="btn btn-copy-day"
+            style="width: 100%; margin-bottom: 5px"
+          >
+            Copier journée
+          </button>
+          <button id="paste-day" class="btn btn-paste-day" style="width: 100%">
+            Coller journée
+          </button>
+        </div>
       </div>
+
       <div class="button-group">
-        <div class="group-title">Configurations</div>
-        <button id="toggle-config-client" class="btn btn-config-client">
-          Configuration Clients
+        <button
+          onclick="toggleMenu('sous-menu-photos', event)"
+          class="btn"
+          style="
+            background-color: #ff0000;
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+            font-size: 15px;
+          "
+        >
+          📤 Export ▼
         </button>
-        <button id="toggle-config-associe" class="btn btn-config-associe">
-          Configuration Associés
-        </button>
-        <button id="toggle-config-chauffeur" class="btn btn-config-chauffeur">
-          Configuration Chauffeurs
-        </button>
-        <button id="toggle-config-telephone" class="btn btn-config-telephone">
-          Configuration Téléphones
-        </button>
+        <div
+          id="sous-menu-photos"
+          class="dropdown-content"
+          style="display: none"
+        >
+          <button
+            id="copy-image"
+            class="btn btn-copy-img"
+            style="width: 100%; margin-bottom: 5px"
+          >
+            Copier Image
+          </button>
+          <button
+            id="copy-image-client"
+            class="btn"
+            style="background-color: #07cc00; width: 100%; margin-bottom: 5px"
+          >
+            Planning Gueno
+          </button>
+          <button id="export-excel" class="btn btn-export" style="width: 100%">
+            Excel
+          </button>
+        </div>
       </div>
-      <span id="save-notif" class="save-notif">OK</span>
+
+      <div class="button-group">
+        <button
+          onclick="toggleMenu('sous-menu-config', event)"
+          class="btn"
+          style="
+            background-color: #ff0000;
+            color: rgb(0, 0, 0);
+            font-weight: bold;
+            font-size: 15px;
+          "
+        >
+          ⚙️ Configs ▼
+        </button>
+        <div
+          id="sous-menu-config"
+          class="dropdown-content"
+          style="display: none"
+        >
+          <button
+            id="toggle-config-client"
+            class="btn btn-config-client"
+            style="width: 100%; margin-bottom: 5px"
+          >
+            Clients
+          </button>
+          <button
+            id="toggle-config-associe"
+            class="btn btn-config-associe"
+            style="width: 100%; margin-bottom: 5px"
+          >
+            Associés
+          </button>
+          <button
+            id="toggle-config-chauffeur"
+            class="btn btn-config-chauffeur"
+            style="width: 100%; margin-bottom: 5px"
+          >
+            Chauffeurs
+          </button>
+          <button
+            id="toggle-config-telephone"
+            class="btn btn-config-telephone"
+            style="width: 100%"
+          >
+            Téléphones
+          </button>
+        </div>
+      </div>
+
+      <span id="save-notif" class="save-notif"></span>
+      <span id="save-notif2" class="save-notif2"></span>
     </div>
 
     <div id="config-section-client">
@@ -663,9 +811,13 @@
         padding: 10px;
         border-radius: 5px;
         border: 1px solid #ddd;
+        display: flex; /* Active le mode Flexbox */
+        align-items: center; /* Aligne verticalement au centre */
+        flex-wrap: wrap; /* Permet de revenir à la ligne sur petit écran */
       "
     >
       <strong style="margin-right: 10px">Filtres :</strong>
+
       <input
         type="text"
         id="filter-associe"
@@ -678,6 +830,7 @@
           border-radius: 4px;
         "
       />
+
       <input
         type="text"
         id="filter-client"
@@ -685,12 +838,30 @@
         oninput="filterTable()"
         style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
       />
+
       <button
         onclick="resetFilters()"
-        style="margin-left: 10px; padding: 5px 10px; cursor: pointer"
+        style="
+          margin-left: 10px;
+          padding: 5px 10px;
+          cursor: pointer;
+          border-radius: 4px;
+          border: 1px solid #ccc;
+        "
       >
         Réinitialiser
       </button>
+
+      <div style="flex-grow: 1"></div>
+
+      <div style="margin-left: 10px">
+        Le :
+        <input
+          type="date"
+          id="current-date-picker"
+          style="padding: 3px; border-radius: 4px; border: 1px solid #ccc"
+        />
+      </div>
     </div>
 
     <div id="capture-area">
@@ -735,59 +906,59 @@
             title="Effacer"
           ></div>
           <div
-            onclick="setColorToSelectedRow('#ffeb3b')"
+            onclick="setColorToSelectedRow('#ffee00')"
             style="
               width: 20px;
               height: 20px;
-              background: #ffeb3b;
+              background: #ffee00;
               cursor: pointer;
               border-radius: 3px;
             "
-            title="Jaune"
+            title="Prise de commande"
           ></div>
           <div
-            onclick="setColorToSelectedRow('#ff9800')"
+            onclick="setColorToSelectedRow('#ffae00')"
             style="
               width: 20px;
               height: 20px;
-              background: #ff9800;
+              background: #ffae00;
               cursor: pointer;
               border-radius: 3px;
             "
-            title="Orange"
+            title="Réduction"
           ></div>
           <div
-            onclick="setColorToSelectedRow('#4caf50')"
+            onclick="setColorToSelectedRow('#ff0000')"
             style="
               width: 20px;
               height: 20px;
-              background: #4caf50;
+              background: #ff0000;
               cursor: pointer;
               border-radius: 3px;
             "
-            title="Vert"
+            title="Intempéries"
           ></div>
           <div
-            onclick="setColorToSelectedRow('#2196f3')"
+            onclick="setColorToSelectedRow('#b700ff')"
             style="
               width: 20px;
               height: 20px;
-              background: #2196f3;
+              background: #b700ff;
               cursor: pointer;
               border-radius: 3px;
             "
-            title="Bleu"
+            title="Violet"
           ></div>
           <div
-            onclick="setColorToSelectedRow('#f44336')"
+            onclick="setColorToSelectedRow('#ff00d4')"
             style="
               width: 20px;
               height: 20px;
-              background: #f44336;
+              background: #ff00d4;
               cursor: pointer;
               border-radius: 3px;
             "
-            title="Rouge"
+            title="Rose"
           ></div>
         </div>
       </div>
@@ -944,14 +1115,78 @@
 
       let isMouseDown = false;
 
+      function toggleMenu(id, event) {
+        if (event) event.stopPropagation();
+
+        const menus = [
+          "sous-menu-add",
+          "sous-menu-copy",
+          "sous-menu-photos",
+          "sous-menu-config",
+        ];
+
+        menus.forEach((menuId) => {
+          const el = document.getElementById(menuId);
+          if (menuId === id) {
+            el.style.display =
+              el.style.display === "none" || el.style.display === ""
+                ? "block"
+                : "none";
+          } else {
+            el.style.display = "none";
+          }
+        });
+      }
+
+      window.onclick = function (event) {
+        if (!event.target.matches(".btn")) {
+          const menus = [
+            "sous-menu-add",
+            "sous-menu-copy",
+            "sous-menu-photos",
+            "sous-menu-config",
+          ];
+
+          menus.forEach((menuId) => {
+            const el = document.getElementById(menuId);
+            if (el) el.style.display = "none";
+          });
+        }
+      };
+
       function resetTout() {
-        if (
-          confirm(
-            "Voulez-vous vraiment TOUT supprimer ? Cette action est irréversible.",
-          )
-        ) {
-          localStorage.clear();
-          location.reload(); // Recharge la page pour appliquer le vide
+        const premiereConfirmation = confirm(
+          "ATTENTION : Vous allez vider TOUTE la mémoire du site. Continuer ?",
+        );
+
+        if (premiereConfirmation) {
+          const codeSecret = "9051";
+          const saisieUtilisateur = prompt(
+            "Entrez le mot de passe pour confirmer :",
+          );
+          const notif = document.getElementById("save-notif2");
+
+          if (saisieUtilisateur === codeSecret) {
+            localStorage.clear();
+            location.reload();
+          } else if (saisieUtilisateur !== null) {
+            // Configuration de l'alerte
+            // Remplace .textContent par .innerText
+            notif.innerText = `⚠️ CODE INCORRECT ⚠️ 
+            VOUS N'ÊTES PAS AUTORISÉ À EFFECTUER CETTE ACTION !`;
+            notif.classList.add("alerte-flash", "notif-visible");
+
+            // Disparition après 4 secondes
+            setTimeout(() => {
+              notif.classList.remove("notif-visible");
+
+              // On attend la fin de l'animation de remontée pour reset les couleurs
+              setTimeout(() => {
+                notif.classList.remove("alerte-flash");
+                notif.textContent = "OK"; // Reset texte
+              }, 500);
+            }, 5500);
+          }
         }
       }
 
@@ -975,17 +1210,23 @@
         }, 3000);
       }
 
+      let startRowIndex = null;
+
       document
         .getElementById("my-table")
         .addEventListener("mousedown", function (e) {
+          const td = e.target.closest("td");
+          if (!td) return;
+
           isMouseDown = true;
+          startRowIndex = td.parentElement.rowIndex;
+
           if (!e.ctrlKey) {
             document
               .querySelectorAll(".cell-selected")
               .forEach((el) => el.classList.remove("cell-selected"));
           }
-          const td = e.target.closest("td");
-          if (td) td.classList.add("cell-selected");
+          td.classList.add("cell-selected");
         });
 
       document
@@ -993,20 +1234,21 @@
         .addEventListener("mouseover", function (e) {
           if (isMouseDown) {
             const td = e.target.closest("td");
-            if (td) td.classList.add("cell-selected");
+            if (td && td.parentElement.rowIndex === startRowIndex) {
+              td.classList.add("cell-selected");
+            }
           }
         });
 
       window.addEventListener("mouseup", () => {
         isMouseDown = false;
+        startRowIndex = null;
       });
 
       document.addEventListener("click", function (e) {
         if (!e.target.closest("#my-table")) {
           document
-
             .querySelectorAll(".cell-selected")
-
             .forEach((el) => el.classList.remove("cell-selected"));
         }
       });
@@ -1015,10 +1257,16 @@
         const selectedCells = document.querySelectorAll(".cell-selected");
 
         if (selectedCells.length > 0) {
-          let textResult = "";
           let rows = {};
 
-          selectedCells.forEach((td) => {
+          const sortedCells = Array.from(selectedCells).sort((a, b) => {
+            if (a.parentElement.rowIndex !== b.parentElement.rowIndex) {
+              return a.parentElement.rowIndex - b.parentElement.rowIndex;
+            }
+            return a.cellIndex - b.cellIndex;
+          });
+
+          sortedCells.forEach((td) => {
             const rowIndex = td.parentElement.rowIndex;
             if (!rows[rowIndex]) rows[rowIndex] = [];
 
@@ -1027,7 +1275,7 @@
             rows[rowIndex].push(val);
           });
 
-          textResult = Object.values(rows)
+          const textResult = Object.values(rows)
             .map((rowCells) => rowCells.join("\t"))
             .join("\n");
 
@@ -1036,9 +1284,11 @@
             e.preventDefault();
 
             const sn = document.getElementById("save-notif");
-            sn.textContent = "Cellules copiées !";
-            sn.style.display = "inline";
-            setTimeout(() => (sn.style.display = "none"), 2000);
+            if (sn) {
+              sn.textContent = "Cellules copiées !";
+              sn.style.display = "inline";
+              setTimeout(() => (sn.style.display = "none"), 2000);
+            }
           }
         }
       });
@@ -1063,6 +1313,7 @@
         JSON.parse(localStorage.getItem("transportConfigGroupInfo")) || {};
 
       function setColorToSelectedRow(color) {
+        // 1. On récupère les lignes concernées
         const rows = document.querySelectorAll(
           "tr:has(.cell-selected), .row-marked",
         );
@@ -1073,23 +1324,33 @@
         if (rows.length > 0) {
           rows.forEach((row) => {
             const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
-
             const cells = row.querySelectorAll("td");
-            cells.forEach((td, index) => {
-              const hasSpecificColor =
-                td.style.backgroundColor !== "" &&
-                td.style.backgroundColor !== "transparent";
-              if (index === 0 && hasSpecificColor) return;
 
-              td.style.backgroundColor = color;
-            });
+            if (color === "#ffee00") {
+              const selectedCellsInRow = row.querySelectorAll(".cell-selected");
+              selectedCellsInRow.forEach((td) => {
+                td.style.backgroundColor = color;
+              });
+            } else {
+              cells.forEach((td, index) => {
+                const hasSpecificColor =
+                  td.style.backgroundColor !== "" &&
+                  td.style.backgroundColor !== "transparent";
 
-            savedColors[rowId] = color;
+                if (index === 0 && hasSpecificColor) return;
+
+                td.style.backgroundColor = color;
+              });
+
+              savedColors[rowId] = color;
+            }
           });
 
           localStorage.setItem("planningColors", JSON.stringify(savedColors));
         } else {
-          alert("Veuillez d'abord sélectionner au moins une ligne.");
+          alert(
+            "Veuillez d'abord sélectionner au moins une cellule ou une ligne.",
+          );
         }
       }
 
@@ -2309,10 +2570,9 @@
             const data = transportConfigTelephone[name];
             const opt = document.createElement("option");
 
-            const clientLabel = data.client ? `${data.client} | ` : "";
             const telLabel = data.numero ? ` - ${data.numero}` : "";
 
-            opt.value = `${clientLabel}${name}${telLabel}`;
+            opt.value = `${name}${telLabel}`;
             dl.appendChild(opt);
           });
       }
@@ -2672,7 +2932,7 @@
         const dateFormatee = dateSelectionnee.toLocaleDateString("fr-FR", {
           day: "2-digit",
           month: "2-digit",
-          year: "numeric",
+          year: "2-digit",
         });
 
         const tr = document.createElement("tr");
@@ -2731,8 +2991,9 @@
             <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
 
             <td class="hide-export" style="text-align:center; white-space:nowrap;">
-                <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="supprimerLigne(this)">×</button>
-                <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
+                <button style="background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
+                <button style="background:none; border:none; cursor:pointer; font-size:16px;" onclick="supprimerLigne(this)">🗑️</button>
+
             </td>`;
 
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
@@ -3311,7 +3572,6 @@
             const allRows = [];
 
             const headers = [
-              "Date Planning",
               "Associé",
               "Matin",
               "A-M",
@@ -3356,6 +3616,47 @@
               const dateDay = key.replace("planning_", "");
 
               dayData.forEach((row) => {
+                const aUnAssocie = row.associe && row.associe !== "Associé...";
+                const aUnChantier =
+                  row.chantier &&
+                  row.chantier !== "Chantier..." &&
+                  row.chantier !== "";
+                const aUnVehicule =
+                  row.vehicule && row.vehicule !== "Véhicule...";
+                const aUnClient = row.client && row.client !== "Client...";
+                const aUnTelephone =
+                  row.telephone && row.telephone !== "Contact...";
+                const aUnChauffeur =
+                  row.chauffeur && row.chauffeur !== "Chauffeur...";
+                const aUnCommande =
+                  row.n_commande &&
+                  row.n_commande !== "N° Commande..." &&
+                  row.n_commande !== "";
+                const aUnChantierNum =
+                  row.n_chantier &&
+                  row.n_chantier !== "N° Chantier..." &&
+                  row.n_chantier !== "";
+                const aUnBon =
+                  row.n_bon && row.n_bon !== "N° Bon..." && row.n_bon !== "";
+                const aUnCommentaire =
+                  row.commentaire &&
+                  row.commentaire !== "Commentaire..." &&
+                  row.commentaire !== "";
+
+                if (
+                  !aUnAssocie &&
+                  !aUnChantier &&
+                  !aUnVehicule &&
+                  !aUnClient &&
+                  !aUnTelephone &&
+                  !aUnChauffeur &&
+                  !aUnCommande &&
+                  !aUnChantierNum &&
+                  !aUnBon &&
+                  !aUnCommentaire
+                ) {
+                  return; // On passe à la ligne suivante sans l'ajouter à Excel
+                }
                 const tarif = parseFloat(
                   (row.tarif || "0").replace(/[€\s]/g, "").replace(",", "."),
                 );
@@ -3392,28 +3693,32 @@
                 if (!isNaN(suppAff)) totalSupplement_affrete += suppAff;
                 if (!isNaN(ICAffrete)) IC_affrete += ICAffrete;
 
+                const clean = (val, def) => {
+                  if (!val || val === def || val.trim() === "") return "";
+                  return val;
+                };
+
                 const rowData = [
-                  dateDay,
-                  row.associe,
-                  row.matin,
-                  row.apres,
-                  row.chantier,
+                  clean(row.associe, "Associé..."),
+                  row.matin, // On garde 0.5 car c'est un chiffre utile au calcul
+                  row.apres, // Idem
+                  clean(row.chantier, "Chantier..."),
                   row.date,
-                  row.vehicule,
-                  row.client,
-                  row.telephone,
-                  row.consigne,
-                  row.chauffeur,
-                  row.n_commande,
-                  row.n_chantier,
-                  row.n_bon,
+                  clean(row.vehicule, "Véhicule..."),
+                  clean(row.client, "Client..."),
+                  clean(row.telephone, "Contact..."),
+                  clean(row.consigne, "Consigne..."),
+                  clean(row.chauffeur, "Chauffeur..."),
+                  clean(row.n_commande, "N° Commande..."),
+                  clean(row.n_chantier, "N° Chantier..."),
+                  clean(row.n_bon, "N° Bon..."),
                   tarif || 0,
                   suppClient || 0,
                   ICClient || 0,
                   tarifAff || 0,
                   suppAff || 0,
                   ICAffrete || 0,
-                  row.commentaire,
+                  clean(row.commentaire, "Commentaire..."),
                 ];
 
                 allRows.push(rowData);
@@ -3450,7 +3755,7 @@
             ]);
 
             const worksheet = XLSX.utils.aoa_to_sheet(allRows);
-            const moneyCols = [13, 14, 15, 16];
+            const moneyCols = [13, 14, 15, 16, 17, 18];
 
             for (let R = 1; R < allRows.length; R++) {
               moneyCols.forEach((C) => {
@@ -3608,20 +3913,26 @@
 
           <li style="margin-bottom: 2px">
             <i
-              >Appuyez sur la croix rouge à droite
-              <span style="color: #dc3545; font-weight: bold">X</span> pour
-              supprimer une seule ligne.</i
+              >Appuyez sur la feuille à droite 📑 pour duppliquer une seule
+              ligne.</i
             >
           </li>
 
           <li style="margin-bottom: 2px">
             <i
-              >Appuyez sur la feuille à droite <span>📑</span> pour duppliquer
-              une seule ligne.</i
+              >Appuyez sur la corbeille à droite 🗑️ pour supprimer une seule
+              ligne.</i
             >
           </li>
         </ul>
       </small>
     </p>
+    <button
+      onclick="resetTout()"
+      class="btn btn-reset"
+      style="float: right; bottom: top; padding: 4px 6px"
+    >
+      Don't touch me !
+    </button>
   </body>
 </html>
