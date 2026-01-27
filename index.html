@@ -931,32 +931,6 @@
         "8x2 AMP GRUE",
       ];
 
-      const defaultAssociesList = ["LANDAIS", "ALLARD", "STD"];
-
-      function initialiserConfiguration() {
-        let config = JSON.parse(
-          localStorage.getItem("config_associes") || "[]",
-        );
-
-        // On vérifie pour chacun s'il est déjà présent
-        defaultAssociesList.forEach((nom) => {
-          const existe = config.find((a) => a.nom.toUpperCase() === nom);
-          if (!existe) {
-            // On l'ajoute avec une structure vide (à adapter selon ta grille)
-            config.push({
-              nom: nom,
-              fixe: true, // Marqueur pour ne pas afficher le bouton "Supprimer"
-              tarifs: [], // Ici tu peux mettre tes catégories par défaut
-            });
-          }
-        });
-
-        localStorage.setItem("config_associes", JSON.stringify(config));
-      }
-
-      // Appeler la fonction immédiatement au chargement
-      initialiserConfiguration();
-
       const defaultChauffeursList = [];
 
       let isMouseDown = false;
