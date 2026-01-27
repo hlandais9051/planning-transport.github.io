@@ -931,30 +931,40 @@
         "8x2 AMP GRUE",
       ];
 
-      const defaultAssociesList = ["LANDAIS", "ALLARD", "STD"];
-
       function initialiserConfiguration() {
-        let config = JSON.parse(
-          localStorage.getItem("config_associes") || "[]",
-        );
+        // 1. Liste des piliers par défaut
+        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
+        const defaultMatos = [
+          "6x4",
+          "8x4",
+          "6x2 GRUE",
+          "AC3",
+          "PB",
+          "PC",
+          "8x2 AMP GRUE",
+        ];
 
-        // On vérifie pour chacun s'il est déjà présent
-        defaultAssociesList.forEach((nom) => {
-          const existe = config.find((a) => a.nom.toUpperCase() === nom);
-          if (!existe) {
-            // On l'ajoute avec une structure vide (à adapter selon ta grille)
-            config.push({
-              nom: nom,
-              fixe: true, // Marqueur pour ne pas afficher le bouton "Supprimer"
-              tarifs: [], // Ici tu peux mettre tes catégories par défaut
+        // 2. On récupère l'objet existant ou on crée un objet vide
+        let configAssocie =
+          JSON.parse(localStorage.getItem("transport_config_associe")) || {};
+
+        // 3. Pour chaque pilier, s'il n'existe pas, on le crée avec les matériels par défaut
+        baseAssocies.forEach((nom) => {
+          if (!configAssocie[nom]) {
+            configAssocie[nom] = {};
+            defaultMatos.forEach((m) => {
+              configAssocie[nom][m] = { tarif: 0, indice: 0 };
             });
           }
         });
 
-        localStorage.setItem("config_associes", JSON.stringify(config));
+        // 4. On sauvegarde dans la BONNE clé localStorage utilisée par renderConfigUI2
+        localStorage.setItem(
+          "transport_config_associe",
+          JSON.stringify(configAssocie),
+        );
       }
 
-      // Appeler la fonction immédiatement au chargement
       initialiserConfiguration();
 
       const defaultChauffeursList = [];
@@ -1956,13 +1966,8 @@
         if (!container) return;
 
         associeListDatalist.innerHTML = "";
-
-        // 1. LA RÉFÉRENCE DES PILIERS
-        // (On garde cette liste uniquement pour savoir QUI va dans quel groupe)
         const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
 
-        // 2. LA SOURCE DE VÉRITÉ (On ne prend que les noms créés dans transportConfigAssocie)
-        // Comme ça, si on supprime ALLARD, il disparaît vraiment du tableau.
         const allAssociesSet = new Set([
           ...Object.keys(transportConfigAssocie),
         ]);
