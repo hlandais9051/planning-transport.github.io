@@ -933,6 +933,30 @@
 
       const defaultAssociesList = ["LANDAIS", "ALLARD", "STD"];
 
+      function initialiserConfiguration() {
+        let config = JSON.parse(
+          localStorage.getItem("config_associes") || "[]",
+        );
+
+        // On vérifie pour chacun s'il est déjà présent
+        defaultAssociesList.forEach((nom) => {
+          const existe = config.find((a) => a.nom.toUpperCase() === nom);
+          if (!existe) {
+            // On l'ajoute avec une structure vide (à adapter selon ta grille)
+            config.push({
+              nom: nom,
+              fixe: true, // Marqueur pour ne pas afficher le bouton "Supprimer"
+              tarifs: [], // Ici tu peux mettre tes catégories par défaut
+            });
+          }
+        });
+
+        localStorage.setItem("config_associes", JSON.stringify(config));
+      }
+
+      // Appeler la fonction immédiatement au chargement
+      initialiserConfiguration();
+
       const defaultChauffeursList = [];
 
       let isMouseDown = false;
@@ -1986,10 +2010,18 @@
 
             const rowSpanCount = Math.max(1, keys.length);
 
+            const estFixe = baseAssocies.includes(entry);
+
             const leftBlockHTML = `
             <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
               <strong>${entry}</strong><br>
-              <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
+              
+              ${
+                /* On n'affiche le bouton Supprimer QUE si l'associé n'est pas fixe */
+                !estFixe
+                  ? `<button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>`
+                  : `<span style="display:block; margin-top:5px; font-size:0.8em; color:gray; font-style:italic;">(Associé Permanent)</span>`
+              }
 
               <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
                 <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
@@ -2005,8 +2037,8 @@
                         <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
                       </div>
                       <input type="number" step="0.01" value="${valIndice}"
-                             onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
-                             style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                            onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
+                            style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
                     </div>`;
                   })
                   .join("")}
