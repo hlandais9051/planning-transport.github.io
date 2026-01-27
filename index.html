@@ -396,7 +396,16 @@
           padding-bottom: 10px;
         "
       >
-        <div>Le : <input type="date" id="current-date-picker" /></div>
+        <div>
+          Le : <input type="date" id="current-date-picker" />
+          <button
+            onclick="resetTout()"
+            class="btn btn-reset"
+            style="float: right; bottom: top"
+          >
+            Réinitialiser tout le site
+          </button>
+        </div>
       </div>
       <div class="button-group">
         <div class="group-title">Ajouter & Supprimer</div>
@@ -933,9 +942,18 @@
 
       const defaultChauffeursList = [];
 
-      const defaultlistAssocie = [];
-
       let isMouseDown = false;
+
+      function resetTout() {
+        if (
+          confirm(
+            "Voulez-vous vraiment TOUT supprimer ? Cette action est irréversible.",
+          )
+        ) {
+          localStorage.clear();
+          location.reload(); // Recharge la page pour appliquer le vide
+        }
+      }
 
       function afficherNotification(message, couleur = "#ff9800") {
         const notif = document.getElementById("notification-doublon");
