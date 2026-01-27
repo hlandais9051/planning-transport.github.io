@@ -1957,35 +1957,39 @@
 
         associeListDatalist.innerHTML = "";
 
-        const allAssocies = new Set([
-          ...defaultAssociesList,
+        // 1. LA RÉFÉRENCE DES PILIERS
+        // (On garde cette liste uniquement pour savoir QUI va dans quel groupe)
+        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
+
+        // 2. LA SOURCE DE VÉRITÉ (On ne prend que les noms créés dans transportConfigAssocie)
+        // Comme ça, si on supprime ALLARD, il disparaît vraiment du tableau.
+        const allAssociesSet = new Set([
           ...Object.keys(transportConfigAssocie),
         ]);
 
-        Array.from(allAssocies)
+        // On trie la liste déroulante globalement par ordre alphabétique
+        Array.from(allAssociesSet)
           .sort()
           .forEach((name) => {
             associeListDatalist.innerHTML += `<option value="${name}">`;
           });
 
+        // 2. LOGIQUE DE TRI POUR LE TABLEAU
+        // Groupe Piliers : Uniquement ceux présents dans transportConfigAssocie ET dans baseAssocies
+        const groupePiliers = Array.from(allAssociesSet)
+          .filter((name) => baseAssocies.includes(name.toUpperCase()))
+          .sort((a, b) => a.localeCompare(b));
+
+        // Groupe Affrétés : Tous les autres présents dans transportConfigAssocie
+        const groupeAffretes = Array.from(allAssociesSet)
+          .filter((name) => !baseAssocies.includes(name.toUpperCase()))
+          .sort((a, b) => a.localeCompare(b));
+
+        const sortedEntries = [...groupePiliers, ...groupeAffretes];
+
+        // 3. GÉNÉRATION DU HTML DU TABLEAU
         let html = `<table class="config-table"><thead><tr><th>Associé</th><th>Catégorie</th><th>Matériel</th><th>Tarif (€)</th><th>Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
 
-        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
-
-        const allAssociesSet = new Set([
-          ...baseAssocies,
-          ...Object.keys(transportConfigAssocie),
-        ]);
-
-        const sortedEntries = Array.from(allAssociesSet).sort((a, b) => {
-          const isABase = baseAssocies.includes(a);
-          const isBBase = baseAssocies.includes(b);
-
-          if (isABase && !isBBase) return -1; // a est prioritaire
-          if (!isABase && isBBase) return 1; // b est prioritaire
-
-          return a.localeCompare(b);
-        });
         const categories = Object.keys(transportConfigCategorie).sort();
         const allGlobalMaterials = Object.keys(transportConfigMateriel).sort();
 
@@ -1993,8 +1997,19 @@
           html += `<tr><td colspan="6"><i>Aucun associé configuré.</i></td></tr>`;
         } else {
           sortedEntries.forEach((entry, index) => {
+            // Ajout d'un espace entre chaque bloc d'associé
             if (index > 0) {
               html += `<tr style="background-color: white;"><td colspan="6" style="height: 25px; border: none;"></td></tr>`;
+            }
+
+            // --- NOUVEAU : AJOUT D'UN BANDEAU SÉPARATEUR ---
+            const estPilier = baseAssocies.includes(entry.toUpperCase());
+            const precedentEtaitPilier =
+              index > 0 &&
+              baseAssocies.includes(sortedEntries[index - 1].toUpperCase());
+
+            if (index > 0 && !estPilier && precedentEtaitPilier) {
+              html += `<tr style="background-color: #f1f3f4;"><td colspan="6" style="text-align:center; font-weight:bold; color:#5f6368; padding:10px; border:1px solid #dee2e6;">AFFRÉTÉS</td></tr>`;
             }
 
             if (!transportConfigAssocie[entry]) {
@@ -2009,47 +2024,42 @@
             ).sort();
 
             const rowSpanCount = Math.max(1, keys.length);
+            const estFixe = baseAssocies.includes(entry.toUpperCase());
 
-            const estFixe = baseAssocies.includes(entry);
-
+            // BLOC DE GAUCHE (NOM + BOUTON SUPPRIMER)
             const leftBlockHTML = `
             <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
-              <strong>${entry}</strong><br>
-              
-              ${
-                /* On n'affiche le bouton Supprimer QUE si l'associé n'est pas fixe */
-                !estFixe
-                  ? `<button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>`
-                  : `<span style="display:block; margin-top:5px; font-size:0.8em; color:gray; font-style:italic;">(Associé Permanent)</span>`
-              }
-
-              <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-                <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
-                ${categories
-                  .map((cat) => {
-                    const valIndice =
-                      (transportConfigGroupInfo[entry] &&
-                        transportConfigGroupInfo[entry][cat]) ||
-                      0;
-                    return `
-                    <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
-                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
-                      </div>
-                      <input type="number" step="0.01" value="${valIndice}"
-                            onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
-                            style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
-                    </div>`;
-                  })
-                  .join("")}
-              </div>
+                <strong>${entry}</strong><br>
+                
+                <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
+                
+                <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+                    <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
+                    ${categories
+                      .map((cat) => {
+                        const valIndice =
+                          (transportConfigGroupInfo[entry] &&
+                            transportConfigGroupInfo[entry][cat]) ||
+                          0;
+                        return `
+                        <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                                    <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
+                                  </div>                            <input type="number" step="0.01" value="${valIndice}"
+                                  onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
+                                  style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                        </div>`;
+                      })
+                      .join("")}
+                </div>
             </td>`;
 
+            // LIGNES DE MATÉRIELS
             keys.forEach((k, idx) => {
               if (!transportConfigAssocie[entry][k]) {
                 transportConfigAssocie[entry][k] = { tarif: 0, indice: 0 };
               }
-
               const val = transportConfigAssocie[entry][k];
               const currentCat = transportConfigMateriel[k] || "";
               let indiceAafficher = val.indice || 0;
@@ -2066,29 +2076,29 @@
               }
 
               html += `<tr>
-              ${idx === 0 ? leftBlockHTML : ""}
-              <td style="text-align:left; padding-left:10px;">
-                <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
-                  <option value="">-- Sans --</option>
-                  ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
-                </select>
-              </td>
-              <td>${k}</td>
-              <td>
-                <input type="number" step="0.01" value="${val.tarif || 0}"
-                       onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
-                       style="width:100%;">
-              </td>
-              <td>
-                <input type="number" step="0.01" value="${indiceAafficher}"
-                       placeholder="${isUsingCategory ? "Hérité" : ""}"
-                       onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
-                       style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
-              </td>
-              <td>
-                <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
-              </td>
-            </tr>`;
+                    ${idx === 0 ? leftBlockHTML : ""}
+                    <td style="text-align:left; padding-left:10px;">
+                        <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
+                            <option value="">-- Sans --</option>
+                            ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
+                        </select>
+                    </td>
+                    <td>${k}</td>
+                    <td>
+                        <input type="number" step="0.01" value="${val.tarif || 0}"
+                               onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
+                               style="width:100%;">
+                    </td>
+                    <td>
+                        <input type="number" step="0.01" value="${indiceAafficher}"
+                               placeholder="${isUsingCategory ? "Hérité" : ""}"
+                               onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
+                               style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
+                    </td>
+                    <td>
+                        <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
+                    </td>
+                </tr>`;
             });
           });
         }
@@ -2117,12 +2127,13 @@
       }
 
       function addNewClient2() {
-        const name = document
-          .getElementById("new-config2-name")
-          .value.trim()
-          .toUpperCase();
+        const input = document.getElementById("new-config2-name");
+        const name = input.value.trim().toUpperCase();
+
+        // Sécurité : nom vide ou déjà existant
         if (!name || transportConfigAssocie[name]) return;
 
+        // 1. On prépare la liste de tous les matériels existants (ton code actuel)
         const fullMatosList = new Set(defaultMatosList);
 
         for (let group in transportConfigGroup) {
@@ -2137,16 +2148,22 @@
           );
         }
 
+        // 2. On crée l'entrée dans l'objet de configuration
         transportConfigAssocie[name] = {};
         fullMatosList.forEach((m) => {
           transportConfigAssocie[name][m] = { tarif: 0, indice: 0 };
         });
 
+        // 3. Sauvegarde dans le localStorage
         localStorage.setItem(
           "transport_config_associe",
           JSON.stringify(transportConfigAssocie),
         );
-        document.getElementById("new-config2-name").value = "";
+
+        // 4. Reset de l'interface
+        input.value = "";
+
+        // 5. On appelle le rendu (qui lui gérera le tri groupe principal vs secondaire)
         renderConfigUI2();
         updateMatosDatalist();
       }
