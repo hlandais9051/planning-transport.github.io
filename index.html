@@ -814,6 +814,7 @@
         display: flex; /* Active le mode Flexbox */
         align-items: center; /* Aligne verticalement au centre */
         flex-wrap: wrap; /* Permet de revenir à la ligne sur petit écran */
+        gap: 10px; /* Espace entre les éléments */
       "
     >
       <strong style="margin-right: 10px">Filtres :</strong>
@@ -854,7 +855,7 @@
 
       <div style="flex-grow: 1"></div>
 
-      <div style="margin-left: 10px">
+      <div>
         Le :
         <input
           type="date"
@@ -1172,7 +1173,7 @@
           } else if (saisieUtilisateur !== null) {
             // Configuration de l'alerte
             // Remplace .textContent par .innerText
-            notif.innerText = `⚠️ CODE INCORRECT ⚠️ 
+            notif.innerText = `⚠️ CODE INCORRECT ⚠️
             VOUS N'ÊTES PAS AUTORISÉ À EFFECTUER CETTE ACTION !`;
             notif.classList.add("alerte-flash", "notif-visible");
 
@@ -2319,9 +2320,9 @@
             const leftBlockHTML = `
             <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
                 <strong>${entry}</strong><br>
-                
+
                 <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
-                
+
                 <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
                     <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
                     ${categories
@@ -3026,10 +3027,10 @@
 
             <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
             <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
-            <td class="cell-IC-client" contenteditable="false" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
+            <td class="cell-IC-client" contenteditable="true" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
             <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"}</td>
             <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
-            <td class="cell-IC-affrete" contenteditable="false" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
+            <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
 
             <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
 
@@ -3112,7 +3113,11 @@
             ];
             if (
               !cell.classList.contains("cell-tarif") &&
-              !cell.classList.contains("cell-tarif-affrete")
+              !cell.classList.contains("cell-tarif-affrete") &&
+              !cell.classList.contains("cell-supplement-client") &&
+              !cell.classList.contains("cell-supplement-affrete") &&
+              !cell.classList.contains("cell-IC-client") &&
+              !cell.classList.contains("cell-IC-affrete")
             ) {
               if (placeholders.includes(cell.textContent.trim())) {
                 cell.textContent = "";
