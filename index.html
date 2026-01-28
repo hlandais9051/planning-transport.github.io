@@ -1259,6 +1259,7 @@
         if (selectedCells.length > 0) {
           let rows = {};
 
+          // 1. Tri pour respecter l'ordre d'affichage
           const sortedCells = Array.from(selectedCells).sort((a, b) => {
             if (a.parentElement.rowIndex !== b.parentElement.rowIndex) {
               return a.parentElement.rowIndex - b.parentElement.rowIndex;
@@ -1266,29 +1267,71 @@
             return a.cellIndex - b.cellIndex;
           });
 
+          // 2. Traitement avec ajout des libellés
           sortedCells.forEach((td) => {
             const rowIndex = td.parentElement.rowIndex;
             if (!rows[rowIndex]) rows[rowIndex] = [];
 
             const input = td.querySelector("input");
-            const val = input ? input.value : td.innerText.trim();
+            let val = input ? input.value.trim() : td.innerText.trim();
+
+            // Liste des placeholders à ne pas copier si la case n'a pas été remplie
+            const placeholders = [
+              "Chantier...",
+              "Consigne...",
+              "N° Commande...",
+              "N° Chantier...",
+              "N° Bon...",
+              "Commentaire...",
+              "Contact...",
+            ];
+
+            // Si la valeur est un placeholder, on considère la cellule comme vide pour la copie
+            if (placeholders.includes(val)) {
+              val = "";
+            }
+
+            if (val !== "") {
+              // Ajout des préfixes selon le type de cellule
+              if (input) {
+                // Cas des Inputs (Contact)
+                if (
+                  input.placeholder === "Contact..." ||
+                  input.classList.contains("select-telephone")
+                ) {
+                  val = "Contact : " + val;
+                }
+              } else {
+                // Cas des cellules contenteditable (Commande et Chantier)
+                // On vérifie quelle colonne c'est via l'index de la cellule (TD)
+                const cellIndex = td.cellIndex;
+
+                if (cellIndex === 10) {
+                  // Index de N° Commande
+                  val = "N° Commande : " + val;
+                } else if (cellIndex === 11) {
+                  // Index de N° Chantier
+                  val = "N° Chantier : " + val;
+                }
+              }
+            }
+
             rows[rowIndex].push(val);
           });
 
+          // 3. Nettoyage : on enlève les éléments vides de la ligne pour ne pas avoir de tabulations inutiles
           const textResult = Object.values(rows)
-            .map((rowCells) => rowCells.join("\t"))
+            .map((rowCells) => rowCells.filter((c) => c !== "").join(" ")) // Utilisation de " | " pour séparer proprement
             .join("\n");
 
           if (textResult) {
             e.clipboardData.setData("text/plain", textResult);
             e.preventDefault();
 
-            const sn = document.getElementById("save-notif");
-            if (sn) {
-              sn.textContent = "Cellules copiées !";
-              sn.style.display = "inline";
-              setTimeout(() => (sn.style.display = "none"), 2000);
-            }
+            afficherNotification(
+              `${selectedCells.length} cellule(s) copiée(s) !`,
+              "#4caf50",
+            );
           }
         }
       });
@@ -2677,7 +2720,7 @@
       function calculerTotal() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[12].textContent
+          const content = tr.cells[13].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -2690,7 +2733,7 @@
       function calculerTotalSupplement_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[13].textContent
+          const content = tr.cells[14].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -2703,7 +2746,7 @@
       function calculerTotalIC_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[14].textContent
+          const content = tr.cells[15].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -2744,7 +2787,7 @@
       function calculerTotalAffrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[15].textContent
+          const content = tr.cells[16].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -2757,7 +2800,7 @@
       function calculerTotalSupplement_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[16].textContent
+          const content = tr.cells[17].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -2770,7 +2813,7 @@
       function calculerTotalIC_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[17].textContent
+          const content = tr.cells[18].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
