@@ -1686,10 +1686,10 @@
                                 <thead>
                                   <tr>
                                     <th>Groupe</th>
-                                    <th>Catégorie</th>
-                                    <th>Matériel</th>
-                                    <th>Tarif (€)</th>
-                                    <th>Indice (%)</th>
+                                    <th style="width: 20%;">Catégorie</th>
+                                    <th style="width: 25%;">Matériel</th>
+                                    <th style="width: 13%;">Tarif (€)</th>
+                                    <th style="width: 10%;">Indice (%)</th>
                                     <th>Action</th>
                                   </tr>
                                 </thead><tbody>`;
@@ -1733,7 +1733,7 @@
                 html += `<tr>
                                 ${
                                   index === 0
-                                    ? `<td rowspan="${matosKeys.length}" class="group-header">
+                                    ? `<td rowspan="${matosKeys.length}" class="group-header" style="vertical-align: top;">
                                         <strong>${group}</strong><br>
                                         <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
                                         <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
@@ -1815,9 +1815,9 @@
                                <table class="config-table">
                                  <thead>
                                    <tr>
-                                     <th>Client</th>
-                                     <th>Groupe assigné</th>
-                                     <th>Action</th>
+                                     <th style="width: 40%;">Client</th>
+                                     <th style="width: 40%;">Groupe assigné</th>
+                                     <th style="width: 20%;">Action</th>
                                    </tr>
                                  </thead><tbody>`;
 
@@ -2379,7 +2379,7 @@
 
         const sortedEntries = [...groupePiliers, ...groupeAffretes];
 
-        let html = `<table class="config-table"><thead><tr><th>Associé</th><th>Catégorie</th><th>Matériel</th><th>Tarif (€)</th><th>Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
+        let html = `<table class="config-table"><thead><tr><th>Associé</th><th style="width: 20%;">Catégorie</th><th style="width: 25%;">Matériel</th><th style="width: 13%;">Tarif (€)</th><th style="width: 10%;">Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
 
         const categories = Object.keys(transportConfigCategorie).sort();
         const allGlobalMaterials = Object.keys(transportConfigMateriel).sort();
@@ -3787,6 +3787,21 @@
           .addEventListener("click", function () {
             const table = document.getElementById("my-table");
             const area = document.getElementById("capture-area");
+            const tableContainer = document.querySelector(".table-container");
+            const marquerBlock =
+              document.querySelector(".marquer-container") ||
+              document.getElementById("color-picker-tools");
+
+            const startCol = 0;
+            const endCol = 14;
+            const allRows = table.querySelectorAll("tr");
+
+            const originalMaxHeight = tableContainer.style.maxHeight;
+            const originalOverflow = tableContainer.style.overflow;
+
+            tableContainer.style.maxHeight = "none";
+            tableContainer.style.overflow = "visible";
+
             area.querySelectorAll(".combo-input").forEach((input) => {
               if (input.value === "") {
                 input.classList.add("placeholder-style");
@@ -3796,14 +3811,6 @@
                 input.classList.remove("placeholder-style");
               }
             });
-            const marquerBlock =
-              document.querySelector(".marquer-container") ||
-              document.getElementById("color-picker-tools");
-
-            const startCol = 0;
-            const endCol = 14;
-
-            const allRows = table.querySelectorAll("tr");
 
             if (marquerBlock) marquerBlock.style.visibility = "hidden";
 
@@ -3820,6 +3827,8 @@
               scale: 2,
               logging: false,
               useCORS: true, // Utile si tu as des ressources externes
+              windowHeight: area.scrollHeight,
+              height: area.scrollHeight,
             }).then((canvas) => {
               canvas.toBlob((blob) => {
                 if (blob) {
@@ -3829,6 +3838,9 @@
                   });
                 }
               });
+
+              tableContainer.style.maxHeight = originalMaxHeight;
+              tableContainer.style.overflow = originalOverflow;
 
               if (marquerBlock) marquerBlock.style.visibility = "visible";
 
@@ -3845,9 +3857,16 @@
           .addEventListener("click", function () {
             const table = document.getElementById("my-table");
             const area = document.getElementById("capture-area");
+            const tableContainer = document.querySelector(".table-container");
             const marquerBlock = document.getElementById("color-picker-tools");
             const allRows = table.querySelectorAll("tr");
             const endCol = 12;
+
+            const originalMaxHeight = tableContainer.style.maxHeight;
+            const originalOverflow = tableContainer.style.overflow;
+
+            tableContainer.style.maxHeight = "none";
+            tableContainer.style.overflow = "visible";
 
             area.querySelectorAll(".combo-input").forEach((input) => {
               if (input.value === "") {
@@ -3875,6 +3894,8 @@
               backgroundColor: "#ffffff",
               scale: 2,
               logging: false,
+              windowHeight: area.scrollHeight,
+              height: area.scrollHeight,
             }).then((canvas) => {
               canvas.toBlob((blob) => {
                 const item = new ClipboardItem({ "image/png": blob });
@@ -3882,6 +3903,9 @@
                   afficherNotification("Planning copié", "#2196F3");
                 });
               });
+
+              tableContainer.style.maxHeight = originalMaxHeight;
+              tableContainer.style.overflow = originalOverflow;
 
               if (marquerBlock) marquerBlock.style.visibility = "visible";
 

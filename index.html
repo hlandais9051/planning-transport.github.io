@@ -385,12 +385,16 @@
         position: absolute; /* Le menu "flotte" au dessus du contenu */
         z-index: 1000;
         margin-top: 5px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: max-content;
         border: 1px solid #ccc;
         padding: 10px;
         border-radius: 5px;
         background: #f9f9f9;
         box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
         min-width: 160px;
+        max-width: 260px;
       }
 
       .button-group {
@@ -452,9 +456,14 @@
     <datalist id="list-telephone"></datalist>
 
     <div class="header-tools">
-      <div class="button-group">
+      <div
+        class="button-group"
+        onmouseleave="
+          document.getElementById('sous-menu-add').style.display = 'none'
+        "
+      >
         <button
-          onclick="toggleMenu('sous-menu-add', event)"
+          onmouseenter="toggleMenu('sous-menu-add', event)"
           class="btn"
           style="
             background-color: #ff0000;
@@ -479,9 +488,14 @@
         </div>
       </div>
 
-      <div class="button-group">
+      <div
+        class="button-group"
+        onmouseleave="
+          document.getElementById('sous-menu-copy').style.display = 'none'
+        "
+      >
         <button
-          onclick="toggleMenu('sous-menu-copy', event)"
+          onmouseenter="toggleMenu('sous-menu-copy', event)"
           class="btn"
           style="
             background-color: #ff0000;
@@ -506,9 +520,14 @@
         </div>
       </div>
 
-      <div class="button-group">
+      <div
+        class="button-group"
+        onmouseleave="
+          document.getElementById('sous-menu-photos').style.display = 'none'
+        "
+      >
         <button
-          onclick="toggleMenu('sous-menu-photos', event)"
+          onmouseenter="toggleMenu('sous-menu-photos', event)"
           class="btn"
           style="
             background-color: #ff0000;
@@ -544,9 +563,14 @@
         </div>
       </div>
 
-      <div class="button-group">
+      <div
+        class="button-group"
+        onmouseleave="
+          document.getElementById('sous-menu-config').style.display = 'none'
+        "
+      >
         <button
-          onclick="toggleMenu('sous-menu-config', event)"
+          onmouseenter="toggleMenu('sous-menu-config', event)"
           class="btn"
           style="
             background-color: #ff0000;
@@ -1116,6 +1140,15 @@
 
       let isMouseDown = false;
 
+      function toggleHelp() {
+        const modal = document.getElementById("help-modal");
+        const overlay = document.getElementById("help-overlay");
+        const isVisible = modal.style.display === "block";
+
+        modal.style.display = isVisible ? "none" : "block";
+        overlay.style.display = isVisible ? "none" : "block";
+      }
+
       function toggleMenu(id, event) {
         if (event) event.stopPropagation();
 
@@ -1174,7 +1207,7 @@
             // Configuration de l'alerte
             // Remplace .textContent par .innerText
             notif.innerText = `⚠️ CODE INCORRECT ⚠️
-            VOUS N'ÊTES PAS AUTORISÉ À EFFECTUER CETTE ACTION !`;
+                            VOUS N'ÊTES PAS AUTORISÉ À EFFECTUER CETTE ACTION !`;
             notif.classList.add("alerte-flash", "notif-visible");
 
             // Disparition après 4 secondes
@@ -1649,17 +1682,17 @@
         const container = document.getElementById("config-container");
 
         let html = `<h3>Tarifs par Groupe</h3>
-              <table class="config-table">
-                <thead>
-                  <tr>
-                    <th>Groupe</th>
-                    <th>Catégorie</th>
-                    <th>Matériel</th>
-                    <th>Tarif (€)</th>
-                    <th>Indice (%)</th>
-                    <th>Action</th>
-                  </tr>
-                </thead><tbody>`;
+                              <table class="config-table">
+                                <thead>
+                                  <tr>
+                                    <th>Groupe</th>
+                                    <th style="width: 20%;">Catégorie</th>
+                                    <th style="width: 25%;">Matériel</th>
+                                    <th style="width: 13%;">Tarif (€)</th>
+                                    <th style="width: 10%;">Indice (%)</th>
+                                    <th>Action</th>
+                                  </tr>
+                                </thead><tbody>`;
 
         const groups = Object.keys(transportConfigGroup).sort();
         const categorie = Object.keys(transportConfigCategorie).sort();
@@ -1675,9 +1708,9 @@
 
             if (matosKeys.length === 0) {
               html += `<tr>
-                        <td class="group-header"><strong>${group}</strong></td>
-                        <td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
-                      </tr>`;
+                                        <td class="group-header"><strong>${group}</strong></td>
+                                        <td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
+                                      </tr>`;
             } else {
               matosKeys.forEach((matos, index) => {
                 const val = transportConfigGroup[group][matos];
@@ -1698,71 +1731,79 @@
                 }
 
                 html += `<tr>
-                ${
-                  index === 0
-                    ? `<td rowspan="${matosKeys.length}" class="group-header">
-                        <strong>${group}</strong><br>
-                        <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
-                        <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-                          <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>
-                          ${categorie
-                            .map((cat) => {
-                              const valIndice =
-                                transportConfigGroupInfo[group] &&
-                                transportConfigGroupInfo[group][cat]
-                                  ? transportConfigGroupInfo[group][cat]
-                                  : 0;
-                              return `
-                                <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
-                                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
-                                    <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
-                                  </div>
-                                  <input type="number" step="0.01" value="${valIndice}"
-                                        onchange="updateGroupCatIndice('${group}', '${cat}', this.value)"
-                                        style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
-                                </div>
-                              `;
-                            })
-                            .join("")}
-                        </div>
-                      </td>`
-                    : ""
-                }
-                <td style="text-align:left; padding-left:10px;">
-                    <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
-                        <option value="">-- Sans --</option>
-                        ${categorie
-                          .map(
-                            (c) =>
-                              `<option value="${c}" ${
-                                currentCat === c ? "selected" : ""
-                              }>${c}</option>`,
-                          )
-                          .join("")}
-                    </select>
-                </td>
-                <td>${matos}</td>
-                <td>
-                  <input type="number" step="0.01" value="${val.tarif}"
-                    onchange="updateGroupPrice('${group}', '${matos}', this.value)"
-                    style="width:100%;">
-                </td>
-                <td>
-                  <input type="number" step="0.01"
-                    value="${indiceAafficher}"
-                    placeholder="${isUsingCategory ? "Hérité" : ""}"
-                    onchange="updateGroupIndice('${group}', '${matos}', this.value)"
-                    style="width:100%; ${
-                      isUsingCategory
-                        ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
-                        : "font-weight: bold;"
-                    }">
-                </td>
-                <td>
-                    <button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
-                </td>
-              </tr>`;
+                                ${
+                                  index === 0
+                                    ? `<td rowspan="${matosKeys.length}" class="group-header" style="vertical-align: top;">
+                                        <strong>${group}</strong><br>
+                                        <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
+                                        <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+                                          <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>
+                                          ${categorie
+                                            .map((cat) => {
+                                              const valIndice =
+                                                transportConfigGroupInfo[
+                                                  group
+                                                ] &&
+                                                transportConfigGroupInfo[group][
+                                                  cat
+                                                ]
+                                                  ? transportConfigGroupInfo[
+                                                      group
+                                                    ][cat]
+                                                  : 0;
+                                              return `
+                                                <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                                                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                                                    <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
+                                                  </div>
+                                                  <input type="number" step="0.01" value="${valIndice}"
+                                                        onchange="updateGroupCatIndice('${group}', '${cat}', this.value)"
+                                                        style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                                                </div>
+                                              `;
+                                            })
+                                            .join("")}
+                                        </div>
+                                      </td>`
+                                    : ""
+                                }
+                                <td style="text-align:left; padding-left:10px;">
+                                    <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
+                                        <option value="">-- Sans --</option>
+                                        ${categorie
+                                          .map(
+                                            (c) =>
+                                              `<option value="${c}" ${
+                                                currentCat === c
+                                                  ? "selected"
+                                                  : ""
+                                              }>${c}</option>`,
+                                          )
+                                          .join("")}
+                                    </select>
+                                </td>
+                                <td>${matos}</td>
+                                <td>
+                                  <input type="number" step="0.01" value="${val.tarif}"
+                                    onchange="updateGroupPrice('${group}', '${matos}', this.value)"
+                                    style="width:100%;">
+                                </td>
+                                <td>
+                                  <input type="number" step="0.01"
+                                    value="${indiceAafficher}"
+                                    placeholder="${isUsingCategory ? "Hérité" : ""}"
+                                    onchange="updateGroupIndice('${group}', '${matos}', this.value)"
+                                    style="width:100%; ${
+                                      isUsingCategory
+                                        ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
+                                        : "font-weight: bold;"
+                                    }">
+                                </td>
+                                <td>
+                                    <button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
+                                </td>
+                              </tr>`;
               });
             }
           });
@@ -1771,14 +1812,14 @@
         html += `</tbody></table>`;
 
         html += `<h3 style="margin-top:30px;">Assignation des Clients</h3>
-               <table class="config-table">
-                 <thead>
-                   <tr>
-                     <th>Client</th>
-                     <th>Groupe assigné</th>
-                     <th>Action</th>
-                   </tr>
-                 </thead><tbody>`;
+                               <table class="config-table">
+                                 <thead>
+                                   <tr>
+                                     <th style="width: 40%;">Client</th>
+                                     <th style="width: 40%;">Groupe assigné</th>
+                                     <th style="width: 20%;">Action</th>
+                                   </tr>
+                                 </thead><tbody>`;
 
         const clients = Object.keys(transportConfigClient).sort();
         if (clients.length === 0) {
@@ -1787,22 +1828,24 @@
           clients.forEach((client) => {
             const assignedGroup = transportConfigClient[client];
             html += `<tr>
-                    <td><strong>${client}</strong></td>
-                    <td>
-                      <select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;">
-                        <option value="">-- Aucun groupe --</option>
-                        ${groups
-                          .map(
-                            (g) =>
-                              `<option value="${g}" ${
-                                assignedGroup === g ? "selected" : ""
-                              }>${g}</option>`,
-                          )
-                          .join("")}
-                      </select>
-                    </td>
-                    <td><button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button></td>
-                  </tr>`;
+                                    <td><strong>${client}</strong></td>
+                                    <td>
+                                      <select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;">
+                                        <option value="">-- Aucun groupe --</option>
+                                        ${groups
+                                          .map(
+                                            (g) =>
+                                              `<option value="${g}" ${
+                                                assignedGroup === g
+                                                  ? "selected"
+                                                  : ""
+                                              }>${g}</option>`,
+                                          )
+                                          .join("")}
+                                      </select>
+                                    </td>
+                                    <td><button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button></td>
+                                  </tr>`;
           });
         }
 
@@ -1913,17 +1956,17 @@
         const cats = Object.keys(transportConfigCategorie).sort();
 
         let html = `<h3>Gestion des Catégories</h3>
-                    <ul style="list-style: none; padding: 0; max-width: 400px;">`;
+                                    <ul style="list-style: none; padding: 0; max-width: 400px;">`;
 
         cats.forEach((cat) => {
           html += `
-                <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;">
-                    <span>${cat}</span>
-                    <button onclick="deleteCategorie('${cat}')"
-                            style="color: white; background: #dc3545; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
-                        Supprimer
-                    </button>
-                </li>`;
+                                <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;">
+                                    <span>${cat}</span>
+                                    <button onclick="deleteCategorie('${cat}')"
+                                            style="color: white; background: #dc3545; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+                                        Supprimer
+                                    </button>
+                                </li>`;
         });
 
         html += `</ul>`;
@@ -2103,7 +2146,18 @@
       }
 
       function updateRowTarif(tr) {
-        // AJOUT : Définir si le changement vient d'une liste déroulante
+        const dateLigne = tr.cells[4]?.innerText || "";
+        const estMemeMois = estMemeMoisQueSelection(dateLigne);
+
+        if (!estMemeMois && tr.dataset.snapshot) {
+          const snapshot = JSON.parse(tr.dataset.snapshot);
+          applySnapshotToRow(tr, snapshot);
+          saveCurrentDay();
+          return;
+        }
+
+        // Pas de snapshot = nouvelle ligne ou modification manuelle
+        // On continue avec la logique actuelle
         const eventTrigger = window.event ? window.event.target : null;
         const isComboChange =
           eventTrigger && eventTrigger.classList.contains("combo-input");
@@ -2126,7 +2180,6 @@
                 .replace(",", "."),
             ) || 0;
 
-          // Utilisation de isComboChange pour forcer la mise à jour
           if (isComboChange || tarifC === 0) {
             tarifC = getTarifClient(client, matos);
           }
@@ -2171,7 +2224,6 @@
                 .replace(",", "."),
             ) || 0;
 
-          // Désormais isComboChange est bien reconnu ici aussi
           if (isComboChange || tarifA === 0) {
             if (
               transportConfigAssocie[associe] &&
@@ -2213,6 +2265,13 @@
         }
 
         saveCurrentDay();
+        if (estMemeMois) {
+          if ((client && matos) || (associe && matos)) {
+            const snapshot = createSnapshotFromRow(tr);
+            tr.dataset.snapshot = JSON.stringify(snapshot);
+          }
+        }
+        calculerTousLesTotaux();
       }
 
       function updateRowHighlight(tr) {
@@ -2241,12 +2300,54 @@
       }
 
       function refreshAllPlanningTarifs() {
-        const rows = document.querySelectorAll("#my-table tr");
-        rows.forEach((tr, index) => {
-          if (tr.querySelector(".select-client")) {
-            updateRowTarif(tr);
+        const rows = document.querySelectorAll("#table-body tr");
+        rows.forEach((tr) => {
+          const dateLigne = tr.cells[4]?.innerText || "";
+          const estMemeMois = estMemeMoisQueSelection(dateLigne);
+
+          if (!estMemeMois) {
+            // Si hors mois, on restaure le snapshot s'il existe
+            if (tr.dataset.snapshot) {
+              const snapshot = JSON.parse(tr.dataset.snapshot);
+              applySnapshotToRow(tr, snapshot);
+            }
+            return;
+          }
+
+          // On récupère les valeurs actuelles pour forcer le recalcul
+          const client = tr.querySelector(".select-client")?.value;
+          const matos = tr.querySelector(".select-vehicule")?.value;
+          const associe = tr.querySelector(".select-associe")?.value;
+
+          // On appelle tes fonctions de calcul existantes
+          if (client && matos) {
+            const tarifC = getTarifClient(client, matos);
+            const icC = getICClient(client, matos);
+            tr.querySelector(".cell-tarif").textContent =
+              tarifC.toFixed(2) + " €";
+            tr.querySelector(".cell-IC-client").textContent =
+              icC.toFixed(2) + " €";
+          }
+
+          if (associe && matos) {
+            const tarifA =
+              transportConfigAssocie[associe] &&
+              transportConfigAssocie[associe][matos]
+                ? parseFloat(transportConfigAssocie[associe][matos].tarif) || 0
+                : 0;
+            const icA = getICAffrete(associe, matos);
+            tr.querySelector(".cell-tarif-affrete").textContent =
+              tarifA.toFixed(2) + " €";
+            tr.querySelector(".cell-IC-affrete").textContent =
+              icA.toFixed(2) + " €";
+          }
+          if ((client && matos) || (associe && matos)) {
+            const snapshot = captureSnapshot(client, matos, associe);
+            tr.dataset.snapshot = JSON.stringify(snapshot);
           }
         });
+
+        calculerTousLesTotaux();
       }
 
       function renderConfigUI2() {
@@ -2278,7 +2379,7 @@
 
         const sortedEntries = [...groupePiliers, ...groupeAffretes];
 
-        let html = `<table class="config-table"><thead><tr><th>Associé</th><th>Catégorie</th><th>Matériel</th><th>Tarif (€)</th><th>Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
+        let html = `<table class="config-table"><thead><tr><th>Associé</th><th style="width: 20%;">Catégorie</th><th style="width: 25%;">Matériel</th><th style="width: 13%;">Tarif (€)</th><th style="width: 10%;">Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
 
         const categories = Object.keys(transportConfigCategorie).sort();
         const allGlobalMaterials = Object.keys(transportConfigMateriel).sort();
@@ -2318,32 +2419,34 @@
 
             // BLOC DE GAUCHE (NOM + BOUTON SUPPRIMER)
             const leftBlockHTML = `
-            <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
-                <strong>${entry}</strong><br>
+                            <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
+                                <strong>${entry}</strong><br>
 
-                <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
+                                <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
 
-                <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-                    <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
-                    ${categories
-                      .map((cat) => {
-                        const valIndice =
-                          (transportConfigGroupInfo[entry] &&
-                            transportConfigGroupInfo[entry][cat]) ||
-                          0;
-                        return `
-                        <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
-                                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
-                                    <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
-                                  </div>                            <input type="number" step="0.01" value="${valIndice}"
-                                  onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
-                                  style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
-                        </div>`;
-                      })
-                      .join("")}
-                </div>
-            </td>`;
+                                <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+                                    <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
+                                    ${categories
+                                      .map((cat) => {
+                                        const valIndice =
+                                          (transportConfigGroupInfo[entry] &&
+                                            transportConfigGroupInfo[entry][
+                                              cat
+                                            ]) ||
+                                          0;
+                                        return `
+                                        <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                                                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                                                    <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
+                                                  </div>                            <input type="number" step="0.01" value="${valIndice}"
+                                                  onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
+                                                  style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                                        </div>`;
+                                      })
+                                      .join("")}
+                                </div>
+                            </td>`;
 
             // LIGNES DE MATÉRIELS
             keys.forEach((k, idx) => {
@@ -2366,29 +2469,29 @@
               }
 
               html += `<tr>
-                    ${idx === 0 ? leftBlockHTML : ""}
-                    <td style="text-align:left; padding-left:10px;">
-                        <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
-                            <option value="">-- Sans --</option>
-                            ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
-                        </select>
-                    </td>
-                    <td>${k}</td>
-                    <td>
-                        <input type="number" step="0.01" value="${val.tarif || 0}"
-                               onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
-                               style="width:100%;">
-                    </td>
-                    <td>
-                        <input type="number" step="0.01" value="${indiceAafficher}"
-                               placeholder="${isUsingCategory ? "Hérité" : ""}"
-                               onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
-                               style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
-                    </td>
-                    <td>
-                        <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
-                    </td>
-                </tr>`;
+                                    ${idx === 0 ? leftBlockHTML : ""}
+                                    <td style="text-align:left; padding-left:10px;">
+                                        <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
+                                            <option value="">-- Sans --</option>
+                                            ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
+                                        </select>
+                                    </td>
+                                    <td>${k}</td>
+                                    <td>
+                                        <input type="number" step="0.01" value="${val.tarif || 0}"
+                                               onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
+                                               style="width:100%;">
+                                    </td>
+                                    <td>
+                                        <input type="number" step="0.01" value="${indiceAafficher}"
+                                               placeholder="${isUsingCategory ? "Hérité" : ""}"
+                                               onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
+                                               style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
+                                    </td>
+                                    <td>
+                                        <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
+                                    </td>
+                                </tr>`;
             });
           });
         }
@@ -2494,9 +2597,9 @@
         } else {
           sortedEntries.forEach((entry) => {
             html += `<tr>
-                      <td class="client-header">${entry}</td>
-                      <td><button class="btn btn-reset" onclick="deleteChauffeur('${entry}')">Suppr. Chauffeur</button></td>
-                      </tr>`;
+                                      <td class="client-header">${entry}</td>
+                                      <td><button class="btn btn-reset" onclick="deleteChauffeur('${entry}')">Suppr. Chauffeur</button></td>
+                                      </tr>`;
           });
         }
 
@@ -2651,15 +2754,15 @@
         if (!container) return;
 
         let html = `<table class="config-table" style="width:100%; table-layout: fixed; border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th style="width: 25%;">Client</th>
-            <th style="width: 25%;">Contact</th>
-            <th style="width: 30%;">Numéro de Téléphone</th>
-            <th style="width: 20%;">Action</th>
-          </tr>
-        </thead>
-        <tbody>`;
+                        <thead>
+                          <tr>
+                            <th style="width: 25%;">Client</th>
+                            <th style="width: 25%;">Contact</th>
+                            <th style="width: 30%;">Numéro de Téléphone</th>
+                            <th style="width: 20%;">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>`;
 
         const contacts = Object.keys(transportConfigTelephone).sort((a, b) => {
           const clientA = transportConfigTelephone[a].client || "";
@@ -2675,13 +2778,13 @@
             const client = transportConfigTelephone[name].client || ""; // On récupère le nom du client
 
             html += `<tr>
-              <td style="padding: 8px;" contenteditable="true" onblur="updateClientInConfig('${name}', this.innerText)">${client}</td>
-              <td style="padding: 8px;" contenteditable="true" onblur="updateNameInConfig('${name}', this.innerText)">${name}</td>
-              <td style="text-align: center;" contenteditable="true" onblur="updateTelInConfig('${name}', this.innerText)">${tel}</td>
-              <td style="text-align: center;">
-                <button onclick="deleteTelephone('${name}')" class="btn-delete">Supprimer</button>
-              </td>
-          </tr>`;
+                              <td style="padding: 8px;" contenteditable="true" onblur="updateClientInConfig('${name}', this.innerText)">${client}</td>
+                              <td style="padding: 8px;" contenteditable="true" onblur="updateNameInConfig('${name}', this.innerText)">${name}</td>
+                              <td style="text-align: center;" contenteditable="true" onblur="updateTelInConfig('${name}', this.innerText)">${tel}</td>
+                              <td style="text-align: center;">
+                                <button onclick="deleteTelephone('${name}')" class="btn-delete">Supprimer</button>
+                              </td>
+                          </tr>`;
           });
         }
         html += `</tbody></table>`;
@@ -2868,8 +2971,31 @@
       function saveCurrentDay() {
         const date = document.getElementById("current-date-picker").value;
         if (!date) return;
+
         const rows = [];
         document.querySelectorAll("#table-body tr").forEach((tr) => {
+          const dateLigne = tr.cells[4]?.innerText || "";
+          const estMemeMois = estMemeMoisQueSelection(dateLigne);
+
+          // Récupérer le snapshot existant
+          let snapshot = null;
+          if (tr.dataset.snapshot) {
+            snapshot = JSON.parse(tr.dataset.snapshot);
+          }
+
+          // 🔄 Si même mois → Capturer/mettre à jour le snapshot
+          if (estMemeMois) {
+            const client = tr.querySelector(".select-client").value;
+            const vehicule = tr.querySelector(".select-vehicule").value;
+            const associe = tr.querySelector(".select-associe").value;
+
+            if ((client && vehicule) || (associe && vehicule)) {
+              snapshot = captureSnapshot(client, vehicule, associe);
+              tr.dataset.snapshot = JSON.stringify(snapshot);
+            }
+          }
+          // 🔒 Si autre mois → On garde le snapshot tel quel
+
           rows.push({
             associe: tr.querySelector(".select-associe").value,
             matin: tr.cells[1].innerText,
@@ -2891,8 +3017,12 @@
             supplement_affrete: tr.cells[17].innerText,
             IC_affrete: tr.cells[18].innerText,
             commentaire: tr.cells[19].innerText,
+
+            // ✅ AJOUT : Sauvegarde du snapshot
+            snapshot: snapshot,
           });
         });
+
         localStorage.setItem("planning_" + date, JSON.stringify(rows));
         calculerTousLesTotaux();
       }
@@ -2968,6 +3098,136 @@
           calculerTousLesTotaux();
         }
       }
+      /**
+       * @param {string} dateStr - Date au format DD/MM/YY (ex: "28/01/26")
+       * @returns {boolean}
+       */
+      function estMemeMoisQueSelection(dateStr) {
+        if (!dateStr) return false;
+
+        const dateSelectionnee = document.getElementById(
+          "current-date-picker",
+        ).value;
+        if (!dateSelectionnee) return false;
+
+        // Convertir la date de la ligne "28/01/26" en "2026-01"
+        const parties = dateStr.split("/");
+        if (parties.length !== 3) return false;
+        const moisLigne = `20${parties[2]}-${parties[1]}`; // "2026-01"
+
+        // Extraire le mois de la date sélectionnée "2026-01-28" → "2026-01"
+        const moisSelectionne = dateSelectionnee.substring(0, 7); // "2026-01"
+
+        return moisLigne === moisSelectionne;
+      }
+
+      function captureSnapshot(client, vehicule, associe) {
+        const snapshot = {
+          tarif_client_snapshot: 0,
+          indice_client_snapshot: 0,
+          tarif_affrete_snapshot: 0,
+          indice_affrete_snapshot: 0,
+          date_capture: new Date().toISOString(),
+        };
+
+        // Capture tarif client
+        if (client && vehicule) {
+          const groupeNom = transportConfigClient[client];
+          if (
+            groupeNom &&
+            transportConfigGroup[groupeNom] &&
+            transportConfigGroup[groupeNom][vehicule]
+          ) {
+            snapshot.tarif_client_snapshot =
+              parseFloat(transportConfigGroup[groupeNom][vehicule].tarif) || 0;
+
+            // Indice client
+            let indice =
+              parseFloat(transportConfigGroup[groupeNom][vehicule].indice) || 0;
+            if (indice === 0) {
+              const cat = transportConfigMateriel[vehicule];
+              if (
+                cat &&
+                transportConfigGroupInfo[groupeNom] &&
+                transportConfigGroupInfo[groupeNom][cat]
+              ) {
+                indice =
+                  parseFloat(transportConfigGroupInfo[groupeNom][cat]) || 0;
+              }
+            }
+            snapshot.indice_client_snapshot = indice;
+          }
+        }
+
+        // Capture tarif affrété
+        if (associe && vehicule) {
+          if (
+            transportConfigAssocie[associe] &&
+            transportConfigAssocie[associe][vehicule]
+          ) {
+            snapshot.tarif_affrete_snapshot =
+              parseFloat(transportConfigAssocie[associe][vehicule].tarif) || 0;
+
+            // Indice affrété
+            let indice =
+              parseFloat(transportConfigAssocie[associe][vehicule].indice) || 0;
+            if (indice === 0) {
+              const cat = transportConfigMateriel[vehicule];
+              if (
+                cat &&
+                transportConfigGroupInfo[associe] &&
+                transportConfigGroupInfo[associe][cat]
+              ) {
+                indice =
+                  parseFloat(transportConfigGroupInfo[associe][cat]) || 0;
+              }
+            }
+            snapshot.indice_affrete_snapshot = indice;
+          }
+        }
+
+        return snapshot;
+      }
+
+      /**
+       * Applique les tarifs depuis un snapshot vers une ligne
+       * @param {HTMLElement} tr - Ligne du tableau
+       * @param {Object} snapshot - Snapshot contenant les tarifs
+       */
+      function applySnapshotToRow(tr, snapshot) {
+        if (!snapshot) return;
+
+        const cellTarifClient = tr.querySelector(".cell-tarif");
+        const cellTarifAffrete = tr.querySelector(".cell-tarif-affrete");
+        const cellICClient = tr.querySelector(".cell-IC-client");
+        const cellICAffrete = tr.querySelector(".cell-IC-affrete");
+
+        // Application tarif client
+        if (snapshot.tarif_client_snapshot !== undefined) {
+          const tarifC = snapshot.tarif_client_snapshot;
+          const indiceC = snapshot.indice_client_snapshot || 0;
+          const icC = tarifC * (indiceC / 100);
+
+          cellTarifClient.textContent = tarifC.toFixed(2) + " €";
+          cellICClient.textContent = icC.toFixed(2) + " €";
+          cellICClient.style.color =
+            icC > 0 ? "#28a745" : icC < 0 ? "#dc3545" : "#95a5a6";
+          cellICClient.style.fontWeight = icC !== 0 ? "bold" : "normal";
+        }
+
+        // Application tarif affrété
+        if (snapshot.tarif_affrete_snapshot !== undefined) {
+          const tarifA = snapshot.tarif_affrete_snapshot;
+          const indiceA = snapshot.indice_affrete_snapshot || 0;
+          const icA = tarifA * (indiceA / 100);
+
+          cellTarifAffrete.textContent = tarifA.toFixed(2) + " €";
+          cellICAffrete.textContent = icA.toFixed(2) + " €";
+          cellICAffrete.style.color =
+            icA > 0 ? "#28a745" : icA < 0 ? "#dc3545" : "#95a5a6";
+          cellICAffrete.style.fontWeight = icA !== 0 ? "bold" : "normal";
+        }
+      }
 
       function ajouterLigne(data = null) {
         const tableBody = document.getElementById("table-body");
@@ -3004,7 +3264,8 @@
 
             <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
 
-            <td contenteditable="true">${data ? data.date : dateFormatee}</td>
+            <td contenteditable="true">${data ? data.date : typeof dateFormatee !== "undefined" ? dateFormatee : new Date().toLocaleDateString("fr-FR")}</td>
+
             <td class="matos-cell">
                 <input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" placeholder="Véhicule...">
             </td>
@@ -3021,7 +3282,7 @@
                 <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur...">
             </td>
 
-            <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
+            <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
             <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
             <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
 
@@ -3033,12 +3294,11 @@
             <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
 
             <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
-
             <td class="hide-export" style="text-align:center; white-space:nowrap;">
-                <button style="background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
-                <button style="background:none; border:none; cursor:pointer; font-size:16px;" onclick="supprimerLigne(this)">🗑️</button>
-
-            </td>`;
+                <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
+                <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
+            </td>
+        `;
 
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
           cell.addEventListener("input", () => {
@@ -3077,10 +3337,15 @@
             }
             // ----------------------------------------
 
-            if (
+            const isNumericCell =
               cell.classList.contains("cell-tarif") ||
-              cell.classList.contains("cell-tarif-affrete")
-            ) {
+              cell.classList.contains("cell-tarif-affrete") ||
+              cell.classList.contains("cell-supplement-client") ||
+              cell.classList.contains("cell-supplement-affrete") ||
+              cell.classList.contains("cell-IC-client") ||
+              cell.classList.contains("cell-IC-affrete");
+
+            if (isNumericCell) {
               let val = parseFloat(contenuSaisi.replace(",", ".")) || 0;
               cell.textContent = val.toFixed(2) + " €";
               calculerTousLesTotaux();
@@ -3111,19 +3376,21 @@
               "N° Bon...",
               "Commentaire...",
             ];
-            if (
-              !cell.classList.contains("cell-tarif") &&
-              !cell.classList.contains("cell-tarif-affrete") &&
-              !cell.classList.contains("cell-supplement-client") &&
-              !cell.classList.contains("cell-supplement-affrete") &&
-              !cell.classList.contains("cell-IC-client") &&
-              !cell.classList.contains("cell-IC-affrete")
-            ) {
+            const isNumericCell =
+              cell.classList.contains("cell-tarif") ||
+              cell.classList.contains("cell-tarif-affrete") ||
+              cell.classList.contains("cell-supplement-client") ||
+              cell.classList.contains("cell-supplement-affrete") ||
+              cell.classList.contains("cell-IC-client") ||
+              cell.classList.contains("cell-IC-affrete");
+
+            if (!isNumericCell) {
               if (placeholders.includes(cell.textContent.trim())) {
                 cell.textContent = "";
                 cell.classList.remove("placeholder-style");
               }
             } else {
+              // Si c'est du numérique, on enlève le "€" pour éditer facilement
               let val = cell.textContent.replace(" €", "").trim();
               if (val === "0.00") cell.textContent = "";
               else cell.textContent = val;
@@ -3137,10 +3404,32 @@
             if (estDerniereLigne && input.value.trim() !== "") {
               ajouterLigne();
             }
+
+            // ✅ AJOUT : Capturer le snapshot quand on modifie client/véhicule/associé
+            if (
+              input.classList.contains("select-client") ||
+              input.classList.contains("select-vehicule") ||
+              input.classList.contains("select-associe")
+            ) {
+              const client = tr.querySelector(".select-client").value;
+              const vehicule = tr.querySelector(".select-vehicule").value;
+              const associe = tr.querySelector(".select-associe").value;
+
+              // Si on a au minimum un client ET un véhicule, on capture
+              if ((client && vehicule) || (associe && vehicule)) {
+                const snapshot = captureSnapshot(client, vehicule, associe);
+                tr.dataset.snapshot = JSON.stringify(snapshot);
+
+                // Appliquer immédiatement le snapshot
+                applySnapshotToRow(tr, snapshot);
+              }
+            }
+
             saveCurrentDay();
+
             if (input.classList.contains("select-associe")) {
-              appliquerCouleurAssocie(input); // Applique le Gris ou la couleur de base
-              trierPlanningParAssocie(); // Trie avec priorité ALLARD, LANDAIS, STD
+              appliquerCouleurAssocie(input);
+              trierPlanningParAssocie();
             }
           });
         });
@@ -3161,13 +3450,18 @@
               }
             });
           }
+
+          // ✅ AJOUT : Restaurer le snapshot s'il existe
+          if (data.snapshot) {
+            tr.dataset.snapshot = JSON.stringify(data.snapshot);
+          }
         } else {
           tr.style.backgroundColor = "";
           tr.removeAttribute("style");
 
           cells.forEach((td) => {
-            td.style.backgroundColor = ""; // On enlève l'orange fantôme
-            td.style.color = ""; // On remet le texte en noir
+            td.style.backgroundColor = "";
+            td.style.color = "";
           });
 
           appliquerCouleurAssocie(inputAssocie);
@@ -3493,6 +3787,21 @@
           .addEventListener("click", function () {
             const table = document.getElementById("my-table");
             const area = document.getElementById("capture-area");
+            const tableContainer = document.querySelector(".table-container");
+            const marquerBlock =
+              document.querySelector(".marquer-container") ||
+              document.getElementById("color-picker-tools");
+
+            const startCol = 0;
+            const endCol = 14;
+            const allRows = table.querySelectorAll("tr");
+
+            const originalMaxHeight = tableContainer.style.maxHeight;
+            const originalOverflow = tableContainer.style.overflow;
+
+            tableContainer.style.maxHeight = "none";
+            tableContainer.style.overflow = "visible";
+
             area.querySelectorAll(".combo-input").forEach((input) => {
               if (input.value === "") {
                 input.classList.add("placeholder-style");
@@ -3502,14 +3811,6 @@
                 input.classList.remove("placeholder-style");
               }
             });
-            const marquerBlock =
-              document.querySelector(".marquer-container") ||
-              document.getElementById("color-picker-tools");
-
-            const startCol = 0;
-            const endCol = 14;
-
-            const allRows = table.querySelectorAll("tr");
 
             if (marquerBlock) marquerBlock.style.visibility = "hidden";
 
@@ -3526,6 +3827,8 @@
               scale: 2,
               logging: false,
               useCORS: true, // Utile si tu as des ressources externes
+              windowHeight: area.scrollHeight,
+              height: area.scrollHeight,
             }).then((canvas) => {
               canvas.toBlob((blob) => {
                 if (blob) {
@@ -3535,6 +3838,9 @@
                   });
                 }
               });
+
+              tableContainer.style.maxHeight = originalMaxHeight;
+              tableContainer.style.overflow = originalOverflow;
 
               if (marquerBlock) marquerBlock.style.visibility = "visible";
 
@@ -3551,9 +3857,16 @@
           .addEventListener("click", function () {
             const table = document.getElementById("my-table");
             const area = document.getElementById("capture-area");
+            const tableContainer = document.querySelector(".table-container");
             const marquerBlock = document.getElementById("color-picker-tools");
             const allRows = table.querySelectorAll("tr");
             const endCol = 12;
+
+            const originalMaxHeight = tableContainer.style.maxHeight;
+            const originalOverflow = tableContainer.style.overflow;
+
+            tableContainer.style.maxHeight = "none";
+            tableContainer.style.overflow = "visible";
 
             area.querySelectorAll(".combo-input").forEach((input) => {
               if (input.value === "") {
@@ -3581,6 +3894,8 @@
               backgroundColor: "#ffffff",
               scale: 2,
               logging: false,
+              windowHeight: area.scrollHeight,
+              height: area.scrollHeight,
             }).then((canvas) => {
               canvas.toBlob((blob) => {
                 const item = new ClipboardItem({ "image/png": blob });
@@ -3588,6 +3903,9 @@
                   afficherNotification("Planning copié", "#2196F3");
                 });
               });
+
+              tableContainer.style.maxHeight = originalMaxHeight;
+              tableContainer.style.overflow = originalOverflow;
 
               if (marquerBlock) marquerBlock.style.visibility = "visible";
 
@@ -3852,133 +4170,208 @@
       });
     </script>
 
-    <p style="margin-top: 20px; padding: 1vw">
-      <small style="color: #666">
-        <strong style="display: block; margin-bottom: -5px">Note :</strong>
+    <button
+      onclick="toggleHelp()"
+      style="
+        position: fixed;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        color: rgb(165, 165, 165);
+        font-size: 30px;
+        font-weight: bold;
+        opacity: 0.6;
+        right: 5px;
+        bottom: 5px;
+        transition: opacity 0.3s;
+      "
+      onmouseover="this.style.opacity = '1'"
+      onmouseout="this.style.opacity = '0.6'"
+      title="Aide et Astuces"
+    >
+      ?
+    </button>
 
-        <ul style="margin-top: 0; padding-left: 20px">
-          <li style="margin-bottom: 2px">
-            <i>Cliquez dans les cases blanches pour saisir vos informations.</i>
-          </li>
+    <div
+      id="help-modal"
+      style="
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        width: 90%;
+        max-width: 800px;
+        max-height: 85vh;
+        overflow-y: auto;
+      "
+    >
+      <h3 style="margin-top: 0">💡 Aide & Raccourcis</h3>
+      <ul style="margin-top: 0; padding-left: 20px">
+        <li style="margin-bottom: 2px">
+          <i>Cliquez dans les cases blanches pour saisir vos informations.</i>
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Sélectionnez la date dans le calendrier
-              <input type="date" class="fake-date" /> pour changer de jour.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Sélectionnez la date dans le calendrier
+            <input type="date" class="fake-date" /> pour changer de jour.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i>Sélectionnez plusieurs cases pour copier leur contenu.</i>
-          </li>
+        <li style="margin-bottom: 2px">
+          <i>Sélectionnez plusieurs cases pour copier leur contenu.</i>
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #28a745; font-weight: bold">VERT</span> pour
-              rajouter une ligne.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #28a745; font-weight: bold">VERT</span> pour
+            rajouter une ligne.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #dc3545; font-weight: bold">ROUGE</span> pour
-              tout supprimer la journée.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #dc3545; font-weight: bold">ROUGE</span> pour
+            tout supprimer la journée.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #ff00b7; font-weight: bold">ROSE</span>
-              pour copier la journée actuelle.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #ff00b7; font-weight: bold">ROSE</span>
+            pour copier la journée actuelle.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #00d69a; font-weight: bold">TURQUOISE</span>
-              pour coller la journée copiée.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #00d69a; font-weight: bold">TURQUOISE</span>
+            pour coller la journée copiée.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #6610f2; font-weight: bold">BLEU</span> pour
-              copier le planning entier en image.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #6610f2; font-weight: bold">BLEU</span> pour
+            copier le planning entier en image.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #07cc00; font-weight: bold">VERT CLAIR</span>
-              pour copier le planning jusqu'à la colonne "Supplément-client".</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #07cc00; font-weight: bold">VERT CLAIR</span>
+            pour copier le planning jusqu'à la colonne "Supplément-client".</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #ff9500; font-weight: bold">ORANGE</span> pour
-              exporter le planning du mois en fichier Excel.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #ff9500; font-weight: bold">ORANGE</span> pour
+            exporter le planning du mois en fichier Excel.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #6c757d; font-weight: bold">GRIS</span> pour
-              configurer les prix des clients.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #6c757d; font-weight: bold">GRIS</span> pour
+            configurer les prix des clients.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #17a2b8; font-weight: bold">BLEU CLAIR</span>
-              pour configurer les prix des associés.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #17a2b8; font-weight: bold">BLEU CLAIR</span>
+            pour configurer les prix des associés.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur le bouton
-              <span style="color: #9b1594; font-weight: bold">VIOLET</span> pour
-              configurer la liste des chauffeurs.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #9b1594; font-weight: bold">VIOLET</span> pour
+            configurer la liste des chauffeurs.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur les cases de filtres pour rechercher un associé ou un
-              client.
-            </i>
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur les cases de filtres pour rechercher un associé ou un
+            client.
+          </i>
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur la feuille à droite 📑 pour duppliquer une seule
-              ligne.</i
-            >
-          </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur la feuille à droite 📑 pour duppliquer une seule
+            ligne.</i
+          >
+        </li>
 
-          <li style="margin-bottom: 2px">
-            <i
-              >Appuyez sur la corbeille à droite 🗑️ pour supprimer une seule
-              ligne.</i
-            >
-          </li>
-        </ul>
-      </small>
-    </p>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur la corbeille à droite 🗑️ pour supprimer une seule
+            ligne.</i
+          >
+        </li>
+      </ul>
+      <button
+        onclick="toggleHelp()"
+        style="
+          width: 100%;
+          padding: 10px;
+          cursor: pointer;
+          background: #eee;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        "
+      >
+        Fermer
+      </button>
+    </div>
+
+    <div
+      id="help-overlay"
+      onclick="toggleHelp()"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+      "
+    ></div>
     <button
       onclick="resetTout()"
       class="btn btn-reset"
-      style="float: right; bottom: top; padding: 4px 6px"
+      style="
+        position: fixed; /* Bloqué sur l'écran */
+        bottom: 20px; /* Même hauteur que l'aide */
+        left: 20px; /* Aligné à gauche */
+        padding: 4px 8px;
+        opacity: 0.5; /* Un peu transparent pour ne pas gêner */
+        cursor: pointer;
+      "
+      onmouseover="this.style.opacity = '1'"
+      onmouseout="this.style.opacity = '0.5'"
     >
       Don't touch me !
     </button>
