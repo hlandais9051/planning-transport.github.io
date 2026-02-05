@@ -1487,7 +1487,6 @@
         JSON.parse(localStorage.getItem("transportConfigGroupInfo")) || {};
 
       function setColorToSelectedRow(color) {
-        // 1. On récupère les lignes concernées
         const rows = document.querySelectorAll(
           "tr:has(.cell-selected), .row-marked",
         );
@@ -1495,37 +1494,52 @@
           localStorage.getItem("planningColors") || "{}",
         );
 
-        if (rows.length > 0) {
-          rows.forEach((row) => {
-            const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
-            const cells = row.querySelectorAll("td");
-
-            if (color === "#ffee00") {
-              const selectedCellsInRow = row.querySelectorAll(".cell-selected");
-              selectedCellsInRow.forEach((td) => {
-                td.style.backgroundColor = color;
-              });
-            } else {
-              cells.forEach((td, index) => {
-                const hasSpecificColor =
-                  td.style.backgroundColor !== "" &&
-                  td.style.backgroundColor !== "transparent";
-
-                if (index === 0 && hasSpecificColor) return;
-
-                td.style.backgroundColor = color;
-              });
-
-              savedColors[rowId] = color;
-            }
-          });
-
-          localStorage.setItem("planningColors", JSON.stringify(savedColors));
-        } else {
+        if (rows.length === 0) {
           alert(
             "Veuillez d'abord sélectionner au moins une cellule ou une ligne.",
           );
+          return;
         }
+
+        rows.forEach((row) => {
+          const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
+          const cells = row.querySelectorAll("td");
+
+          if (color === "#ffee00") {
+            // --- CAS DU JAUNE : Uniquement les cellules sélectionnées ---
+            const selectedCellsInRow = row.querySelectorAll(".cell-selected");
+
+            // On crée un objet pour stocker les indices des colonnes jaunes si il n'existe pas
+            if (!savedColors[rowId] || typeof savedColors[rowId] !== "object") {
+              savedColors[rowId] = { type: "partial", cells: {} };
+            }
+
+            selectedCellsInRow.forEach((td) => {
+              const cellIndex = td.cellIndex;
+              td.style.backgroundColor = color;
+              // On enregistre l'index de la colonne spécifique
+              savedColors[rowId].cells[cellIndex] = color;
+            });
+          } else {
+            // --- AUTRES COULEURS : Toute la ligne ---
+            cells.forEach((td, index) => {
+              const hasSpecificColor =
+                td.style.backgroundColor !== "" &&
+                td.style.backgroundColor !== "transparent";
+              if (index === 0 && hasSpecificColor && color !== "#ffffff")
+                return;
+              td.style.backgroundColor = color;
+            });
+
+            if (color === "#ffffff") {
+              delete savedColors[rowId];
+            } else {
+              savedColors[rowId] = color; // Stocke la chaîne de caractère simple
+            }
+          }
+        });
+
+        localStorage.setItem("planningColors", JSON.stringify(savedColors));
       }
 
       function filterTable() {
@@ -4630,23 +4644,93 @@
         const rows = document.querySelectorAll("table tr");
 
         rows.forEach((row) => {
+          // On génère l'ID de la ligne
           const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
-          if (savedColors[rowId]) {
-            const color = savedColors[rowId];
+          const data = savedColors[rowId];
+
+          if (data) {
             const cells = row.querySelectorAll("td");
 
-            cells.forEach((td, index) => {
-              // On applique la même logique de protection pour l'Associé
-              const hasSpecificColor =
-                td.style.backgroundColor !== "" &&
-                td.style.backgroundColor !== "transparent";
-              if (index === 0 && hasSpecificColor) return;
+            // --- NOUVELLE LOGIQUE DE CHARGEMENT ---
+            if (typeof data === "object" && data.type === "partial") {
+              // Si c'est du jaune (objet partiel), on ne colorie que les cases spécifiques
+              Object.keys(data.cells).forEach((index) => {
+                if (cells[index]) {
+                  cells[index].style.backgroundColor = data.cells[index];
+                }
+              });
+            } else {
+              // Si c'est une couleur normale (chaîne de texte), on colorie toute la ligne
+              cells.forEach((td, index) => {
+                const hasSpecificColor =
+                  td.style.backgroundColor !== "" &&
+                  td.style.backgroundColor !== "transparent";
+                // Protection de la colonne Associé (index 0)
+                if (index === 0 && hasSpecificColor) return;
 
-              td.style.backgroundColor = color;
-            });
+                td.style.backgroundColor = data;
+              });
+            }
           }
         });
       });
+      // --- FONCTIONS DE SAUVEGARDE ET RESTAURATION ---
+
+      function sauvegarderConfigComplete() {
+        const backup = {};
+        // On boucle sur TOUT ce qui est stocké dans le navigateur
+        for (let i = 0; i < localStorage.length; i++) {
+          const cle = localStorage.key(i);
+          backup[cle] = localStorage.getItem(cle);
+        }
+
+        const dataStr =
+          "data:text/json;charset=utf-8," +
+          encodeURIComponent(JSON.stringify(backup));
+        const downloadAnchorNode = document.createElement("a");
+        const date = new Date().toLocaleDateString("fr-FR").replace(/\//g, "-");
+
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute(
+          "download",
+          "SAUVEGARDE_TOTALE_" + date + ".json",
+        );
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+      }
+
+      function restaurerConfigComplete(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const backup = JSON.parse(e.target.result);
+            if (
+              confirm(
+                "Voulez-vous restaurer l'intégralité des données (Planning + Tarifs) ?",
+              )
+            ) {
+              // On vide TOUT avant de restaurer
+              localStorage.clear();
+
+              // On remet chaque élément sauvegardé
+              Object.keys(backup).forEach((cle) => {
+                localStorage.setItem(cle, backup[cle]);
+              });
+
+              alert("✅ Tout a été restauré avec succès !");
+              window.location.reload();
+            }
+          } catch (err) {
+            alert("❌ Erreur de fichier.");
+          }
+        };
+        reader.readAsText(file);
+        input.value = "";
+      }
     </script>
 
     <div
@@ -4828,7 +4912,40 @@
         >
           🔧 Réparer les données
         </button>
+
+        <button
+          onclick="sauvegarderConfigComplete()"
+          class="btn-maintenance"
+          style="
+            background-color: #28a745;
+            color: white;
+            opacity: 1;
+            border: none;
+          "
+        >
+          💾 Sauvegarder Config
+        </button>
+
+        <button
+          onclick="document.getElementById('input-restaurer').click()"
+          class="btn-maintenance"
+          style="
+            background-color: #ffc107;
+            color: black;
+            opacity: 1;
+            border: none;
+          "
+        >
+          📂 Restaurer Config
+        </button>
+        <input
+          type="file"
+          id="input-restaurer"
+          style="display: none"
+          onchange="restaurerConfigComplete(this)"
+        />
       </div>
+
       <button
         onclick="toggleHelp()"
         class="btn-help-circle"
