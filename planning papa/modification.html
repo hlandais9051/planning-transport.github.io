@@ -445,6 +445,61 @@
           transform: translate(-50%, -50%) scale(1);
         }
       }
+      /* Conteneur pour mettre les boutons côte à côte en bas */
+      .admin-footer-actions {
+        display: flex;
+        justify-content: space-between; /* Centre les boutons */
+        align-items: center;
+        margin-top: 50px; /* Espace après le tableau */
+        padding: 20px;
+        border-top: 1px solid #ddd;
+        background-color: #f8f9fa;
+      }
+
+      /* Style de base pour les boutons de maintenance */
+      .btn-maintenance {
+        background: #eee;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+        opacity: 0.6;
+      }
+
+      .btn-maintenance:hover {
+        opacity: 1;
+        background-color: #f8f9fa;
+      }
+
+      /* Style spécifique pour le bouton Aide (?) */
+      .btn-help-circle {
+        background: none;
+        border: none;
+        color: #a5a5a5;
+        font-size: 30px;
+        font-weight: bold;
+        padding: 0;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.3s;
+      }
+
+      .btn-help-circle:hover {
+        opacity: 1;
+      }
+
+      /* Couleur spécifique pour le bouton réparer */
+      .btn-repair {
+        background-color: #17a2b8;
+        color: white;
+        border: none;
+      }
+      .footer-left-group {
+        display: flex;
+        gap: 15px; /* Espace entre "Don't touch me" et "Réparer" */
+      }
     </style>
   </head>
   <body>
@@ -860,6 +915,22 @@
         type="text"
         id="filter-client"
         placeholder="Filtrer par Client..."
+        oninput="filterTable()"
+        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
+      />
+
+      <input
+        type="text"
+        id="filter-chantier"
+        placeholder="Filtrer par Chantier..."
+        oninput="filterTable()"
+        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
+      />
+
+      <input
+        type="text"
+        id="filter-materiel"
+        placeholder="Filtrer par Matériel..."
         oninput="filterTable()"
         style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
       />
@@ -1312,7 +1383,11 @@
             // Liste des placeholders à ne pas copier si la case n'a pas été remplie
             const placeholders = [
               "Chantier...",
+              "Véhicule...",
+              "Client...",
+              "Contact...",
               "Consigne...",
+              "Chauffeur...",
               "N° Commande...",
               "N° Chantier...",
               "N° Bon...",
@@ -1330,10 +1405,30 @@
               if (input) {
                 // Cas des Inputs (Contact)
                 if (
+                  input.placeholder === "Véhicule..." ||
+                  input.classList.contains("select-vehicule")
+                ) {
+                  val = "Véhicule : " + val;
+                } else if (
+                  input.placeholder === "Client..." ||
+                  input.classList.contains("select-client")
+                ) {
+                  val = "Client : " + val;
+                } else if (
                   input.placeholder === "Contact..." ||
                   input.classList.contains("select-telephone")
                 ) {
                   val = "Contact : " + val;
+                } else if (
+                  input.placeholder === "Consigne..." ||
+                  input.classList.contains("select-consigne")
+                ) {
+                  val = "Consigne : " + val;
+                } else if (
+                  input.placeholder === "Chauffeur..." ||
+                  input.classList.contains("select-chauffeur")
+                ) {
+                  val = "Chauffeur : " + val;
                 }
               } else {
                 // Cas des cellules contenteditable (Commande et Chantier)
@@ -1346,6 +1441,8 @@
                 } else if (cellIndex === 11) {
                   // Index de N° Chantier
                   val = "N° Chantier : " + val;
+                } else if (cellIndex === 12) {
+                  val = "N° Bon : " + val;
                 }
               }
             }
@@ -1438,6 +1535,12 @@
         const clientQuery = document
           .getElementById("filter-client")
           .value.toUpperCase();
+        const chantierQuery = document
+          .getElementById("filter-chantier")
+          .value.toUpperCase();
+        const materielQuery = document
+          .getElementById("filter-materiel")
+          .value.toUpperCase();
         const rows = document.querySelectorAll("#table-body tr");
 
         rows.forEach((tr) => {
@@ -1447,11 +1550,27 @@
           const clientVal = tr.querySelector(".select-client")
             ? tr.querySelector(".select-client").value.toUpperCase()
             : "";
+          const materielVal = tr.querySelector(".select-vehicule")
+            ? tr.querySelector(".select-vehicule").value.toUpperCase()
+            : "";
+          const chantierCell = tr.cells[3];
+          let chantierVal = chantierCell
+            ? chantierCell.textContent.toUpperCase()
+            : "";
+
+          if (chantierVal === "CHANTIER...") chantierVal = "";
 
           const matchesAssocie = associeVal.includes(associeQuery);
           const matchesClient = clientVal.includes(clientQuery);
+          const matchesChantier = chantierVal.includes(chantierQuery);
+          const matchesMateriel = materielVal.includes(materielQuery);
 
-          if (matchesAssocie && matchesClient) {
+          if (
+            matchesAssocie &&
+            matchesClient &&
+            matchesChantier &&
+            matchesMateriel
+          ) {
             tr.style.display = "";
           } else {
             tr.style.display = "none";
@@ -1462,6 +1581,8 @@
       function resetFilters() {
         document.getElementById("filter-associe").value = "";
         document.getElementById("filter-client").value = "";
+        document.getElementById("filter-chantier").value = "";
+        document.getElementById("filter-materiel").value = "";
         filterTable();
       }
 
@@ -2968,6 +3089,22 @@
         }
       }
 
+      function rgbToHex(rgb) {
+        if (!rgb || rgb === "" || rgb === "transparent") return "";
+        if (rgb.startsWith("#")) return rgb;
+
+        const result = rgb.match(/\d+/g);
+        if (!result || result.length < 3) return rgb;
+
+        const r = parseInt(result[0]);
+        const g = parseInt(result[1]);
+        const b = parseInt(result[2]);
+
+        return (
+          "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)
+        );
+      }
+
       function saveCurrentDay() {
         const date = document.getElementById("current-date-picker").value;
         if (!date) return;
@@ -2996,6 +3133,22 @@
           }
           // 🔒 Si autre mois → On garde le snapshot tel quel
 
+          const cellules = tr.querySelectorAll("td");
+          const couleursParCellule = {};
+
+          cellules.forEach((td, index) => {
+            if (index === 0) return; // On ignore l'associé qui a sa propre couleur
+
+            const bgColor = td.style.backgroundColor;
+            if (bgColor && bgColor !== "" && bgColor !== "transparent") {
+              // Convertir rgb(255, 238, 0) en #ffee00
+              const hexColor = rgbToHex(bgColor);
+              if (hexColor) {
+                couleursParCellule[index] = hexColor;
+              }
+            }
+          });
+
           rows.push({
             associe: tr.querySelector(".select-associe").value,
             matin: tr.cells[1].innerText,
@@ -3020,6 +3173,10 @@
 
             // ✅ AJOUT : Sauvegarde du snapshot
             snapshot: snapshot,
+            couleurs_cellules:
+              Object.keys(couleursParCellule).length > 0
+                ? couleursParCellule
+                : null,
           });
         });
 
@@ -3282,7 +3439,7 @@
                 <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur...">
             </td>
 
-            <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
+            <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
             <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
             <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
 
@@ -3405,6 +3562,23 @@
               ajouterLigne();
             }
 
+            if (input.classList.contains("select-vehicule")) {
+              const vehicule = input.value.trim();
+
+              if (!vehicule) {
+                tr.querySelector(".cell-tarif").textContent = "0.00 €";
+                tr.querySelector(".cell-IC-client").textContent = "0.00 €";
+                tr.querySelector(".cell-tarif-affrete").textContent = "0.00 €";
+                tr.querySelector(".cell-IC-affrete").textContent = "0.00 €";
+
+                delete tr.dataset.snapshot; // Supprimer le snapshot si véhicule vidé
+
+                saveCurrentDay();
+                calculerTousLesTotaux();
+                return;
+              }
+            }
+
             // ✅ AJOUT : Capturer le snapshot quand on modifie client/véhicule/associé
             if (
               input.classList.contains("select-client") ||
@@ -3416,7 +3590,7 @@
               const associe = tr.querySelector(".select-associe").value;
 
               // Si on a au minimum un client ET un véhicule, on capture
-              if ((client && vehicule) || (associe && vehicule)) {
+              if (vehicule && ((client && vehicule) || (associe && vehicule))) {
                 const snapshot = captureSnapshot(client, vehicule, associe);
                 tr.dataset.snapshot = JSON.stringify(snapshot);
 
@@ -3475,6 +3649,28 @@
         setTimeout(() => {
           updateRowTarif(tr);
         }, 50);
+      }
+
+      /**
+       * Force le recalcul de tous les tarifs du planning actuel
+       */
+      function forceRecalculTousLesTarifs() {
+        const rows = document.querySelectorAll("#table-body tr");
+        rows.forEach((tr) => {
+          updateRowTarif(tr);
+        });
+        calculerTousLesTotaux();
+      }
+
+      /**
+       * Force le recalcul de tous les tarifs du planning actuel
+       */
+      function forceRecalculTousLesTarifs() {
+        const rows = document.querySelectorAll("#table-body tr");
+        rows.forEach((tr) => {
+          updateRowTarif(tr);
+        });
+        calculerTousLesTotaux();
       }
 
       function calculerTousLesTotaux() {
@@ -3600,7 +3796,287 @@
         afficherNotification("Journée collée", "#2196F3");
       }
 
+      /**
+       * Détecte si les données du localStorage sont corrompues ou incompatibles
+       */
+      function verifierIntegriteDonnees() {
+        console.log("🔍 Vérification de l'intégrité des données...");
+
+        let problemesDetectes = [];
+
+        // 1. Vérifier la structure des groupes
+        try {
+          const groups = JSON.parse(
+            localStorage.getItem("transport_config_group") || "{}",
+          );
+          for (let groupName in groups) {
+            for (let matos in groups[groupName]) {
+              const val = groups[groupName][matos];
+              // Vérifier si c'est bien un objet avec tarif et indice
+              if (
+                typeof val !== "object" ||
+                val === null ||
+                !("tarif" in val) ||
+                !("indice" in val)
+              ) {
+                problemesDetectes.push(
+                  `Groupe ${groupName} / ${matos} : structure invalide`,
+                );
+              }
+            }
+          }
+        } catch (e) {
+          problemesDetectes.push("transport_config_group corrompu");
+        }
+
+        // 2. Vérifier la structure des associés
+        try {
+          const associes = JSON.parse(
+            localStorage.getItem("transport_config_associe") || "{}",
+          );
+          for (let associeName in associes) {
+            for (let matos in associes[associeName]) {
+              const val = associes[associeName][matos];
+              if (
+                typeof val !== "object" ||
+                val === null ||
+                !("tarif" in val) ||
+                !("indice" in val)
+              ) {
+                problemesDetectes.push(
+                  `Associé ${associeName} / ${matos} : structure invalide`,
+                );
+              }
+            }
+          }
+        } catch (e) {
+          problemesDetectes.push("transport_config_associe corrompu");
+        }
+
+        // 3. Vérifier les snapshots dans les plannings
+        try {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith("planning_")) {
+              const planning = JSON.parse(localStorage.getItem(key));
+              planning.forEach((row, index) => {
+                if (row.snapshot && typeof row.snapshot === "string") {
+                  problemesDetectes.push(
+                    `${key} ligne ${index} : snapshot en string au lieu d'objet`,
+                  );
+                }
+              });
+            }
+          }
+        } catch (e) {
+          problemesDetectes.push("Plannings corrompus");
+        }
+
+        return problemesDetectes;
+      }
+
+      /**
+       * Répare automatiquement les données corrompues
+       */
+      function reparerDonneesAutomatiquement() {
+        console.log("🔧 Réparation automatique des données...");
+
+        let reparations = 0;
+
+        // 1. Réparer transport_config_group
+        try {
+          const groups = JSON.parse(
+            localStorage.getItem("transport_config_group") || "{}",
+          );
+          let modifie = false;
+
+          for (let groupName in groups) {
+            for (let matos in groups[groupName]) {
+              const val = groups[groupName][matos];
+              // Si ce n'est pas un objet avec la bonne structure
+              if (
+                typeof val !== "object" ||
+                val === null ||
+                !("tarif" in val) ||
+                !("indice" in val)
+              ) {
+                // Convertir en bonne structure
+                const oldValue = typeof val === "number" ? val : 0;
+                groups[groupName][matos] = { tarif: oldValue, indice: 0 };
+                modifie = true;
+                reparations++;
+              }
+            }
+          }
+
+          if (modifie) {
+            localStorage.setItem(
+              "transport_config_group",
+              JSON.stringify(groups),
+            );
+            console.log("✅ transport_config_group réparé");
+          }
+        } catch (e) {
+          console.error("❌ Impossible de réparer transport_config_group", e);
+        }
+
+        // 2. Réparer transport_config_associe
+        try {
+          const associes = JSON.parse(
+            localStorage.getItem("transport_config_associe") || "{}",
+          );
+          let modifie = false;
+
+          for (let associeName in associes) {
+            for (let matos in associes[associeName]) {
+              const val = associes[associeName][matos];
+              if (
+                typeof val !== "object" ||
+                val === null ||
+                !("tarif" in val) ||
+                !("indice" in val)
+              ) {
+                const oldValue = typeof val === "number" ? val : 0;
+                associes[associeName][matos] = { tarif: oldValue, indice: 0 };
+                modifie = true;
+                reparations++;
+              }
+            }
+          }
+
+          if (modifie) {
+            localStorage.setItem(
+              "transport_config_associe",
+              JSON.stringify(associes),
+            );
+            console.log("✅ transport_config_associe réparé");
+          }
+        } catch (e) {
+          console.error("❌ Impossible de réparer transport_config_associe", e);
+        }
+
+        // 3. Régénérer TOUS les snapshots des plannings
+        try {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith("planning_")) {
+              const planning = JSON.parse(localStorage.getItem(key));
+              let modifie = false;
+
+              planning.forEach((row) => {
+                // Régénérer le snapshot si nécessaire
+                if (
+                  (row.client && row.vehicule) ||
+                  (row.associe && row.vehicule)
+                ) {
+                  const newSnapshot = captureSnapshot(
+                    row.client,
+                    row.vehicule,
+                    row.associe,
+                  );
+                  if (
+                    JSON.stringify(row.snapshot) !== JSON.stringify(newSnapshot)
+                  ) {
+                    row.snapshot = newSnapshot;
+                    modifie = true;
+                    reparations++;
+                  }
+                }
+              });
+
+              if (modifie) {
+                localStorage.setItem(key, JSON.stringify(planning));
+              }
+            }
+          }
+          console.log("✅ Snapshots des plannings régénérés");
+        } catch (e) {
+          console.error("❌ Impossible de réparer les snapshots", e);
+        }
+
+        return reparations;
+      }
+
+      /**
+       * Système de vérification et réparation automatique
+       */
+      function verifierEtReparerSiNecessaire() {
+        const problemes = verifierIntegriteDonnees();
+
+        if (problemes.length > 0) {
+          console.warn(
+            "⚠️ Problèmes détectés dans le localStorage :",
+            problemes,
+          );
+
+          // Marquer qu'on a détecté des problèmes
+          const derniereReparation = localStorage.getItem(
+            "derniere_reparation",
+          );
+          const maintenant = Date.now();
+
+          // Ne réparer qu'une fois par jour pour éviter les boucles infinies
+          if (
+            !derniereReparation ||
+            maintenant - parseInt(derniereReparation) > 86400000
+          ) {
+            const reparations = reparerDonneesAutomatiquement();
+
+            if (reparations > 0) {
+              localStorage.setItem(
+                "derniere_reparation",
+                maintenant.toString(),
+              );
+              console.log(
+                `✅ ${reparations} réparations effectuées avec succès`,
+              );
+
+              // Afficher une notification à l'utilisateur
+              setTimeout(() => {
+                const notif = document.getElementById("save-notif2");
+                if (notif) {
+                  notif.innerText = `🔧 Données réparées automatiquement\n${reparations} problème(s) corrigé(s)`;
+                  notif.style.backgroundColor = "#2196F3";
+                  notif.classList.add("notif-visible");
+
+                  setTimeout(() => {
+                    notif.classList.remove("notif-visible");
+                  }, 3000);
+                }
+              }, 1000);
+            }
+          }
+        } else {
+          console.log("✅ Données intègres");
+        }
+      }
+
+      function reparerDonneesManuellement() {
+        if (
+          confirm(
+            "Réparer automatiquement les données corrompues ?\n\n(Vos données seront préservées)",
+          )
+        ) {
+          const problemes = verifierIntegriteDonnees();
+
+          if (problemes.length === 0) {
+            alert("✅ Aucun problème détecté !");
+            return;
+          }
+
+          const reparations = reparerDonneesAutomatiquement();
+
+          alert(
+            `✅ Réparation terminée !\n\n${reparations} problème(s) corrigé(s).`,
+          );
+
+          // Recharger la page pour appliquer les corrections
+          location.reload();
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
+        verifierEtReparerSiNecessaire();
         const datePicker = document.getElementById("current-date-picker");
         const displayDate = document.getElementById("display-date");
 
@@ -3620,6 +4096,9 @@
         const saved = localStorage.getItem("planning_" + aujourdhui);
         if (saved && JSON.parse(saved).length > 0) {
           JSON.parse(saved).forEach(ajouterLigne);
+          setTimeout(() => {
+            forceRecalculTousLesTarifs();
+          }, 100);
         } else {
           ajouterLigne();
         }
@@ -4170,29 +4649,6 @@
       });
     </script>
 
-    <button
-      onclick="toggleHelp()"
-      style="
-        position: fixed;
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        color: rgb(165, 165, 165);
-        font-size: 30px;
-        font-weight: bold;
-        opacity: 0.6;
-        right: 5px;
-        bottom: 5px;
-        transition: opacity 0.3s;
-      "
-      onmouseover="this.style.opacity = '1'"
-      onmouseout="this.style.opacity = '0.6'"
-      title="Aide et Astuces"
-    >
-      ?
-    </button>
-
     <div
       id="help-modal"
       style="
@@ -4359,21 +4815,27 @@
         z-index: 999;
       "
     ></div>
-    <button
-      onclick="resetTout()"
-      class="btn btn-reset"
-      style="
-        position: fixed; /* Bloqué sur l'écran */
-        bottom: 20px; /* Même hauteur que l'aide */
-        left: 20px; /* Aligné à gauche */
-        padding: 4px 8px;
-        opacity: 0.5; /* Un peu transparent pour ne pas gêner */
-        cursor: pointer;
-      "
-      onmouseover="this.style.opacity = '1'"
-      onmouseout="this.style.opacity = '0.5'"
-    >
-      Don't touch me !
-    </button>
+
+    <div class="admin-footer-actions">
+      <div class="footer-left-group">
+        <button onclick="resetTout()" class="btn-maintenance">
+          Don't touch me !
+        </button>
+
+        <button
+          onclick="reparerDonneesManuellement()"
+          class="btn-maintenance btn-repair"
+        >
+          🔧 Réparer les données
+        </button>
+      </div>
+      <button
+        onclick="toggleHelp()"
+        class="btn-help-circle"
+        title="Aide et Astuces"
+      >
+        ?
+      </button>
+    </div>
   </body>
 </html>
