@@ -612,8 +612,19 @@
           >
             Planning Gueno
           </button>
-          <button id="export-excel" class="btn btn-export" style="width: 100%">
+          <button
+            id="export-excel"
+            class="btn btn-export"
+            style="width: 100%; margin-bottom: 5px"
+          >
             Excel
+          </button>
+          <button
+            onclick="imprimerPlanning()"
+            class="btn"
+            style="background-color: #333; width: 100%"
+          >
+            🖨️ Imprimer
           </button>
         </div>
       </div>
@@ -1258,6 +1269,47 @@
           });
         }
       };
+
+      function imprimerPlanning() {
+        // On récupère la zone du planning (capture-area)
+        const zoneImpression =
+          document.getElementById("capture-area").innerHTML;
+
+        // On crée une fenêtre temporaire pour l'impression
+        const fenetreImpression = window.open("", "", "height=600,width=800");
+
+        // On injecte les styles pour que le tableau soit joli à l'impression
+        fenetreImpression.document.write("<style>");
+        fenetreImpression.document.write(
+          "table { border-collapse: collapse; width: 100%; font-family: sans-serif; }",
+        );
+        fenetreImpression.document.write(
+          "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }",
+        );
+        fenetreImpression.document.write(
+          "th { background-color: #007bff; color: white; -webkit-print-color-adjust: exact; }",
+        );
+        fenetreImpression.document.write(
+          "th:nth-child(5), td:nth-child(5) { display: none !important; }",
+        );
+        fenetreImpression.document.write(
+          ".hide-export { display: none !important; }",
+        ); // Masque les boutons de couleur
+        fenetreImpression.document.write("h2 { text-align: center; }");
+        fenetreImpression.document.write("</style></head><body>");
+
+        // On ajoute le contenu
+        fenetreImpression.document.write(zoneImpression);
+        fenetreImpression.document.write("</body></html>");
+
+        fenetreImpression.document.close();
+
+        // On lance l'impression après un court délai pour charger le contenu
+        setTimeout(() => {
+          fenetreImpression.print();
+          fenetreImpression.close();
+        }, 500);
+      }
 
       function resetTout() {
         const premiereConfirmation = confirm(
