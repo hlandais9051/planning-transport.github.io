@@ -1472,11 +1472,6 @@
                 ) {
                   val = "Contact : " + val;
                 } else if (
-                  input.placeholder === "Consigne..." ||
-                  input.classList.contains("select-consigne")
-                ) {
-                  val = "Consigne : " + val;
-                } else if (
                   input.placeholder === "Chauffeur..." ||
                   input.classList.contains("select-chauffeur")
                 ) {
@@ -1487,7 +1482,9 @@
                 // On vérifie quelle colonne c'est via l'index de la cellule (TD)
                 const cellIndex = td.cellIndex;
 
-                if (cellIndex === 10) {
+                if (cellIndex === 8) {
+                  val = "Consigne : " + val;
+                } else if (cellIndex === 10) {
                   // Index de N° Commande
                   val = "N° Commande : " + val;
                 } else if (cellIndex === 11) {
