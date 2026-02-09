@@ -1290,7 +1290,7 @@
           "th { background-color: #007bff; color: white; -webkit-print-color-adjust: exact; }",
         );
         fenetreImpression.document.write(
-          "th:nth-child(5), td:nth-child(5) { display: none !important; }",
+          "th:nth-child(5), td:nth-child(5), th:nth-child(n+14):nth-child(-n+20), td:nth-child(n+14):nth-child(-n+20) { display: none !important; }",
         );
         fenetreImpression.document.write(
           ".hide-export { display: none !important; }",
