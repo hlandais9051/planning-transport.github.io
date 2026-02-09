@@ -1482,7 +1482,7 @@
                 // On vérifie quelle colonne c'est via l'index de la cellule (TD)
                 const cellIndex = td.cellIndex;
 
-                if (cellIndex === 8) {
+                if (td.classList.contains("col-consigne")) {
                   val = "Consigne : " + val;
                 } else if (cellIndex === 10) {
                   // Index de N° Commande
@@ -3496,7 +3496,7 @@
                 <input class="combo-input select-telephone" list="list-telephone" value="${data ? data.telephone : ""}" placeholder="Contact...">
             </td>
 
-            <td contenteditable="true" class="${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
+            <td contenteditable="true" class="col-consigne ${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
 
             <td class="matos-cell">
                 <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur...">
