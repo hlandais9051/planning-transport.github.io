@@ -168,8 +168,8 @@
       }
       table {
         border-collapse: collapse;
-        width: 100%;
-        table-layout: auto;
+        width: 2900px;
+        table-layout: fixed;
       }
       th,
       td {
@@ -187,62 +187,62 @@
       #display-date {
         margin-top: 0;
         color: #333;
-        font-size: 1.8vw;
-        margin-bottom: 1vw;
+        font-size: 18px;
+        margin-bottom: 10px;
       }
       .col-associe {
-        min-width: 90px;
+        width: 5%;
       }
       .col-temps {
-        min-width: 40px !important;
+        width: 2%;
       }
       .col-chantier {
-        min-width: 90px;
+        width: 10%;
       }
       .col-date {
-        min-width: 60px;
+        width: 4%;
       }
       .col-matos {
-        min-width: 120px;
+        width: 10%;
       }
       .col-client {
-        min-width: 170px;
+        width: 15%;
       }
       .col-telephone {
-        min-width: 170px;
+        width: 6%;
       }
       .col-consigne {
-        min-width: 100px;
+        width: 20%;
       }
       .col-chauffeur {
-        min-width: 100px;
+        width: 7%;
       }
       .col-ncommande {
-        min-width: 100px;
+        width: 5%;
       }
       .col-nchantier {
-        min-width: 80px;
+        width: 5%;
       }
       .col-nbon {
-        min-width: 70px;
+        width: 5%;
       }
       .col-tarif,
       .col-tarif-affrete {
-        min-width: 80px;
+        width: 4%;
       }
       .col-supplement-client,
       .col-supplement-affrete {
-        min-width: 90px;
+        width: 4%;
       }
       .col-IC-client,
       .col-IC-affrete {
-        min-width: 70px;
+        width: 3%;
       }
       .col-commentaire {
-        min-width: 120px;
+        width: 5%;
       }
       .col-actions {
-        min-width: 50px;
+        width: 3%;
       }
       .matos-cell {
         padding: 0 !important;
@@ -3487,8 +3487,8 @@
 
             <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
 
-            <td contenteditable="true">${data ? data.date : typeof dateFormatee !== "undefined" ? dateFormatee : new Date().toLocaleDateString("fr-FR")}</td>
-
+            <td contenteditable="true">${data && data.date && data.date.includes("/20") ? data.date.replace("/20", "/") : data ? data.date : dateFormatee}</td>
+            
             <td class="matos-cell">
                 <input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" placeholder="Véhicule...">
             </td>
@@ -4327,6 +4327,7 @@
             }
           });
 
+        // --- BOUTON CLIENT (Jusqu'à colonne 14) ---
         document
           .getElementById("copy-image-client")
           .addEventListener("click", function () {
@@ -4337,31 +4338,29 @@
               document.querySelector(".marquer-container") ||
               document.getElementById("color-picker-tools");
 
-            const startCol = 0;
             const endCol = 14;
             const allRows = table.querySelectorAll("tr");
 
-            const originalMaxHeight = tableContainer.style.maxHeight;
-            const originalOverflow = tableContainer.style.overflow;
+            // 1. SAUVEGARDE ET FORCE LE STYLE "LARGEUR RÉELLE"
+            const originalTableStyleWidth = table.style.width;
+            const originalContainerMaxHeight = tableContainer.style.maxHeight;
+            const originalContainerOverflow = tableContainer.style.overflow;
 
+            const forcedWidth = 1800;
+            area.style.width = forcedWidth + "px";
+            area.style.minWidth = forcedWidth + "px";
+
+            // Calcul de la largeur nécessaire (on peut mettre une valeur fixe large pour éviter l'écrasement)
+            table.style.width = "100%"; // Force une largeur confortable en pixels
             tableContainer.style.maxHeight = "none";
             tableContainer.style.overflow = "visible";
 
-            area.querySelectorAll(".combo-input").forEach((input) => {
-              if (input.value === "") {
-                input.classList.add("placeholder-style");
-                input.classList.remove("text-filled");
-              } else {
-                input.classList.add("text-filled");
-                input.classList.remove("placeholder-style");
-              }
-            });
-
             if (marquerBlock) marquerBlock.style.visibility = "hidden";
 
+            // Masquage des colonnes non désirées
             allRows.forEach((row) => {
               Array.from(row.cells).forEach((cell, index) => {
-                if (index < startCol || index > endCol) {
+                if (index > endCol) {
                   cell.style.display = "none";
                 }
               });
@@ -4371,76 +4370,74 @@
               backgroundColor: "#ffffff",
               scale: 2,
               logging: false,
-              useCORS: true, // Utile si tu as des ressources externes
-              windowHeight: area.scrollHeight,
-              height: area.scrollHeight,
+              useCORS: true,
+              width: forcedWidth, // Utilise la largeur calculée avec les 1800px
+              windowWidth: forcedWidth,
             }).then((canvas) => {
               canvas.toBlob((blob) => {
                 if (blob) {
                   const item = new ClipboardItem({ "image/png": blob });
                   navigator.clipboard.write([item]).then(() => {
-                    afficherNotification("Planning copié", "#2196F3");
+                    afficherNotification(
+                      "Planning copié (Vue Client)",
+                      "#2196F3",
+                    );
                   });
                 }
               });
 
-              tableContainer.style.maxHeight = originalMaxHeight;
-              tableContainer.style.overflow = originalOverflow;
-
+              // 2. RÉINITIALISATION
+              area.style.width = "";
+              area.style.minWidth = "";
+              table.style.width = originalTableStyleWidth;
+              tableContainer.style.maxHeight = originalContainerMaxHeight;
+              tableContainer.style.overflow = originalContainerOverflow;
               if (marquerBlock) marquerBlock.style.visibility = "visible";
-
               allRows.forEach((row) => {
                 Array.from(row.cells).forEach((cell) => {
-                  cell.style.display = ""; // On retire le display: none
+                  cell.style.display = "";
                 });
               });
             });
           });
 
+        // --- BOUTON STANDARD (Jusqu'à colonne 12) ---
         document
           .getElementById("copy-image")
           .addEventListener("click", function () {
             const table = document.getElementById("my-table");
             const area = document.getElementById("capture-area");
             const tableContainer = document.querySelector(".table-container");
-            const marquerBlock = document.getElementById("color-picker-tools");
             const allRows = table.querySelectorAll("tr");
             const endCol = 12;
+            const marquerBlock =
+              document.querySelector(".marquer-container") ||
+              document.getElementById("color-picker-tools");
 
-            const originalMaxHeight = tableContainer.style.maxHeight;
-            const originalOverflow = tableContainer.style.overflow;
+            const originalTableStyleWidth = table.style.width;
+            const forcedWidth = 1800;
+            area.style.width = forcedWidth + "px";
+            area.style.minWidth = forcedWidth + "px";
 
+            table.style.width = "100%"; // Largeur fixe pour l'export
             tableContainer.style.maxHeight = "none";
             tableContainer.style.overflow = "visible";
-
-            area.querySelectorAll(".combo-input").forEach((input) => {
-              if (input.value === "") {
-                input.classList.add("placeholder-style");
-                input.classList.remove("text-filled");
-              } else {
-                input.classList.add("text-filled");
-                input.classList.remove("placeholder-style");
-              }
-            });
 
             if (marquerBlock) marquerBlock.style.visibility = "hidden";
 
             allRows.forEach((row) => {
               Array.from(row.cells).forEach((cell, index) => {
-                if (index > endCol || cell.classList.contains("hide-export")) {
+                if (index > endCol) {
                   cell.style.display = "none";
                 }
-                if (index === 8) cell.style.width = "100%";
-                else if (index <= endCol) cell.style.width = "1px";
               });
             });
 
             html2canvas(area, {
               backgroundColor: "#ffffff",
               scale: 2,
-              logging: false,
-              windowHeight: area.scrollHeight,
-              height: area.scrollHeight,
+              width: forcedWidth,
+              windowWidth: forcedWidth,
             }).then((canvas) => {
               canvas.toBlob((blob) => {
                 const item = new ClipboardItem({ "image/png": blob });
@@ -4449,21 +4446,21 @@
                 });
               });
 
-              tableContainer.style.maxHeight = originalMaxHeight;
-              tableContainer.style.overflow = originalOverflow;
-
+              area.style.width = "";
+              area.style.minWidth = "";
+              table.style.width = originalTableStyleWidth;
+              tableContainer.style.maxHeight = "";
+              tableContainer.style.overflow = "";
               if (marquerBlock) marquerBlock.style.visibility = "visible";
-
               allRows.forEach((row) => {
                 Array.from(row.cells).forEach((cell) => {
                   cell.style.display = "";
                   cell.style.width = "";
                   cell.style.minWidth = "";
-                  cell.style.whiteSpace = "";
                 });
               });
             });
-          }); // Fin du EventListener
+          });
 
         document
           .getElementById("export-excel")
