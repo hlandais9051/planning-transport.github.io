@@ -1620,9 +1620,22 @@
         const rows = document.querySelectorAll(
           "tr:has(.cell-selected), .row-marked",
         );
-        const savedColors = JSON.parse(
+
+        // Récupérer la date actuelle
+        const currentDate = document.getElementById(
+          "current-date-picker",
+        ).value;
+
+        // Charger les couleurs de CETTE date uniquement
+        const allSavedColors = JSON.parse(
           localStorage.getItem("planningColors") || "{}",
         );
+
+        if (!allSavedColors[currentDate]) {
+          allSavedColors[currentDate] = {};
+        }
+
+        const savedColors = allSavedColors[currentDate];
 
         if (rows.length === 0) {
           alert(
@@ -1639,7 +1652,6 @@
             // --- CAS DU JAUNE : Uniquement les cellules sélectionnées ---
             const selectedCellsInRow = row.querySelectorAll(".cell-selected");
 
-            // On crée un objet pour stocker les indices des colonnes jaunes si il n'existe pas
             if (!savedColors[rowId] || typeof savedColors[rowId] !== "object") {
               savedColors[rowId] = { type: "partial", cells: {} };
             }
@@ -1647,7 +1659,6 @@
             selectedCellsInRow.forEach((td) => {
               const cellIndex = td.cellIndex;
               td.style.backgroundColor = color;
-              // On enregistre l'index de la colonne spécifique
               savedColors[rowId].cells[cellIndex] = color;
             });
           } else {
@@ -1664,12 +1675,13 @@
             if (color === "#ffffff") {
               delete savedColors[rowId];
             } else {
-              savedColors[rowId] = color; // Stocke la chaîne de caractère simple
+              savedColors[rowId] = color;
             }
           }
         });
 
-        localStorage.setItem("planningColors", JSON.stringify(savedColors));
+        // Sauvegarder avec la structure par date
+        localStorage.setItem("planningColors", JSON.stringify(allSavedColors));
       }
 
       function filterTable() {
@@ -4219,6 +4231,42 @@
         }
       }
 
+      function chargerCouleursDate(date) {
+        const allSavedColors = JSON.parse(
+          localStorage.getItem("planningColors") || "{}",
+        );
+
+        const savedColors = allSavedColors[date] || {};
+        const rows = document.querySelectorAll("#table-body tr");
+
+        rows.forEach((row) => {
+          const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
+          const data = savedColors[rowId];
+
+          if (data) {
+            const cells = row.querySelectorAll("td");
+
+            if (typeof data === "object" && data.type === "partial") {
+              // Jaune partiel
+              Object.keys(data.cells).forEach((index) => {
+                if (cells[index]) {
+                  cells[index].style.backgroundColor = data.cells[index];
+                }
+              });
+            } else {
+              // Couleur pleine ligne
+              cells.forEach((td, index) => {
+                const hasSpecificColor =
+                  td.style.backgroundColor !== "" &&
+                  td.style.backgroundColor !== "transparent";
+                if (index === 0 && hasSpecificColor) return;
+                td.style.backgroundColor = data;
+              });
+            }
+          }
+        });
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
         verifierEtReparerSiNecessaire();
         const datePicker = document.getElementById("current-date-picker");
@@ -4251,14 +4299,22 @@
           const nouvelleDate = this.value;
           displayDate.textContent =
             "Planning du " + new Date(nouvelleDate).toLocaleDateString("fr-FR");
+
           document.getElementById("table-body").innerHTML = "";
+
           const savedDay = localStorage.getItem("planning_" + nouvelleDate);
           if (savedDay && JSON.parse(savedDay).length > 0) {
             JSON.parse(savedDay).forEach(ajouterLigne);
           } else {
             ajouterLigne();
           }
+
           calculerTousLesTotaux();
+
+          // ✅ AJOUT : Charger les couleurs de cette date
+          setTimeout(() => {
+            chargerCouleursDate(nouvelleDate);
+          }, 100);
         });
 
         document
@@ -4299,14 +4355,18 @@
           if (confirm("Supprimer toutes les lignes et recommencer ?")) {
             const date = document.getElementById("current-date-picker").value;
 
-            // 1. On vide les deux mémoires
+            // 1. Supprimer le planning
             localStorage.removeItem("planning_" + date);
-            localStorage.removeItem("planningColors"); // <--- AJOUT CRUCIAL
 
-            // 2. Nettoyage de l'écran
+            // 2. Supprimer les couleurs de CETTE date uniquement
+            const allColors = JSON.parse(
+              localStorage.getItem("planningColors") || "{}",
+            );
+            delete allColors[date];
+            localStorage.setItem("planningColors", JSON.stringify(allColors));
+
+            // 3. Nettoyage de l'écran
             document.getElementById("table-body").innerHTML = "";
-
-            // 3. Création de la ligne neuve
             ajouterLigne();
 
             afficherNotification("Planning réinitialisé", "#dc3545");
@@ -4765,41 +4825,10 @@
           });
       });
       window.addEventListener("load", () => {
-        const savedColors = JSON.parse(
-          localStorage.getItem("planningColors") || "{}",
-        );
-        const rows = document.querySelectorAll("table tr");
-
-        rows.forEach((row) => {
-          // On génère l'ID de la ligne
-          const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
-          const data = savedColors[rowId];
-
-          if (data) {
-            const cells = row.querySelectorAll("td");
-
-            // --- NOUVELLE LOGIQUE DE CHARGEMENT ---
-            if (typeof data === "object" && data.type === "partial") {
-              // Si c'est du jaune (objet partiel), on ne colorie que les cases spécifiques
-              Object.keys(data.cells).forEach((index) => {
-                if (cells[index]) {
-                  cells[index].style.backgroundColor = data.cells[index];
-                }
-              });
-            } else {
-              // Si c'est une couleur normale (chaîne de texte), on colorie toute la ligne
-              cells.forEach((td, index) => {
-                const hasSpecificColor =
-                  td.style.backgroundColor !== "" &&
-                  td.style.backgroundColor !== "transparent";
-                // Protection de la colonne Associé (index 0)
-                if (index === 0 && hasSpecificColor) return;
-
-                td.style.backgroundColor = data;
-              });
-            }
-          }
-        });
+        const currentDate = document.getElementById(
+          "current-date-picker",
+        ).value;
+        chargerCouleursDate(currentDate);
       });
       // --- FONCTIONS DE SAUVEGARDE ET RESTAURATION ---
 
