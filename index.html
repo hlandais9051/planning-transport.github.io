@@ -1639,12 +1639,9 @@
           "tr:has(.cell-selected), .row-marked",
         );
 
-        // Récupérer la date actuelle
         const currentDate = document.getElementById(
           "current-date-picker",
         ).value;
-
-        // Charger les couleurs de CETTE date uniquement
         const allSavedColors = JSON.parse(
           localStorage.getItem("planningColors") || "{}",
         );
@@ -1679,26 +1676,55 @@
               td.style.backgroundColor = color;
               savedColors[rowId].cells[cellIndex] = color;
             });
+          } else if (color === "#ffffff") {
+            // --- CAS DU BLANC : Comportement selon le type de marquage existant ---
+
+            const existingData = savedColors[rowId];
+
+            if (
+              existingData &&
+              typeof existingData === "object" &&
+              existingData.type === "partial"
+            ) {
+              // ✅ Si c'était un marquage JAUNE (partiel) → Effacer cellule par cellule
+              const selectedCellsInRow = row.querySelectorAll(".cell-selected");
+
+              selectedCellsInRow.forEach((td) => {
+                const cellIndex = td.cellIndex;
+                td.style.backgroundColor = "";
+                delete savedColors[rowId].cells[cellIndex];
+              });
+
+              // Si plus aucune cellule marquée, supprimer l'entrée
+              if (Object.keys(savedColors[rowId].cells).length === 0) {
+                delete savedColors[rowId];
+              }
+            } else {
+              // ✅ Si c'était une couleur PLEINE LIGNE → Effacer toute la ligne
+              cells.forEach((td, index) => {
+                const hasSpecificColor =
+                  td.style.backgroundColor !== "" &&
+                  td.style.backgroundColor !== "transparent";
+                if (index === 0 && hasSpecificColor) return; // Préserver la couleur de l'associé
+                td.style.backgroundColor = "";
+              });
+
+              delete savedColors[rowId];
+            }
           } else {
             // --- AUTRES COULEURS : Toute la ligne ---
             cells.forEach((td, index) => {
               const hasSpecificColor =
                 td.style.backgroundColor !== "" &&
                 td.style.backgroundColor !== "transparent";
-              if (index === 0 && hasSpecificColor && color !== "#ffffff")
-                return;
+              if (index === 0 && hasSpecificColor) return;
               td.style.backgroundColor = color;
             });
 
-            if (color === "#ffffff") {
-              delete savedColors[rowId];
-            } else {
-              savedColors[rowId] = color;
-            }
+            savedColors[rowId] = color;
           }
         });
 
-        // Sauvegarder avec la structure par date
         localStorage.setItem("planningColors", JSON.stringify(allSavedColors));
       }
 
