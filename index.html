@@ -966,6 +966,7 @@
         <input
           type="date"
           id="current-date-picker"
+          onchange="updateAllAfterDateChange()"
           style="padding: 3px; border-radius: 4px; border: 1px solid #ccc"
         />
       </div>
@@ -1269,6 +1270,23 @@
           });
         }
       };
+
+      function updateAllAfterDateChange() {
+        // 1. On redessine les tableaux de configuration pour afficher les indices du bon mois
+        renderConfigUI();
+
+        // 2. Si vous avez un deuxième tableau (Associés/Affrétés)
+        if (typeof renderConfigUI2 === "function") {
+          renderConfigUI2();
+        }
+
+        // 3. On recalcule les tarifs dans le planning principal (le grand tableau)
+        if (typeof refreshAllPlanningTarifs === "function") {
+          refreshAllPlanningTarifs();
+        } else if (typeof renderPlanning === "function") {
+          renderPlanning();
+        }
+      }
 
       function imprimerPlanning() {
         // 1. Extraire toutes les données des lignes
@@ -1793,8 +1811,19 @@
         if (groupeData && groupeData[matosNom]) {
           const tarif = parseFloat(groupeData[matosNom].tarif) || 0;
 
-          let indice = parseFloat(groupeData[matosNom].indice) || 0;
+          const dateValeur = document.getElementById(
+            "current-date-picker",
+          ).value;
+          const moisAnnee = dateValeur ? dateValeur.substring(0, 7) : "default";
 
+          let indice = 0;
+          const indiceData = groupeData[matosNom].indice;
+
+          if (typeof indiceData === "object") {
+            indice = parseFloat(indiceData[moisAnnee]) || 0;
+          } else {
+            indice = parseFloat(indiceData) || 0;
+          }
           if (indice === 0) {
             const catDuMatos = transportConfigMateriel[matosNom];
             if (
@@ -1822,8 +1851,17 @@
 
         const tarif = parseFloat(data.tarif) || 0;
 
-        let indice = parseFloat(data.indice) || 0;
+        const dateValeur = document.getElementById("current-date-picker").value;
+        const moisAnnee = dateValeur ? dateValeur.substring(0, 7) : "default";
 
+        let indice = 0;
+        const indiceData = groupeData[matosNom].indice;
+
+        if (typeof indiceData === "object") {
+          indice = parseFloat(indiceData[moisAnnee]) || 0;
+        } else {
+          indice = parseFloat(indiceData) || 0;
+        }
         if (indice === 0) {
           const catDuMatos = transportConfigMateriel[matosNom];
           if (
@@ -1958,6 +1996,8 @@
       function renderConfigUI() {
         const container = document.getElementById("config-container");
 
+        const dateValeur = document.getElementById("current-date-picker").value;
+        const moisAnnee = dateValeur ? dateValeur.substring(0, 7) : "";
         let html = `<h3>Tarifs par Groupe</h3>
                               <table class="config-table">
                                 <thead>
@@ -1985,102 +2025,112 @@
 
             if (matosKeys.length === 0) {
               html += `<tr>
-                                        <td class="group-header"><strong>${group}</strong></td>
-                                        <td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
-                                      </tr>`;
+                          <td class="group-header"><strong>${group}</strong></td>
+                          <td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
+                        </tr>`;
             } else {
               matosKeys.forEach((matos, index) => {
                 const val = transportConfigGroup[group][matos];
                 const currentCat = transportConfigMateriel[matos] || "";
 
-                let indiceAafficher = val.indice;
+                let indiceAafficher = 0;
                 let isUsingCategory = false;
 
-                if ((!val.indice || val.indice === 0) && currentCat) {
+                // 🔹 Récupérer l'indice du mois actuel (si stocké par mois)
+                if (typeof val.indice === "object") {
+                  indiceAafficher = val.indice[moisAnnee] || 0;
+                } else {
+                  indiceAafficher = val.indice || 0;
+                }
+
+                // 🔹 Si pas d'indice spécifique, utiliser celui de la catégorie
+                if (indiceAafficher === 0 && currentCat) {
                   if (
                     transportConfigGroupInfo[group] &&
                     transportConfigGroupInfo[group][currentCat]
                   ) {
+                    const dataCat = transportConfigGroupInfo[group][currentCat];
                     indiceAafficher =
-                      transportConfigGroupInfo[group][currentCat];
+                      typeof dataCat === "object"
+                        ? dataCat[moisAnnee] || 0
+                        : dataCat;
                     isUsingCategory = true;
                   }
                 }
 
                 html += `<tr>
-                                ${
-                                  index === 0
-                                    ? `<td rowspan="${matosKeys.length}" class="group-header" style="vertical-align: top;">
-                                        <strong>${group}</strong><br>
-                                        <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
-                                        <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-                                          <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>
-                                          ${categorie
-                                            .map((cat) => {
-                                              const valIndice =
-                                                transportConfigGroupInfo[
-                                                  group
-                                                ] &&
-                                                transportConfigGroupInfo[group][
-                                                  cat
-                                                ]
-                                                  ? transportConfigGroupInfo[
-                                                      group
-                                                    ][cat]
-                                                  : 0;
-                                              return `
-                                                <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
-                                                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                                                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
-                                                    <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
-                                                  </div>
-                                                  <input type="number" step="0.01" value="${valIndice}"
-                                                        onchange="updateGroupCatIndice('${group}', '${cat}', this.value)"
-                                                        style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
-                                                </div>
-                                              `;
-                                            })
-                                            .join("")}
-                                        </div>
-                                      </td>`
-                                    : ""
-                                }
-                                <td style="text-align:left; padding-left:10px;">
-                                    <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
-                                        <option value="">-- Sans --</option>
-                                        ${categorie
-                                          .map(
-                                            (c) =>
-                                              `<option value="${c}" ${
-                                                currentCat === c
-                                                  ? "selected"
-                                                  : ""
-                                              }>${c}</option>`,
-                                          )
-                                          .join("")}
-                                    </select>
-                                </td>
-                                <td>${matos}</td>
-                                <td>
-                                  <input type="number" step="0.01" value="${val.tarif}"
-                                    onchange="updateGroupPrice('${group}', '${matos}', this.value)"
-                                    style="width:100%;">
-                                </td>
-                                <td>
-                                  <input type="number" step="0.01"
-                                    value="${indiceAafficher}"
-                                    placeholder="${isUsingCategory ? "Hérité" : ""}"
-                                    onchange="updateGroupIndice('${group}', '${matos}', this.value)"
-                                    style="width:100%; ${
-                                      isUsingCategory
-                                        ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
-                                        : "font-weight: bold;"
-                                    }">
-                                </td>
-                                <td>
-                                    <button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
-                                </td>
-                              </tr>`;
+                    ${
+                      index === 0
+                        ? `<td rowspan="${matosKeys.length}" class="group-header" style="vertical-align: top;">
+                            <strong>${group}</strong><br>
+                            <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
+                            <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+                              <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>
+                              ${categorie
+                                .map((cat) => {
+                                  let valIndice = 0;
+                                  if (
+                                    transportConfigGroupInfo[group] &&
+                                    transportConfigGroupInfo[group][cat]
+                                  ) {
+                                    const data =
+                                      transportConfigGroupInfo[group][cat];
+                                    valIndice =
+                                      typeof data === "object"
+                                        ? data[moisAnnee] || 0
+                                        : data;
+                                  }
+                                  return `
+                                    <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                                        <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
+                                      </div>
+                                      <input type="number" step="0.01" value="${valIndice !== 0 ? valIndice : ""}"
+                                            onchange="updateGroupCatIndice('${group}', '${cat}', this.value)"
+                                            style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                                    </div>
+                                  `;
+                                })
+                                .join("")}
+                            </div>
+                          </td>`
+                        : ""
+                    }
+                    <td style="text-align:left; padding-left:10px;">
+                        <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
+                            <option value="">-- Sans --</option>
+                            ${categorie
+                              .map(
+                                (c) =>
+                                  `<option value="${c}" ${
+                                    currentCat === c ? "selected" : ""
+                                  }>${c}</option>`,
+                              )
+                              .join("")}
+                        </select>
+                    </td>
+                    <td>${matos}</td>
+                    <td>
+                      <input type="number" step="0.01" value="${val.tarif}"
+                        onchange="updateGroupPrice('${group}', '${matos}', this.value)"
+                        style="width:100%;">
+                    </td>
+                    <td>
+                      <input type="number" step="0.01"
+                        value="${indiceAafficher !== 0 ? indiceAafficher : ""}"
+                        placeholder="${isUsingCategory ? "Hérité" : ""}"
+                        onchange="updateGroupIndice('${group}', '${matos}', this.value)"
+                        style="width:100%; ${
+                          isUsingCategory
+                            ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
+                            : "font-weight: bold;"
+                        }">
+                    </td>
+                    <td>
+                        <button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
+                    </td>
+                  </tr>`;
               });
             }
           });
@@ -2129,28 +2179,30 @@
         container.innerHTML = html + `</tbody></table>`;
       }
 
-      function updateGroupCatIndice(group, cat, value) {
-        if (!transportConfigGroupInfo[group]) {
-          transportConfigGroupInfo[group] = {};
+      function updateGroupCatIndice(associe, categorie, valeur) {
+        const dateValeur = document.getElementById("current-date-picker").value;
+        const moisAnnee = dateValeur ? dateValeur.substring(0, 7) : "default";
+
+        if (!transportConfigGroupInfo[associe]) {
+          transportConfigGroupInfo[associe] = {};
         }
 
-        transportConfigGroupInfo[group][cat] = parseFloat(value) || 0;
+        // 2. On transforme la donnée en objet si ce n'est pas déjà fait
+        if (typeof transportConfigGroupInfo[associe][categorie] !== "object") {
+          transportConfigGroupInfo[associe][categorie] = {};
+        }
 
-        localStorage.setItem(
-          "transportConfigGroupInfo",
-          JSON.stringify(transportConfigGroupInfo),
-        );
+        // 3. On enregistre la valeur spécifiquement pour ce mois
+        transportConfigGroupInfo[associe][categorie][moisAnnee] =
+          parseFloat(valeur) || 0;
 
+        // ✅ SAUVEGARDER
+        sauvegarderConfig();
+
+        // ✅ RAFRAÎCHIR
         renderConfigUI();
         renderConfigUI2();
         refreshAllPlanningTarifs();
-
-        const sn = document.getElementById("save-notif");
-        if (sn) {
-          sn.textContent = `Indice ${cat} mis à jour pour ${group}`;
-          sn.style.display = "inline";
-          setTimeout(() => (sn.style.display = "none"), 1500);
-        }
       }
 
       function updateGroupPrice(group, matos, price) {
@@ -2165,15 +2217,43 @@
         refreshAllPlanningTarifs();
       }
 
-      function updateGroupIndice(group, matos, indice) {
-        if (!transportConfigGroup[group][matos]) {
-          transportConfigGroup[group][matos] = { tarif: 0, indice: 0 };
-        }
-        transportConfigGroup[group][matos].indice = parseFloat(indice) || 0;
+      function sauvegarderConfig() {
         localStorage.setItem(
           "transport_config_group",
           JSON.stringify(transportConfigGroup),
         );
+        localStorage.setItem(
+          "transportConfigGroupInfo",
+          JSON.stringify(transportConfigGroupInfo),
+        );
+        localStorage.setItem(
+          "transport_config_associe",
+          JSON.stringify(transportConfigAssocie),
+        );
+      }
+
+      function updateGroupIndice(group, matos, indice) {
+        const dateValeur = document.getElementById("current-date-picker").value;
+        const moisAnnee = dateValeur ? dateValeur.substring(0, 7) : "default";
+
+        if (!transportConfigGroup[group][matos]) {
+          transportConfigGroup[group][matos] = { tarif: 0, indice: {} };
+        }
+
+        // 🔹 Transformer en objet temporel si ce n'est pas déjà fait
+        if (typeof transportConfigGroup[group][matos].indice !== "object") {
+          transportConfigGroup[group][matos].indice = {};
+        }
+
+        // 🔹 Enregistrer l'indice pour CE mois uniquement
+        transportConfigGroup[group][matos].indice[moisAnnee] =
+          parseFloat(indice) || 0;
+
+        // ✅ SAUVEGARDER AVANT DE RAFRAÎCHIR
+        sauvegarderConfig();
+
+        // ✅ RAFRAÎCHIR L'INTERFACE
+        renderConfigUI();
         refreshAllPlanningTarifs();
       }
 
@@ -2632,10 +2712,11 @@
         const associeListDatalist = document.getElementById("list-associe");
         if (!container) return;
 
+        const dateValeur = document.getElementById("current-date-picker").value;
+        const moisAnnee = dateValeur ? dateValeur.substring(0, 7) : "";
+
         associeListDatalist.innerHTML = "";
-
         const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
-
         const allAssociesSet = new Set([
           ...Object.keys(transportConfigAssocie),
         ]);
@@ -2690,9 +2771,7 @@
                 ...Object.keys(transportConfigAssocie[entry]),
               ]),
             ).sort();
-
             const rowSpanCount = Math.max(1, keys.length);
-            const estFixe = baseAssocies.includes(entry.toUpperCase());
 
             // BLOC DE GAUCHE (NOM + BOUTON SUPPRIMER)
             const leftBlockHTML = `
@@ -2705,18 +2784,27 @@
                                     <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
                                     ${categories
                                       .map((cat) => {
-                                        const valIndice =
-                                          (transportConfigGroupInfo[entry] &&
+                                        let valIndice = 0;
+                                        if (
+                                          transportConfigGroupInfo[entry] &&
+                                          transportConfigGroupInfo[entry][cat]
+                                        ) {
+                                          const data =
                                             transportConfigGroupInfo[entry][
                                               cat
-                                            ]) ||
-                                          0;
+                                            ];
+                                          valIndice =
+                                            typeof data === "object"
+                                              ? data[moisAnnee] || 0
+                                              : data;
+                                        }
                                         return `
                                         <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
                                                   <div style="display: flex; justify-content: space-between; align-items: center;">
                                                     <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
                                                     <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
-                                                  </div>                            <input type="number" step="0.01" value="${valIndice}"
+                                                  </div>                            
+                                                  <input type="number" step="0.01" value="${valIndice !== 0 ? valIndice : ""}"
                                                   onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
                                                   style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
                                         </div>`;
@@ -2732,6 +2820,7 @@
               }
               const val = transportConfigAssocie[entry][k];
               const currentCat = transportConfigMateriel[k] || "";
+
               let indiceAafficher = val.indice || 0;
               let isUsingCategory = false;
 
@@ -2740,35 +2829,39 @@
                   transportConfigGroupInfo[entry] &&
                   transportConfigGroupInfo[entry][currentCat]
                 ) {
-                  indiceAafficher = transportConfigGroupInfo[entry][currentCat];
+                  const dataCat = transportConfigGroupInfo[entry][currentCat];
+                  indiceAafficher =
+                    typeof dataCat === "object"
+                      ? dataCat[moisAnnee] || 0
+                      : dataCat;
                   isUsingCategory = true;
                 }
               }
 
               html += `<tr>
-                                    ${idx === 0 ? leftBlockHTML : ""}
-                                    <td style="text-align:left; padding-left:10px;">
-                                        <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
-                                            <option value="">-- Sans --</option>
-                                            ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
-                                        </select>
-                                    </td>
-                                    <td>${k}</td>
-                                    <td>
-                                        <input type="number" step="0.01" value="${val.tarif || 0}"
-                                               onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
-                                               style="width:100%;">
-                                    </td>
-                                    <td>
-                                        <input type="number" step="0.01" value="${indiceAafficher}"
-                                               placeholder="${isUsingCategory ? "Hérité" : ""}"
-                                               onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
-                                               style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
-                                    </td>
-                                    <td>
-                                        <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
-                                    </td>
-                                </tr>`;
+                        ${idx === 0 ? leftBlockHTML : ""}
+                        <td style="text-align:left; padding-left:10px;">
+                            <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
+                                <option value="">-- Sans --</option>
+                                ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
+                            </select>
+                        </td>
+                        <td>${k}</td>
+                        <td>
+                            <input type="number" step="0.01" value="${val.tarif || 0}"
+                                  onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
+                                  style="width:100%;">
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : ""}"
+                                  placeholder="${isUsingCategory ? "Hérité" : ""}"
+                                  onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
+                                  style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
+                        </td>
+                        <td>
+                            <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
+                        </td>
+                    </tr>`;
             });
           });
         }
@@ -2787,11 +2880,24 @@
       }
 
       function updateAssocieIndice(entry, mat, val) {
-        transportConfigAssocie[entry][mat].indice = parseFloat(val) || 0;
-        localStorage.setItem(
-          "transport_config_associe",
-          JSON.stringify(transportConfigAssocie),
-        );
+        const dateValeur = document.getElementById("current-date-picker").value;
+        const moisAnnee = dateValeur ? dateValeur.substring(0, 7) : "default";
+
+        if (!transportConfigAssocie[entry][mat]) {
+          transportConfigAssocie[entry][mat] = { tarif: 0, indice: {} };
+        }
+
+        // 🔹 Transformer en objet temporel
+        if (typeof transportConfigAssocie[entry][mat].indice !== "object") {
+          transportConfigAssocie[entry][mat].indice = {};
+        }
+
+        transportConfigAssocie[entry][mat].indice[moisAnnee] =
+          parseFloat(val) || 0;
+
+        // ✅ SAUVEGARDER AVANT DE RAFRAÎCHIR
+        sauvegarderConfig();
+
         renderConfigUI2();
         refreshAllPlanningTarifs();
       }
