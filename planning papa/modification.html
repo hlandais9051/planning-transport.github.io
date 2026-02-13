@@ -1271,40 +1271,121 @@
       };
 
       function imprimerPlanning() {
-        // On récupère la zone du planning (capture-area)
-        const zoneImpression =
-          document.getElementById("capture-area").innerHTML;
+        // 1. Extraire toutes les données des lignes
+        const lignes = [];
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          lignes.push({
+            associe: tr.querySelector(".select-associe")?.value || "",
+            matin: tr.cells[1]?.innerText || "",
+            apres: tr.cells[2]?.innerText || "",
+            chantier: tr.cells[3]?.innerText || "",
+            date: tr.cells[4]?.innerText || "",
+            vehicule: tr.querySelector(".select-vehicule")?.value || "",
+            client: tr.querySelector(".select-client")?.value || "",
+            telephone: tr.querySelector(".select-telephone")?.value || "",
+            consigne: tr.cells[8]?.innerText || "",
+            chauffeur: tr.querySelector(".select-chauffeur")?.value || "",
+            n_commande: tr.cells[10]?.innerText || "",
+            n_chantier: tr.cells[11]?.innerText || "",
+            n_bon: tr.cells[12]?.innerText || "",
+            couleur: tr.style.backgroundColor || "",
+          });
+        });
 
-        // On crée une fenêtre temporaire pour l'impression
+        // 2. Récupérer le titre
+        const titre = document.getElementById("display-date").innerText;
+
+        // 3. Créer la fenêtre d'impression
         const fenetreImpression = window.open("", "", "height=600,width=800");
 
-        // On injecte les styles pour que le tableau soit joli à l'impression
-        fenetreImpression.document.write("<style>");
-        fenetreImpression.document.write(
-          "table { border-collapse: collapse; width: 100%; font-family: sans-serif; }",
-        );
-        fenetreImpression.document.write(
-          "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }",
-        );
-        fenetreImpression.document.write(
-          "th { background-color: #007bff; color: white; -webkit-print-color-adjust: exact; }",
-        );
-        fenetreImpression.document.write(
-          "th:nth-child(5), td:nth-child(5), th:nth-child(n+14):nth-child(-n+20), td:nth-child(n+14):nth-child(-n+20) { display: none !important; }",
-        );
-        fenetreImpression.document.write(
-          ".hide-export { display: none !important; }",
-        ); // Masque les boutons de couleur
-        fenetreImpression.document.write("h2 { text-align: center; }");
-        fenetreImpression.document.write("</style></head><body>");
+        // 4. Injecter les styles
+        fenetreImpression.document.write(`
+          <html>
+          <head>
+            <title>Impression Planning</title>
+            <style>
+              body { font-family: sans-serif; margin: 20px; }
+              h2 { text-align: center; }
+              table { 
+                border-collapse: collapse; 
+                width: 100%; 
+                font-size: 11px;
+              }
+              th, td { 
+                border: 1px solid #ddd; 
+                padding: 6px; 
+                text-align: left;
+              }
+              th { 
+                background-color: #007bff !important; 
+                color: white !important; 
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+              @media print {
+                th { 
+                  background-color: #007bff !important; 
+                  color: white !important; 
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <h2>${titre}</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Associé</th>
+                  <th>Matin</th>
+                  <th>A-M</th>
+                  <th>Chantier</th>
+                  <th>Véhicule</th>
+                  <th>Client</th>
+                  <th>Contact</th>
+                  <th>Consigne</th>
+                  <th>Chauffeur</th>
+                  <th>N° Commande</th>
+                  <th>N° Chantier</th>
+                  <th>N° Bon</th>
+                </tr>
+              </thead>
+              <tbody>
+        `);
 
-        // On ajoute le contenu
-        fenetreImpression.document.write(zoneImpression);
-        fenetreImpression.document.write("</body></html>");
+        // 5. Générer les lignes avec les données extraites
+        lignes.forEach((ligne) => {
+          const bgColor = ligne.couleur
+            ? ` style="background-color: ${ligne.couleur}; -webkit-print-color-adjust: exact; print-color-adjust: exact;"`
+            : "";
+
+          fenetreImpression.document.write(`
+            <tr${bgColor}>
+              <td>${ligne.associe}</td>
+              <td>${ligne.matin}</td>
+              <td>${ligne.apres}</td>
+              <td>${ligne.chantier}</td>
+              <td>${ligne.vehicule}</td>
+              <td>${ligne.client}</td>
+              <td>${ligne.telephone}</td>
+              <td>${ligne.consigne}</td>
+              <td>${ligne.chauffeur}</td>
+              <td>${ligne.n_commande}</td>
+              <td>${ligne.n_chantier}</td>
+              <td>${ligne.n_bon}</td>
+            </tr>
+          `);
+        });
+
+        fenetreImpression.document.write(`
+              </tbody>
+            </table>
+          </body>
+          </html>
+        `);
 
         fenetreImpression.document.close();
 
-        // On lance l'impression après un court délai pour charger le contenu
+        // 6. Lancer l'impression après chargement
         setTimeout(() => {
           fenetreImpression.print();
           fenetreImpression.close();
