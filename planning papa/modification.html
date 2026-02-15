@@ -2599,7 +2599,7 @@
         }
 
         // --- PARTIE AFFRÉTÉ ---
-        if (associe && matos) {
+        if (associe && matos && client) {
           let tarifA =
             parseFloat(
               cellTarifAffrete.textContent
@@ -3891,9 +3891,13 @@
 
             if (input.classList.contains("select-associe")) {
               appliquerCouleurAssocie(input);
-              trierPlanningParAssocie();
             }
           });
+          if (input.classList.contains("select-associe")) {
+            input.addEventListener("blur", () => {
+              trierPlanningParAssocie();
+            });
+          }
         });
 
         tableBody.appendChild(tr);
@@ -4513,7 +4517,7 @@
           if (e.target.classList.contains("combo-input")) {
             if (e.target.classList.contains("select-associe")) {
               appliquerCouleurAssocie(e.target);
-              trierPlanningParAssocie();
+              // ✅ NE PAS TRIER PENDANT LA SAISIE !
             }
             // Met à jour le tarif automatiquement selon la config
             updateRowTarif(row);
@@ -4576,26 +4580,6 @@
           },
           true,
         );
-
-        // Force l'affichage de la liste complète au clic, même si la case est remplie
-        document
-          .getElementById("table-body")
-          .addEventListener("mousedown", function (e) {
-            if (e.target.list && e.target.classList.contains("combo-input")) {
-              const input = e.target;
-              const currentVal = input.value;
-
-              // Au moment où l'utilisateur clique
-              input.value = "";
-
-              // On attend un tout petit peu que le navigateur ouvre la liste complète
-              setTimeout(() => {
-                if (input.value === "") {
-                  input.value = currentVal;
-                }
-              }, 1);
-            }
-          });
 
         // --- BOUTON CLIENT (Jusqu'à colonne 14) ---
         document
