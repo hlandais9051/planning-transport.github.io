@@ -2012,8 +2012,21 @@
           if (isABase && !isBBase) return -1;
           if (!isABase && isBBase) return 1;
 
+          const compareAssocie = valA.localeCompare(valB);
+
+          if (compareAssocie !== 0) return compareAssocie;
+
+          const matosA =
+            a.querySelector(".select-vehicule")?.value.toUpperCase() || "";
+          const matosB =
+            b.querySelector(".select-vehicule")?.value.toUpperCase() || "";
+
+          if (matosA === "" && matosB === "") return 0;
+          if (matosA === "") return 1;
+          if (matosB === "") return -1;
+
           // Tri alphabétique pour le reste
-          return valA.localeCompare(valB);
+          return matosA.localeCompare(matosB);
         });
 
         rowsToSort.forEach((tr) => tableBody.appendChild(tr));
