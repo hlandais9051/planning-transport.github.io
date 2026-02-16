@@ -210,6 +210,25 @@
       }
       .col-telephone {
         width: 6%;
+        white-space: normal;
+        line-height: 1.2;
+      }
+      .telephone-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .telephone-name {
+        font-weight: bold;
+        font-size: 12px;
+        color: #000;
+      }
+
+      .telephone-number {
+        font-size: 11px;
+        color: #666;
+        font-style: italic;
       }
       .col-consigne {
         width: 20%;
@@ -3168,9 +3187,9 @@
             const data = transportConfigTelephone[name];
             const opt = document.createElement("option");
 
-            const telLabel = data.numero ? ` - ${data.numero}` : "";
+            opt.value = name;
+            opt.setAttribute("data-numero", data.numero || ""); // On stocke le numéro en data attribute
 
-            opt.value = `${name}${telLabel}`;
             dl.appendChild(opt);
           });
       }
@@ -3487,7 +3506,12 @@
             date: tr.cells[4].innerText,
             vehicule: tr.querySelector(".select-vehicule").value,
             client: tr.querySelector(".select-client").value,
-            telephone: tr.querySelector(".select-telephone").value,
+            telephone:
+              tr
+                .querySelector(".col-telephone")
+                ?.getAttribute("data-telephone-full") ||
+              tr.querySelector(".select-telephone")?.value ||
+              "",
             consigne: tr.cells[8].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
             n_commande: tr.cells[10].innerText,
@@ -3716,6 +3740,63 @@
         }
       }
 
+      /**
+       * Extrait le nom du contact depuis la valeur complète "NOM - 06 12 34 56 78"
+       */
+      function extractContactName(fullValue) {
+        if (!fullValue) return "";
+
+        // Si le format contient " - ", on prend la partie avant
+        if (fullValue.includes(" - ")) {
+          return fullValue.split(" - ")[0].trim();
+        }
+
+        // Sinon on retourne tel quel
+        return fullValue;
+      }
+
+      /**
+       * Extrait le numéro depuis la valeur complète "NOM - 06 12 34 56 78"
+       */
+      function extractPhoneNumber(fullValue) {
+        if (!fullValue) return "";
+
+        // Si le format contient " - ", on prend la partie après
+        if (fullValue.includes(" - ")) {
+          const parts = fullValue.split(" - ");
+          return parts[1] ? parts[1].trim() : "";
+        }
+
+        // Sinon on cherche dans transportConfigTelephone
+        const contactName = fullValue.trim();
+        if (transportConfigTelephone[contactName]) {
+          return transportConfigTelephone[contactName].numero || "";
+        }
+
+        return "";
+      }
+
+      /**
+       * Affiche le téléphone sur deux lignes : nom + numéro
+       */
+      function displayTelephoneInCell(td, fullValue) {
+        const contactName = extractContactName(fullValue);
+        const phoneNumber = extractPhoneNumber(fullValue);
+
+        if (!contactName) {
+          td.innerHTML = `<input class="combo-input select-telephone" list="list-telephone" value="" placeholder="Contact...">`;
+          return;
+        }
+
+        // ✅ Affichage sur deux lignes avec le numéro en dessous
+        td.innerHTML = `
+    <div class="telephone-wrapper">
+      <input class="combo-input select-telephone" list="list-telephone" value="${contactName}" placeholder="Contact...">
+      ${phoneNumber ? `<div class="telephone-number">${phoneNumber}</div>` : ""}
+    </div>
+  `;
+      }
+
       function ajouterLigne(data = null) {
         const tableBody = document.getElementById("table-body");
         const datePicker = document.getElementById("current-date-picker");
@@ -3759,8 +3840,9 @@
             <td class="matos-cell">
                 <input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" placeholder="Client...">
             </td>
-            <td class="matos-cell">
-                <input class="combo-input select-telephone" list="list-telephone" value="${data ? data.telephone : ""}" placeholder="Contact...">
+            
+            <td class="matos-cell col-telephone" data-telephone-full="${data ? data.telephone : ""}">
+                <input class="combo-input select-telephone" list="list-telephone" value="${data ? extractContactName(data.telephone) : ""}" placeholder="Contact...">
             </td>
 
             <td contenteditable="true" class="col-consigne ${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
@@ -3906,6 +3988,48 @@
                 saveCurrentDay();
                 calculerTousLesTotaux();
                 return;
+              }
+            }
+
+            if (input.classList.contains("select-telephone")) {
+              const td = input.closest("td");
+              const contactName = input.value.trim();
+
+              // ✅ Chercher le numéro correspondant dans la config
+              if (transportConfigTelephone[contactName]) {
+                const phoneNumber =
+                  transportConfigTelephone[contactName].numero || "";
+
+                // Stocker la valeur complète dans l'attribut data
+                const fullValue = phoneNumber
+                  ? `${contactName} - ${phoneNumber}`
+                  : contactName;
+                td.setAttribute("data-telephone-full", fullValue);
+
+                // ✅ RÉAFFICHER POUR METTRE À JOUR LE NUMÉRO
+                displayTelephoneInCell(td, fullValue);
+
+                // ✅ IMPORTANT : Réattacher l'event listener sur le nouvel input créé
+                const newInput = td.querySelector(".select-telephone");
+                if (newInput) {
+                  newInput.addEventListener("change", () => {
+                    const newContactName = newInput.value.trim();
+                    if (transportConfigTelephone[newContactName]) {
+                      const newPhoneNumber =
+                        transportConfigTelephone[newContactName].numero || "";
+                      const newFullValue = newPhoneNumber
+                        ? `${newContactName} - ${newPhoneNumber}`
+                        : newContactName;
+                      td.setAttribute("data-telephone-full", newFullValue);
+                      displayTelephoneInCell(td, newFullValue);
+                    }
+                    saveCurrentDay();
+                  });
+                }
+              } else {
+                // ✅ Si le contact n'existe pas, on efface juste le numéro
+                td.setAttribute("data-telephone-full", contactName);
+                displayTelephoneInCell(td, contactName);
               }
             }
 
