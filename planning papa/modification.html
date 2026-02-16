@@ -1311,6 +1311,16 @@
         // 1. Extraire toutes les données des lignes
         const lignes = [];
         document.querySelectorAll("#table-body tr").forEach((tr) => {
+          // ✅ Récupérer le nom du contact
+          const contactName =
+            tr.querySelector(".select-telephone")?.value || "";
+
+          // ✅ Chercher le numéro dans la config
+          let phoneNumber = "";
+          if (contactName && transportConfigTelephone[contactName]) {
+            phoneNumber = transportConfigTelephone[contactName].numero || "";
+          }
+
           lignes.push({
             associe: tr.querySelector(".select-associe")?.value || "",
             matin: tr.cells[1]?.innerText || "",
@@ -1319,7 +1329,8 @@
             date: tr.cells[4]?.innerText || "",
             vehicule: tr.querySelector(".select-vehicule")?.value || "",
             client: tr.querySelector(".select-client")?.value || "",
-            telephone: tr.querySelector(".select-telephone")?.value || "",
+            telephoneNom: contactName, // ✅ Nom séparé
+            telephoneNumero: phoneNumber, // ✅ Numéro séparé
             consigne: tr.cells[8]?.innerText || "",
             chauffeur: tr.querySelector(".select-chauffeur")?.value || "",
             n_commande: tr.cells[10]?.innerText || "",
@@ -1337,57 +1348,74 @@
 
         // 4. Injecter les styles
         fenetreImpression.document.write(`
-              <html>
-              <head>
-                <title>Impression Planning</title>
-                <style>
-                  body { font-family: sans-serif; margin: 20px; }
-                  h2 { text-align: center; }
-                  table {
-                    border-collapse: collapse;
-                    width: 100%;
-                    font-size: 11px;
-                  }
-                  th, td {
-                    border: 1px solid #ddd;
-                    padding: 6px;
-                    text-align: left;
-                  }
-                  th {
-                    background-color: #007bff !important;
-                    color: white !important;
-                    -webkit-print-color-adjust: exact;
-                    print-color-adjust: exact;
-                  }
-                  @media print {
-                    th {
-                      background-color: #007bff !important;
-                      color: white !important;
-                    }
-                  }
-                </style>
-              </head>
-              <body>
-                <h2>${titre}</h2>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Associé</th>
-                      <th>Matin</th>
-                      <th>A-M</th>
-                      <th>Chantier</th>
-                      <th>Véhicule</th>
-                      <th>Client</th>
-                      <th>Contact</th>
-                      <th>Consigne</th>
-                      <th>Chauffeur</th>
-                      <th>N° Commande</th>
-                      <th>N° Chantier</th>
-                      <th>N° Bon</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-            `);
+    <html>
+    <head>
+      <title>Impression Planning</title>
+      <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h2 { text-align: center; }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          font-size: 11px;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 6px;
+          text-align: left;
+          vertical-align: top;
+        }
+        th {
+          background-color: #007bff !important;
+          color: white !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        
+        /* ✅ Style pour la cellule téléphone sur deux lignes */
+        .telephone-cell {
+          white-space: normal;
+          line-height: 1.3;
+        }
+        .telephone-name {
+          font-size: 11px;
+          color: #000;
+        }
+        .telephone-number {
+          font-size: 10px;
+          color: #666;
+          font-style: italic;
+        }
+        
+        @media print {
+          th {
+            background-color: #007bff !important;
+            color: white !important;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <h2>${titre}</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Associé</th>
+            <th>Matin</th>
+            <th>A-M</th>
+            <th>Chantier</th>
+            <th>Véhicule</th>
+            <th>Client</th>
+            <th>Contact</th>
+            <th>Consigne</th>
+            <th>Chauffeur</th>
+            <th>N° Commande</th>
+            <th>N° Chantier</th>
+            <th>N° Bon</th>
+          </tr>
+        </thead>
+        <tbody>
+  `);
 
         // 5. Générer les lignes avec les données extraites
         lignes.forEach((ligne) => {
@@ -1395,30 +1423,39 @@
             ? ` style="background-color: ${ligne.couleur}; -webkit-print-color-adjust: exact; print-color-adjust: exact;"`
             : "";
 
+          // ✅ Construction du contenu de la cellule téléphone sur deux lignes
+          let telephoneHTML = "";
+          if (ligne.telephoneNom) {
+            telephoneHTML = `<div class="telephone-name">${ligne.telephoneNom}</div>`;
+            if (ligne.telephoneNumero) {
+              telephoneHTML += `<div class="telephone-number">${ligne.telephoneNumero}</div>`;
+            }
+          }
+
           fenetreImpression.document.write(`
-                <tr${bgColor}>
-                  <td>${ligne.associe}</td>
-                  <td>${ligne.matin}</td>
-                  <td>${ligne.apres}</td>
-                  <td>${ligne.chantier}</td>
-                  <td>${ligne.vehicule}</td>
-                  <td>${ligne.client}</td>
-                  <td>${ligne.telephone}</td>
-                  <td>${ligne.consigne}</td>
-                  <td>${ligne.chauffeur}</td>
-                  <td>${ligne.n_commande}</td>
-                  <td>${ligne.n_chantier}</td>
-                  <td>${ligne.n_bon}</td>
-                </tr>
-              `);
+      <tr${bgColor}>
+        <td>${ligne.associe}</td>
+        <td>${ligne.matin}</td>
+        <td>${ligne.apres}</td>
+        <td>${ligne.chantier}</td>
+        <td>${ligne.vehicule}</td>
+        <td>${ligne.client}</td>
+        <td class="telephone-cell">${telephoneHTML}</td>
+        <td>${ligne.consigne}</td>
+        <td>${ligne.chauffeur}</td>
+        <td>${ligne.n_commande}</td>
+        <td>${ligne.n_chantier}</td>
+        <td>${ligne.n_bon}</td>
+      </tr>
+    `);
         });
 
         fenetreImpression.document.write(`
-                  </tbody>
-                </table>
-              </body>
-              </html>
-            `);
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `);
 
         fenetreImpression.document.close();
 
@@ -1576,14 +1613,12 @@
       document.addEventListener("copy", function (e) {
         const selectedCells = document.querySelectorAll(".cell-selected");
 
-        // ✅ Si aucune cellule sélectionnée, laisser le comportement natif
         if (selectedCells.length === 0) {
           return;
         }
 
         let rows = {};
 
-        // 1. Tri pour respecter l'ordre d'affichage
         const sortedCells = Array.from(selectedCells).sort((a, b) => {
           if (a.parentElement.rowIndex !== b.parentElement.rowIndex) {
             return a.parentElement.rowIndex - b.parentElement.rowIndex;
@@ -1591,7 +1626,6 @@
           return a.cellIndex - b.cellIndex;
         });
 
-        // 2. Traitement avec ajout des libellés
         sortedCells.forEach((td) => {
           const rowIndex = td.parentElement.rowIndex;
           if (!rows[rowIndex]) rows[rowIndex] = [];
@@ -1599,7 +1633,6 @@
           const input = td.querySelector("input");
           let val = input ? input.value.trim() : td.innerText.trim();
 
-          // Liste des placeholders à ne pas copier
           const placeholders = [
             "Chantier...",
             "Véhicule...",
@@ -1618,14 +1651,30 @@
           }
 
           if (val !== "") {
-            // Ajout des préfixes selon le type de cellule
-            if (input) {
+            // ✅ CAS SPÉCIAL TÉLÉPHONE : Récupérer nom + numéro
+            if (input && input.classList.contains("select-telephone")) {
+              const contactName = val;
+              let phoneNumber = "";
+
+              // Chercher le numéro dans la config
+              if (transportConfigTelephone[contactName]) {
+                phoneNumber =
+                  transportConfigTelephone[contactName].numero || "";
+              }
+
+              // Si on a un numéro, on l'ajoute
+              if (phoneNumber) {
+                val = "Contact : " + contactName + " " + phoneNumber;
+              } else {
+                val = "Contact : " + contactName;
+              }
+            }
+            // Autres cas
+            else if (input) {
               if (input.classList.contains("select-vehicule")) {
                 val = "Véhicule : " + val;
               } else if (input.classList.contains("select-client")) {
                 val = "Client : " + val;
-              } else if (input.classList.contains("select-telephone")) {
-                val = "Contact : " + val;
               } else if (input.classList.contains("select-chauffeur")) {
                 val = "Chauffeur : " + val;
               }
@@ -1647,9 +1696,8 @@
           rows[rowIndex].push(val);
         });
 
-        // 3. Construction du texte final
         const textResult = Object.values(rows)
-          .map((rowCells) => rowCells.filter((c) => c !== "").join(" "))
+          .map((rowCells) => rowCells.filter((c) => c !== "").join(" | "))
           .join("\n");
 
         if (textResult) {
@@ -3777,8 +3825,46 @@
       function displayTelephoneInCell(td, fullValue) {
         const contactName = extractContactName(fullValue);
 
+        // ✅ Si pas de contact, on affiche juste l'input vide
         if (!contactName) {
           td.innerHTML = `<input class="combo-input select-telephone" list="list-telephone" value="" placeholder="Contact...">`;
+
+          // ✅ IMPORTANT : Réattacher l'event listener pour détecter les changements
+          const newInput = td.querySelector(".select-telephone");
+          if (newInput) {
+            newInput.addEventListener("input", () => {
+              // ✅ Si l'utilisateur vide le champ, on supprime aussi le numéro
+              if (newInput.value.trim() === "") {
+                td.setAttribute("data-telephone-full", "");
+                displayTelephoneInCell(td, "");
+                saveCurrentDay();
+              }
+            });
+
+            newInput.addEventListener("change", () => {
+              const newContactName = newInput.value.trim();
+
+              // ✅ Si vide, on efface tout
+              if (!newContactName) {
+                td.setAttribute("data-telephone-full", "");
+                displayTelephoneInCell(td, "");
+              } else if (transportConfigTelephone[newContactName]) {
+                // ✅ Si contact valide, on ajoute le numéro
+                const phoneNumber =
+                  transportConfigTelephone[newContactName].numero || "";
+                const fullValue = phoneNumber
+                  ? `${newContactName} - ${phoneNumber}`
+                  : newContactName;
+                td.setAttribute("data-telephone-full", fullValue);
+                displayTelephoneInCell(td, fullValue);
+              } else {
+                // ✅ Si contact inconnu, on garde juste le nom sans numéro
+                td.setAttribute("data-telephone-full", newContactName);
+                displayTelephoneInCell(td, newContactName);
+              }
+              saveCurrentDay();
+            });
+          }
           return;
         }
 
@@ -3787,17 +3873,53 @@
         if (transportConfigTelephone[contactName]) {
           phoneNumber = transportConfigTelephone[contactName].numero || "";
         } else if (fullValue.includes(" - ")) {
-          // Si fullValue contient déjà le numéro (format "NOM - NUMERO")
           phoneNumber = extractPhoneNumber(fullValue);
         }
 
         // ✅ Affichage sur deux lignes avec le numéro en dessous
         td.innerHTML = `
-              <div class="telephone-wrapper">
-                <input class="combo-input select-telephone" list="list-telephone" value="${contactName}" placeholder="Contact...">
-                ${phoneNumber ? `<div class="telephone-number">${phoneNumber}</div>` : ""}
-              </div>
-            `;
+    <div class="telephone-wrapper">
+      <input class="combo-input select-telephone" list="list-telephone" value="${contactName}" placeholder="Contact...">
+      ${phoneNumber ? `<div class="telephone-number">${phoneNumber}</div>` : ""}
+    </div>
+  `;
+
+        // ✅ IMPORTANT : Réattacher l'event listener sur le nouvel input
+        const newInput = td.querySelector(".select-telephone");
+        if (newInput) {
+          newInput.addEventListener("input", () => {
+            // ✅ Si l'utilisateur vide le champ, on supprime aussi le numéro
+            if (newInput.value.trim() === "") {
+              td.setAttribute("data-telephone-full", "");
+              displayTelephoneInCell(td, "");
+              saveCurrentDay();
+            }
+          });
+
+          newInput.addEventListener("change", () => {
+            const newContactName = newInput.value.trim();
+
+            // ✅ Si vide, on efface tout
+            if (!newContactName) {
+              td.setAttribute("data-telephone-full", "");
+              displayTelephoneInCell(td, "");
+            } else if (transportConfigTelephone[newContactName]) {
+              // ✅ Si contact valide, on ajoute le numéro
+              const newPhoneNumber =
+                transportConfigTelephone[newContactName].numero || "";
+              const newFullValue = newPhoneNumber
+                ? `${newContactName} - ${newPhoneNumber}`
+                : newContactName;
+              td.setAttribute("data-telephone-full", newFullValue);
+              displayTelephoneInCell(td, newFullValue);
+            } else {
+              // ✅ Si contact inconnu, on garde juste le nom sans numéro
+              td.setAttribute("data-telephone-full", newContactName);
+              displayTelephoneInCell(td, newContactName);
+            }
+            saveCurrentDay();
+          });
+        }
       }
 
       function ajouterLigne(data = null) {
