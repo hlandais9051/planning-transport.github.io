@@ -1474,6 +1474,9 @@
           const td = e.target.closest("td");
           if (!td) return;
 
+          // ✅ IGNORER LE CLIC DROIT (button === 2)
+          if (e.button === 2) return;
+
           isMouseDown = true;
           startRowIndex = td.parentElement.rowIndex;
 
@@ -1502,6 +1505,9 @@
       });
 
       document.addEventListener("click", function (e) {
+        // ✅ NE PAS désélectionner si c'est un clic droit (contextmenu)
+        if (e.button === 2) return;
+
         if (!e.target.closest("#my-table")) {
           document
             .querySelectorAll(".cell-selected")
@@ -1509,109 +1515,132 @@
         }
       });
 
+      document
+        .getElementById("my-table")
+        .addEventListener("contextmenu", function (e) {
+          const td = e.target.closest("td");
+
+          // Si on clique sur une cellule NON sélectionnée, on la sélectionne d'abord
+          if (td && !td.classList.contains("cell-selected")) {
+            document
+              .querySelectorAll(".cell-selected")
+              .forEach((el) => el.classList.remove("cell-selected"));
+            td.classList.add("cell-selected");
+          }
+
+          // ✅ NOUVEAU : Créer une vraie sélection de texte pour le navigateur
+          if (td) {
+            const selection = window.getSelection();
+            const range = document.createRange();
+
+            const input = td.querySelector("input");
+
+            try {
+              if (input) {
+                // ✅ CAS INPUT : On sélectionne la VALUE de l'input
+                input.select(); // Méthode native pour sélectionner le texte d'un input
+                input.focus();
+              } else {
+                // ✅ CAS TEXTE : On sélectionne le contenu de la cellule
+                range.selectNodeContents(td);
+                selection.removeAllRanges();
+                selection.addRange(range);
+              }
+            } catch (err) {
+              // Ignorer les erreurs si la cellule est vide
+            }
+          }
+
+          // Le navigateur affichera automatiquement son menu "Copier"
+        });
+
       document.addEventListener("copy", function (e) {
         const selectedCells = document.querySelectorAll(".cell-selected");
 
-        if (selectedCells.length > 0) {
-          let rows = {};
+        // ✅ Si aucune cellule sélectionnée, laisser le comportement natif
+        if (selectedCells.length === 0) {
+          return;
+        }
 
-          // 1. Tri pour respecter l'ordre d'affichage
-          const sortedCells = Array.from(selectedCells).sort((a, b) => {
-            if (a.parentElement.rowIndex !== b.parentElement.rowIndex) {
-              return a.parentElement.rowIndex - b.parentElement.rowIndex;
-            }
-            return a.cellIndex - b.cellIndex;
-          });
+        let rows = {};
 
-          // 2. Traitement avec ajout des libellés
-          sortedCells.forEach((td) => {
-            const rowIndex = td.parentElement.rowIndex;
-            if (!rows[rowIndex]) rows[rowIndex] = [];
+        // 1. Tri pour respecter l'ordre d'affichage
+        const sortedCells = Array.from(selectedCells).sort((a, b) => {
+          if (a.parentElement.rowIndex !== b.parentElement.rowIndex) {
+            return a.parentElement.rowIndex - b.parentElement.rowIndex;
+          }
+          return a.cellIndex - b.cellIndex;
+        });
 
-            const input = td.querySelector("input");
-            let val = input ? input.value.trim() : td.innerText.trim();
+        // 2. Traitement avec ajout des libellés
+        sortedCells.forEach((td) => {
+          const rowIndex = td.parentElement.rowIndex;
+          if (!rows[rowIndex]) rows[rowIndex] = [];
 
-            // Liste des placeholders à ne pas copier si la case n'a pas été remplie
-            const placeholders = [
-              "Chantier...",
-              "Véhicule...",
-              "Client...",
-              "Contact...",
-              "Consigne...",
-              "Chauffeur...",
-              "N° Commande...",
-              "N° Chantier...",
-              "N° Bon...",
-              "Commentaire...",
-              "Contact...",
-            ];
+          const input = td.querySelector("input");
+          let val = input ? input.value.trim() : td.innerText.trim();
 
-            // Si la valeur est un placeholder, on considère la cellule comme vide pour la copie
-            if (placeholders.includes(val)) {
-              val = "";
-            }
+          // Liste des placeholders à ne pas copier
+          const placeholders = [
+            "Chantier...",
+            "Véhicule...",
+            "Client...",
+            "Contact...",
+            "Consigne...",
+            "Chauffeur...",
+            "N° Commande...",
+            "N° Chantier...",
+            "N° Bon...",
+            "Commentaire...",
+          ];
 
-            if (val !== "") {
-              // Ajout des préfixes selon le type de cellule
-              if (input) {
-                // Cas des Inputs (Contact)
-                if (
-                  input.placeholder === "Véhicule..." ||
-                  input.classList.contains("select-vehicule")
-                ) {
-                  val = "Véhicule : " + val;
-                } else if (
-                  input.placeholder === "Client..." ||
-                  input.classList.contains("select-client")
-                ) {
-                  val = "Client : " + val;
-                } else if (
-                  input.placeholder === "Contact..." ||
-                  input.classList.contains("select-telephone")
-                ) {
-                  val = "Contact : " + val;
-                } else if (
-                  input.placeholder === "Chauffeur..." ||
-                  input.classList.contains("select-chauffeur")
-                ) {
-                  val = "Chauffeur : " + val;
-                }
-              } else {
-                // Cas des cellules contenteditable (Commande et Chantier)
-                // On vérifie quelle colonne c'est via l'index de la cellule (TD)
-                const cellIndex = td.cellIndex;
+          if (placeholders.includes(val)) {
+            val = "";
+          }
 
-                if (td.classList.contains("col-consigne")) {
-                  val = "Consigne : " + val;
-                } else if (cellIndex === 10) {
-                  // Index de N° Commande
-                  val = "N° Commande : " + val;
-                } else if (cellIndex === 11) {
-                  // Index de N° Chantier
-                  val = "N° Chantier : " + val;
-                } else if (cellIndex === 12) {
-                  val = "N° Bon : " + val;
-                }
+          if (val !== "") {
+            // Ajout des préfixes selon le type de cellule
+            if (input) {
+              if (input.classList.contains("select-vehicule")) {
+                val = "Véhicule : " + val;
+              } else if (input.classList.contains("select-client")) {
+                val = "Client : " + val;
+              } else if (input.classList.contains("select-telephone")) {
+                val = "Contact : " + val;
+              } else if (input.classList.contains("select-chauffeur")) {
+                val = "Chauffeur : " + val;
+              }
+            } else {
+              const cellIndex = td.cellIndex;
+
+              if (td.classList.contains("col-consigne")) {
+                val = "Consigne : " + val;
+              } else if (cellIndex === 10) {
+                val = "N° Commande : " + val;
+              } else if (cellIndex === 11) {
+                val = "N° Chantier : " + val;
+              } else if (cellIndex === 12) {
+                val = "N° Bon : " + val;
               }
             }
-
-            rows[rowIndex].push(val);
-          });
-
-          // 3. Nettoyage : on enlève les éléments vides de la ligne pour ne pas avoir de tabulations inutiles
-          const textResult = Object.values(rows)
-            .map((rowCells) => rowCells.filter((c) => c !== "").join(" ")) // Utilisation de " | " pour séparer proprement
-            .join("\n");
-
-          if (textResult) {
-            e.clipboardData.setData("text/plain", textResult);
-            e.preventDefault();
-
-            afficherNotification(
-              `${selectedCells.length} cellule(s) copiée(s) !`,
-              "#4caf50",
-            );
           }
+
+          rows[rowIndex].push(val);
+        });
+
+        // 3. Construction du texte final
+        const textResult = Object.values(rows)
+          .map((rowCells) => rowCells.filter((c) => c !== "").join(" "))
+          .join("\n");
+
+        if (textResult) {
+          e.clipboardData.setData("text/plain", textResult);
+          e.preventDefault();
+
+          afficherNotification(
+            `${selectedCells.length} cellule(s) copiée(s) !`,
+            "#4caf50",
+          );
         }
       });
 
