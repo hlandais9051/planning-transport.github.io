@@ -1337,57 +1337,57 @@
 
         // 4. Injecter les styles
         fenetreImpression.document.write(`
-          <html>
-          <head>
-            <title>Impression Planning</title>
-            <style>
-              body { font-family: sans-serif; margin: 20px; }
-              h2 { text-align: center; }
-              table { 
-                border-collapse: collapse; 
-                width: 100%; 
-                font-size: 11px;
-              }
-              th, td { 
-                border: 1px solid #ddd; 
-                padding: 6px; 
-                text-align: left;
-              }
-              th { 
-                background-color: #007bff !important; 
-                color: white !important; 
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-              @media print {
-                th { 
-                  background-color: #007bff !important; 
-                  color: white !important; 
-                }
-              }
-            </style>
-          </head>
-          <body>
-            <h2>${titre}</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Associé</th>
-                  <th>Matin</th>
-                  <th>A-M</th>
-                  <th>Chantier</th>
-                  <th>Véhicule</th>
-                  <th>Client</th>
-                  <th>Contact</th>
-                  <th>Consigne</th>
-                  <th>Chauffeur</th>
-                  <th>N° Commande</th>
-                  <th>N° Chantier</th>
-                  <th>N° Bon</th>
-                </tr>
-              </thead>
-              <tbody>
-        `);
+              <html>
+              <head>
+                <title>Impression Planning</title>
+                <style>
+                  body { font-family: sans-serif; margin: 20px; }
+                  h2 { text-align: center; }
+                  table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    font-size: 11px;
+                  }
+                  th, td {
+                    border: 1px solid #ddd;
+                    padding: 6px;
+                    text-align: left;
+                  }
+                  th {
+                    background-color: #007bff !important;
+                    color: white !important;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                  }
+                  @media print {
+                    th {
+                      background-color: #007bff !important;
+                      color: white !important;
+                    }
+                  }
+                </style>
+              </head>
+              <body>
+                <h2>${titre}</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Associé</th>
+                      <th>Matin</th>
+                      <th>A-M</th>
+                      <th>Chantier</th>
+                      <th>Véhicule</th>
+                      <th>Client</th>
+                      <th>Contact</th>
+                      <th>Consigne</th>
+                      <th>Chauffeur</th>
+                      <th>N° Commande</th>
+                      <th>N° Chantier</th>
+                      <th>N° Bon</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+            `);
 
         // 5. Générer les lignes avec les données extraites
         lignes.forEach((ligne) => {
@@ -1396,29 +1396,29 @@
             : "";
 
           fenetreImpression.document.write(`
-            <tr${bgColor}>
-              <td>${ligne.associe}</td>
-              <td>${ligne.matin}</td>
-              <td>${ligne.apres}</td>
-              <td>${ligne.chantier}</td>
-              <td>${ligne.vehicule}</td>
-              <td>${ligne.client}</td>
-              <td>${ligne.telephone}</td>
-              <td>${ligne.consigne}</td>
-              <td>${ligne.chauffeur}</td>
-              <td>${ligne.n_commande}</td>
-              <td>${ligne.n_chantier}</td>
-              <td>${ligne.n_bon}</td>
-            </tr>
-          `);
+                <tr${bgColor}>
+                  <td>${ligne.associe}</td>
+                  <td>${ligne.matin}</td>
+                  <td>${ligne.apres}</td>
+                  <td>${ligne.chantier}</td>
+                  <td>${ligne.vehicule}</td>
+                  <td>${ligne.client}</td>
+                  <td>${ligne.telephone}</td>
+                  <td>${ligne.consigne}</td>
+                  <td>${ligne.chauffeur}</td>
+                  <td>${ligne.n_commande}</td>
+                  <td>${ligne.n_chantier}</td>
+                  <td>${ligne.n_bon}</td>
+                </tr>
+              `);
         });
 
         fenetreImpression.document.write(`
-              </tbody>
-            </table>
-          </body>
-          </html>
-        `);
+                  </tbody>
+                </table>
+              </body>
+              </html>
+            `);
 
         fenetreImpression.document.close();
 
@@ -1448,7 +1448,7 @@
             // Configuration de l'alerte
             // Remplace .textContent par .innerText
             notif.innerText = `⚠️ CODE INCORRECT ⚠️
-                            VOUS N'ÊTES PAS AUTORISÉ À EFFECTUER CETTE ACTION !`;
+                                VOUS N'ÊTES PAS AUTORISÉ À EFFECTUER CETTE ACTION !`;
             notif.classList.add("alerte-flash", "notif-visible");
 
             // Disparition après 4 secondes
@@ -2086,17 +2086,17 @@
         const dateValeur = document.getElementById("current-date-picker").value;
         const moisAnnee = dateValeur ? dateValeur.substring(0, 7) : "";
         let html = `<h3>Tarifs par Groupe</h3>
-                              <table class="config-table">
-                                <thead>
-                                  <tr>
-                                    <th>Groupe</th>
-                                    <th style="width: 20%;">Catégorie</th>
-                                    <th style="width: 25%;">Matériel</th>
-                                    <th style="width: 13%;">Tarif (€)</th>
-                                    <th style="width: 10%;">Indice (%)</th>
-                                    <th>Action</th>
-                                  </tr>
-                                </thead><tbody>`;
+                                  <table class="config-table">
+                                    <thead>
+                                      <tr>
+                                        <th>Groupe</th>
+                                        <th style="width: 20%;">Catégorie</th>
+                                        <th style="width: 25%;">Matériel</th>
+                                        <th style="width: 13%;">Tarif (€)</th>
+                                        <th style="width: 10%;">Indice (%)</th>
+                                        <th>Action</th>
+                                      </tr>
+                                    </thead><tbody>`;
 
         const groups = Object.keys(transportConfigGroup).sort();
         const categorie = Object.keys(transportConfigCategorie).sort();
@@ -2112,9 +2112,9 @@
 
             if (matosKeys.length === 0) {
               html += `<tr>
-                          <td class="group-header"><strong>${group}</strong></td>
-                          <td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
-                        </tr>`;
+                              <td class="group-header"><strong>${group}</strong></td>
+                              <td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td>
+                            </tr>`;
             } else {
               matosKeys.forEach((matos, index) => {
                 const val = transportConfigGroup[group][matos];
@@ -2146,78 +2146,78 @@
                 }
 
                 html += `<tr>
-                    ${
-                      index === 0
-                        ? `<td rowspan="${matosKeys.length}" class="group-header" style="vertical-align: top;">
-                            <strong>${group}</strong><br>
-                            <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
-                            <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-                              <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>
-                              ${categorie
-                                .map((cat) => {
-                                  let valIndice = 0;
-                                  if (
-                                    transportConfigGroupInfo[group] &&
-                                    transportConfigGroupInfo[group][cat]
-                                  ) {
-                                    const data =
-                                      transportConfigGroupInfo[group][cat];
-                                    valIndice =
-                                      typeof data === "object"
-                                        ? data[moisAnnee] || 0
-                                        : data;
-                                  }
-                                  return `
-                                    <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
-                                      <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
-                                        <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
-                                      </div>
-                                      <input type="number" step="0.01" value="${valIndice !== 0 ? valIndice : ""}"
-                                            onchange="updateGroupCatIndice('${group}', '${cat}', this.value)"
-                                            style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
-                                    </div>
-                                  `;
-                                })
-                                .join("")}
-                            </div>
-                          </td>`
-                        : ""
-                    }
-                    <td style="text-align:left; padding-left:10px;">
-                        <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
-                            <option value="">-- Sans --</option>
-                            ${categorie
-                              .map(
-                                (c) =>
-                                  `<option value="${c}" ${
-                                    currentCat === c ? "selected" : ""
-                                  }>${c}</option>`,
-                              )
-                              .join("")}
-                        </select>
-                    </td>
-                    <td>${matos}</td>
-                    <td>
-                      <input type="number" step="0.01" value="${val.tarif}"
-                        onchange="updateGroupPrice('${group}', '${matos}', this.value)"
-                        style="width:100%;">
-                    </td>
-                    <td>
-                      <input type="number" step="0.01"
-                        value="${indiceAafficher !== 0 ? indiceAafficher : ""}"
-                        placeholder="${isUsingCategory ? "Hérité" : ""}"
-                        onchange="updateGroupIndice('${group}', '${matos}', this.value)"
-                        style="width:100%; ${
-                          isUsingCategory
-                            ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
-                            : "font-weight: bold;"
-                        }">
-                    </td>
-                    <td>
-                        <button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
-                    </td>
-                  </tr>`;
+                        ${
+                          index === 0
+                            ? `<td rowspan="${matosKeys.length}" class="group-header" style="vertical-align: top;">
+                                <strong>${group}</strong><br>
+                                <button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button>
+                                <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+                                  <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>
+                                  ${categorie
+                                    .map((cat) => {
+                                      let valIndice = 0;
+                                      if (
+                                        transportConfigGroupInfo[group] &&
+                                        transportConfigGroupInfo[group][cat]
+                                      ) {
+                                        const data =
+                                          transportConfigGroupInfo[group][cat];
+                                        valIndice =
+                                          typeof data === "object"
+                                            ? data[moisAnnee] || 0
+                                            : data;
+                                      }
+                                      return `
+                                        <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                                          <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                                            <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
+                                          </div>
+                                          <input type="number" step="0.01" value="${valIndice !== 0 ? valIndice : ""}"
+                                                onchange="updateGroupCatIndice('${group}', '${cat}', this.value)"
+                                                style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                                        </div>
+                                      `;
+                                    })
+                                    .join("")}
+                                </div>
+                              </td>`
+                            : ""
+                        }
+                        <td style="text-align:left; padding-left:10px;">
+                            <select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;">
+                                <option value="">-- Sans --</option>
+                                ${categorie
+                                  .map(
+                                    (c) =>
+                                      `<option value="${c}" ${
+                                        currentCat === c ? "selected" : ""
+                                      }>${c}</option>`,
+                                  )
+                                  .join("")}
+                            </select>
+                        </td>
+                        <td>${matos}</td>
+                        <td>
+                          <input type="number" step="0.01" value="${val.tarif}"
+                            onchange="updateGroupPrice('${group}', '${matos}', this.value)"
+                            style="width:100%;">
+                        </td>
+                        <td>
+                          <input type="number" step="0.01"
+                            value="${indiceAafficher !== 0 ? indiceAafficher : ""}"
+                            placeholder="${isUsingCategory ? "Hérité" : ""}"
+                            onchange="updateGroupIndice('${group}', '${matos}', this.value)"
+                            style="width:100%; ${
+                              isUsingCategory
+                                ? "color: #1a73e8; font-style: italic; background: #f1f3f4;"
+                                : "font-weight: bold;"
+                            }">
+                        </td>
+                        <td>
+                            <button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button>
+                        </td>
+                      </tr>`;
               });
             }
           });
@@ -2226,14 +2226,14 @@
         html += `</tbody></table>`;
 
         html += `<h3 style="margin-top:30px;">Assignation des Clients</h3>
-                               <table class="config-table">
-                                 <thead>
-                                   <tr>
-                                     <th style="width: 40%;">Client</th>
-                                     <th style="width: 40%;">Groupe assigné</th>
-                                     <th style="width: 20%;">Action</th>
-                                   </tr>
-                                 </thead><tbody>`;
+                                   <table class="config-table">
+                                     <thead>
+                                       <tr>
+                                         <th style="width: 40%;">Client</th>
+                                         <th style="width: 40%;">Groupe assigné</th>
+                                         <th style="width: 20%;">Action</th>
+                                       </tr>
+                                     </thead><tbody>`;
 
         const clients = Object.keys(transportConfigClient).sort();
         if (clients.length === 0) {
@@ -2242,24 +2242,24 @@
           clients.forEach((client) => {
             const assignedGroup = transportConfigClient[client];
             html += `<tr>
-                                    <td><strong>${client}</strong></td>
-                                    <td>
-                                      <select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;">
-                                        <option value="">-- Aucun groupe --</option>
-                                        ${groups
-                                          .map(
-                                            (g) =>
-                                              `<option value="${g}" ${
-                                                assignedGroup === g
-                                                  ? "selected"
-                                                  : ""
-                                              }>${g}</option>`,
-                                          )
-                                          .join("")}
-                                      </select>
-                                    </td>
-                                    <td><button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button></td>
-                                  </tr>`;
+                                        <td><strong>${client}</strong></td>
+                                        <td>
+                                          <select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;">
+                                            <option value="">-- Aucun groupe --</option>
+                                            ${groups
+                                              .map(
+                                                (g) =>
+                                                  `<option value="${g}" ${
+                                                    assignedGroup === g
+                                                      ? "selected"
+                                                      : ""
+                                                  }>${g}</option>`,
+                                              )
+                                              .join("")}
+                                          </select>
+                                        </td>
+                                        <td><button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button></td>
+                                      </tr>`;
           });
         }
 
@@ -2400,17 +2400,17 @@
         const cats = Object.keys(transportConfigCategorie).sort();
 
         let html = `<h3>Gestion des Catégories</h3>
-                                    <ul style="list-style: none; padding: 0; max-width: 400px;">`;
+                                        <ul style="list-style: none; padding: 0; max-width: 400px;">`;
 
         cats.forEach((cat) => {
           html += `
-                                <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;">
-                                    <span>${cat}</span>
-                                    <button onclick="deleteCategorie('${cat}')"
-                                            style="color: white; background: #dc3545; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
-                                        Supprimer
-                                    </button>
-                                </li>`;
+                                    <li style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;">
+                                        <span>${cat}</span>
+                                        <button onclick="deleteCategorie('${cat}')"
+                                                style="color: white; background: #dc3545; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+                                            Supprimer
+                                        </button>
+                                    </li>`;
         });
 
         html += `</ul>`;
@@ -2862,43 +2862,45 @@
 
             // BLOC DE GAUCHE (NOM + BOUTON SUPPRIMER)
             const leftBlockHTML = `
-                            <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
-                                <strong>${entry}</strong><br>
+                                <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
+                                    <strong>${entry}</strong><br>
 
-                                <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
+                                    <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
 
-                                <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-                                    <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
-                                    ${categories
-                                      .map((cat) => {
-                                        let valIndice = 0;
-                                        if (
-                                          transportConfigGroupInfo[entry] &&
-                                          transportConfigGroupInfo[entry][cat]
-                                        ) {
-                                          const data =
-                                            transportConfigGroupInfo[entry][
-                                              cat
-                                            ];
-                                          valIndice =
-                                            typeof data === "object"
-                                              ? data[moisAnnee] || 0
-                                              : data;
-                                        }
-                                        return `
-                                        <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
-                                                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                                                    <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
-                                                    <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
-                                                  </div>                            
-                                                  <input type="number" step="0.01" value="${valIndice !== 0 ? valIndice : ""}"
-                                                  onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
-                                                  style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
-                                        </div>`;
-                                      })
-                                      .join("")}
-                                </div>
-                            </td>`;
+                                    <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
+                                        <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
+                                        ${categories
+                                          .map((cat) => {
+                                            let valIndice = 0;
+                                            if (
+                                              transportConfigGroupInfo[entry] &&
+                                              transportConfigGroupInfo[entry][
+                                                cat
+                                              ]
+                                            ) {
+                                              const data =
+                                                transportConfigGroupInfo[entry][
+                                                  cat
+                                                ];
+                                              valIndice =
+                                                typeof data === "object"
+                                                  ? data[moisAnnee] || 0
+                                                  : data;
+                                            }
+                                            return `
+                                            <div style="margin-bottom:8px; text-align:left; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+                                                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        <label style="font-size: 0.75em; color:#333; font-weight: bold;">${cat} (%) :</label>
+                                                        <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:10px;">X</button>
+                                                      </div>
+                                                      <input type="number" step="0.01" value="${valIndice !== 0 ? valIndice : ""}"
+                                                      onchange="updateGroupCatIndice('${entry}', '${cat}', this.value)"
+                                                      style="width:100%; padding: 3px; font-size:0.85em; text-align: center;">
+                                            </div>`;
+                                          })
+                                          .join("")}
+                                    </div>
+                                </td>`;
 
             // LIGNES DE MATÉRIELS
             keys.forEach((k, idx) => {
@@ -2926,29 +2928,29 @@
               }
 
               html += `<tr>
-                        ${idx === 0 ? leftBlockHTML : ""}
-                        <td style="text-align:left; padding-left:10px;">
-                            <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
-                                <option value="">-- Sans --</option>
-                                ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
-                            </select>
-                        </td>
-                        <td>${k}</td>
-                        <td>
-                            <input type="number" step="0.01" value="${val.tarif || 0}"
-                                  onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
-                                  style="width:100%;">
-                        </td>
-                        <td>
-                            <input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : ""}"
-                                  placeholder="${isUsingCategory ? "Hérité" : ""}"
-                                  onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
-                                  style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
-                        </td>
-                        <td>
-                            <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
-                        </td>
-                    </tr>`;
+                            ${idx === 0 ? leftBlockHTML : ""}
+                            <td style="text-align:left; padding-left:10px;">
+                                <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
+                                    <option value="">-- Sans --</option>
+                                    ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
+                                </select>
+                            </td>
+                            <td>${k}</td>
+                            <td>
+                                <input type="number" step="0.01" value="${val.tarif || 0}"
+                                      onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
+                                      style="width:100%;">
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : ""}"
+                                      placeholder="${isUsingCategory ? "Hérité" : ""}"
+                                      onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
+                                      style="width:100%; ${isUsingCategory ? "color: #1a73e8; font-style: italic; background: #f1f3f4;" : "font-weight: bold;"}">
+                            </td>
+                            <td>
+                                <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
+                            </td>
+                        </tr>`;
             });
           });
         }
@@ -3067,9 +3069,9 @@
         } else {
           sortedEntries.forEach((entry) => {
             html += `<tr>
-                                      <td class="client-header">${entry}</td>
-                                      <td><button class="btn btn-reset" onclick="deleteChauffeur('${entry}')">Suppr. Chauffeur</button></td>
-                                      </tr>`;
+                                          <td class="client-header">${entry}</td>
+                                          <td><button class="btn btn-reset" onclick="deleteChauffeur('${entry}')">Suppr. Chauffeur</button></td>
+                                          </tr>`;
           });
         }
 
@@ -3178,11 +3180,7 @@
         dl.innerHTML = "";
 
         Object.keys(transportConfigTelephone)
-          .sort((a, b) =>
-            (transportConfigTelephone[a].client || "").localeCompare(
-              transportConfigTelephone[b].client || "",
-            ),
-          )
+          .sort((a, b) => a.localeCompare(b))
           .forEach((name) => {
             const data = transportConfigTelephone[name];
             const opt = document.createElement("option");
@@ -3224,15 +3222,15 @@
         if (!container) return;
 
         let html = `<table class="config-table" style="width:100%; table-layout: fixed; border-collapse: collapse;">
-                        <thead>
-                          <tr>
-                            <th style="width: 25%;">Client</th>
-                            <th style="width: 25%;">Contact</th>
-                            <th style="width: 30%;">Numéro de Téléphone</th>
-                            <th style="width: 20%;">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody>`;
+                            <thead>
+                              <tr>
+                                <th style="width: 25%;">Client</th>
+                                <th style="width: 25%;">Contact</th>
+                                <th style="width: 30%;">Numéro de Téléphone</th>
+                                <th style="width: 20%;">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>`;
 
         const contacts = Object.keys(transportConfigTelephone).sort((a, b) => {
           const clientA = transportConfigTelephone[a].client || "";
@@ -3248,13 +3246,13 @@
             const client = transportConfigTelephone[name].client || ""; // On récupère le nom du client
 
             html += `<tr>
-                              <td style="padding: 8px;" contenteditable="true" onblur="updateClientInConfig('${name}', this.innerText)">${client}</td>
-                              <td style="padding: 8px;" contenteditable="true" onblur="updateNameInConfig('${name}', this.innerText)">${name}</td>
-                              <td style="text-align: center;" contenteditable="true" onblur="updateTelInConfig('${name}', this.innerText)">${tel}</td>
-                              <td style="text-align: center;">
-                                <button onclick="deleteTelephone('${name}')" class="btn-delete">Supprimer</button>
-                              </td>
-                          </tr>`;
+                                  <td style="padding: 8px;" contenteditable="true" onblur="updateClientInConfig('${name}', this.innerText)">${client}</td>
+                                  <td style="padding: 8px;" contenteditable="true" onblur="updateNameInConfig('${name}', this.innerText)">${name}</td>
+                                  <td style="text-align: center;" contenteditable="true" onblur="updateTelInConfig('${name}', this.innerText)">${tel}</td>
+                                  <td style="text-align: center;">
+                                    <button onclick="deleteTelephone('${name}')" class="btn-delete">Supprimer</button>
+                                  </td>
+                              </tr>`;
           });
         }
         html += `</tbody></table>`;
@@ -3776,25 +3774,30 @@
         return "";
       }
 
-      /**
-       * Affiche le téléphone sur deux lignes : nom + numéro
-       */
       function displayTelephoneInCell(td, fullValue) {
         const contactName = extractContactName(fullValue);
-        const phoneNumber = extractPhoneNumber(fullValue);
 
         if (!contactName) {
           td.innerHTML = `<input class="combo-input select-telephone" list="list-telephone" value="" placeholder="Contact...">`;
           return;
         }
 
+        // ✅ Chercher le numéro directement dans la config
+        let phoneNumber = "";
+        if (transportConfigTelephone[contactName]) {
+          phoneNumber = transportConfigTelephone[contactName].numero || "";
+        } else if (fullValue.includes(" - ")) {
+          // Si fullValue contient déjà le numéro (format "NOM - NUMERO")
+          phoneNumber = extractPhoneNumber(fullValue);
+        }
+
         // ✅ Affichage sur deux lignes avec le numéro en dessous
         td.innerHTML = `
-    <div class="telephone-wrapper">
-      <input class="combo-input select-telephone" list="list-telephone" value="${contactName}" placeholder="Contact...">
-      ${phoneNumber ? `<div class="telephone-number">${phoneNumber}</div>` : ""}
-    </div>
-  `;
+              <div class="telephone-wrapper">
+                <input class="combo-input select-telephone" list="list-telephone" value="${contactName}" placeholder="Contact...">
+                ${phoneNumber ? `<div class="telephone-number">${phoneNumber}</div>` : ""}
+              </div>
+            `;
       }
 
       function ajouterLigne(data = null) {
@@ -3824,50 +3827,50 @@
         const valComm = data ? data.commentaire : "Commentaire...";
 
         tr.innerHTML = `
-            <td class="matos-cell">
-                <input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé...">
-            </td>
-            <td contenteditable="true">${data ? data.matin : "0.5"}</td>
-            <td contenteditable="true">${data ? data.apres : "0.5"}</td>
+                <td class="matos-cell">
+                    <input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé...">
+                </td>
+                <td contenteditable="true">${data ? data.matin : "0.5"}</td>
+                <td contenteditable="true">${data ? data.apres : "0.5"}</td>
 
-            <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
+                <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
 
-            <td contenteditable="true">${data && data.date && data.date.includes("/20") ? data.date.replace("/20", "/") : data ? data.date : dateFormatee}</td>
-            
-            <td class="matos-cell">
-                <input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" placeholder="Véhicule...">
-            </td>
-            <td class="matos-cell">
-                <input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" placeholder="Client...">
-            </td>
-            
-            <td class="matos-cell col-telephone" data-telephone-full="${data ? data.telephone : ""}">
-                <input class="combo-input select-telephone" list="list-telephone" value="${data ? extractContactName(data.telephone) : ""}" placeholder="Contact...">
-            </td>
+                <td contenteditable="true">${data && data.date && data.date.includes("/20") ? data.date.replace("/20", "/") : data ? data.date : dateFormatee}</td>
 
-            <td contenteditable="true" class="col-consigne ${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
+                <td class="matos-cell">
+                    <input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" placeholder="Véhicule...">
+                </td>
+                <td class="matos-cell">
+                    <input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" placeholder="Client...">
+                </td>
 
-            <td class="matos-cell">
-                <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur...">
-            </td>
+                <td class="matos-cell col-telephone" data-telephone-full="${data ? data.telephone : ""}">
+                    <input class="combo-input select-telephone" list="list-telephone" value="${data ? extractContactName(data.telephone) : ""}" placeholder="Contact...">
+                </td>
 
-            <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
-            <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
-            <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
+                <td contenteditable="true" class="col-consigne ${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
 
-            <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
-            <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
-            <td class="cell-IC-client" contenteditable="true" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
-            <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"}</td>
-            <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
-            <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
+                <td class="matos-cell">
+                    <input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur...">
+                </td>
 
-            <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
-            <td class="hide-export" style="text-align:center; white-space:nowrap;">
-                <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
-                <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
-            </td>
-        `;
+                <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
+                <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
+                <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
+
+                <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
+                <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
+                <td class="cell-IC-client" contenteditable="true" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
+                <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"}</td>
+                <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
+                <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
+
+                <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
+                <td class="hide-export" style="text-align:center; white-space:nowrap;">
+                    <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
+                    <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
+                </td>
+            `;
 
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
           cell.addEventListener("input", () => {
@@ -4082,10 +4085,33 @@
               }
             });
           }
-
           // ✅ AJOUT : Restaurer le snapshot s'il existe
           if (data.snapshot) {
             tr.dataset.snapshot = JSON.stringify(data.snapshot);
+          }
+          if (data.telephone) {
+            const telTd = tr.querySelector(".col-telephone");
+            if (telTd) {
+              displayTelephoneInCell(telTd, data.telephone);
+
+              // ✅ Réattacher l'event listener sur le nouvel input
+              const newInput = telTd.querySelector(".select-telephone");
+              if (newInput) {
+                newInput.addEventListener("change", () => {
+                  const contactName = newInput.value.trim();
+                  if (transportConfigTelephone[contactName]) {
+                    const phoneNumber =
+                      transportConfigTelephone[contactName].numero || "";
+                    const fullValue = phoneNumber
+                      ? `${contactName} - ${phoneNumber}`
+                      : contactName;
+                    telTd.setAttribute("data-telephone-full", fullValue);
+                    displayTelephoneInCell(telTd, fullValue);
+                  }
+                  saveCurrentDay();
+                });
+              }
+            }
           }
         } else {
           tr.style.backgroundColor = "";
