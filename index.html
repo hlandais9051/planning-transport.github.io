@@ -3202,7 +3202,7 @@
       function calculerTotal() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[13].textContent
+          const content = tr.cells[11].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3215,7 +3215,7 @@
       function calculerTotalSupplement_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[14].textContent
+          const content = tr.cells[12].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3228,7 +3228,7 @@
       function calculerTotalIC_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[15].textContent
+          const content = tr.cells[13].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3266,7 +3266,7 @@
       function calculerTotalAffrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[16].textContent
+          const content = tr.cells[14].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3279,7 +3279,7 @@
       function calculerTotalSupplement_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[17].textContent
+          const content = tr.cells[15].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3292,7 +3292,7 @@
       function calculerTotalIC_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[18].textContent
+          const content = tr.cells[16].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -5268,6 +5268,7 @@
       <button
         onclick="toggleHelp()"
         class="btn-help-circle"
+        style="margin-left: 15px"
         title="Aide et Astuces"
       >
         ?
