@@ -193,9 +193,6 @@
       .col-associe {
         width: 5%;
       }
-      .col-temps {
-        width: 2%;
-      }
       .col-chantier {
         width: 10%;
       }
@@ -206,7 +203,7 @@
         width: 10%;
       }
       .col-client {
-        width: 15%;
+        width: 11%;
       }
       .col-telephone {
         width: 6%;
@@ -987,6 +984,91 @@
         Réinitialiser
       </button>
 
+      <div
+        id="color-picker-tools"
+        class="hide-export"
+        style="
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          background: #fff;
+          padding: 5px 10px;
+          border-radius: 20px;
+          border: 1px solid #ddd;
+        "
+      >
+        <small style="color: #666; font-weight: bold; margin-right: 5px"
+          >MARQUER :</small
+        >
+        <div
+          onclick="setColorToSelectedRow('#ffffff')"
+          style="
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            border-radius: 3px;
+          "
+          title="Effacer"
+        ></div>
+        <div
+          onclick="setColorToSelectedRow('#ffee00')"
+          style="
+            width: 20px;
+            height: 20px;
+            background: #ffee00;
+            cursor: pointer;
+            border-radius: 3px;
+          "
+          title="Prise de commande"
+        ></div>
+        <div
+          onclick="setColorToSelectedRow('#ffae00')"
+          style="
+            width: 20px;
+            height: 20px;
+            background: #ffae00;
+            cursor: pointer;
+            border-radius: 3px;
+          "
+          title="Réduction"
+        ></div>
+        <div
+          onclick="setColorToSelectedRow('#ff0000')"
+          style="
+            width: 20px;
+            height: 20px;
+            background: #ff0000;
+            cursor: pointer;
+            border-radius: 3px;
+          "
+          title="Intempéries"
+        ></div>
+        <div
+          onclick="setColorToSelectedRow('#b700ff')"
+          style="
+            width: 20px;
+            height: 20px;
+            background: #b700ff;
+            cursor: pointer;
+            border-radius: 3px;
+          "
+          title="Violet"
+        ></div>
+        <div
+          onclick="setColorToSelectedRow('#ff00d4')"
+          style="
+            width: 20px;
+            height: 20px;
+            background: #ff00d4;
+            cursor: pointer;
+            border-radius: 3px;
+          "
+          title="Rose"
+        ></div>
+      </div>
+
       <div style="flex-grow: 1"></div>
 
       <div>
@@ -1012,99 +1094,12 @@
         "
       >
         <h2 id="display-date" style="margin: 0">Planning du ...</h2>
-
-        <div
-          id="color-picker-tools"
-          class="hide-export"
-          style="
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            background: #fff;
-            padding: 5px 10px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-          "
-        >
-          <small style="color: #666; font-weight: bold; margin-right: 5px"
-            >MARQUER :</small
-          >
-          <div
-            onclick="setColorToSelectedRow('#ffffff')"
-            style="
-              width: 20px;
-              height: 20px;
-              background: #fff;
-              border: 1px solid #ccc;
-              cursor: pointer;
-              border-radius: 3px;
-            "
-            title="Effacer"
-          ></div>
-          <div
-            onclick="setColorToSelectedRow('#ffee00')"
-            style="
-              width: 20px;
-              height: 20px;
-              background: #ffee00;
-              cursor: pointer;
-              border-radius: 3px;
-            "
-            title="Prise de commande"
-          ></div>
-          <div
-            onclick="setColorToSelectedRow('#ffae00')"
-            style="
-              width: 20px;
-              height: 20px;
-              background: #ffae00;
-              cursor: pointer;
-              border-radius: 3px;
-            "
-            title="Réduction"
-          ></div>
-          <div
-            onclick="setColorToSelectedRow('#ff0000')"
-            style="
-              width: 20px;
-              height: 20px;
-              background: #ff0000;
-              cursor: pointer;
-              border-radius: 3px;
-            "
-            title="Intempéries"
-          ></div>
-          <div
-            onclick="setColorToSelectedRow('#b700ff')"
-            style="
-              width: 20px;
-              height: 20px;
-              background: #b700ff;
-              cursor: pointer;
-              border-radius: 3px;
-            "
-            title="Violet"
-          ></div>
-          <div
-            onclick="setColorToSelectedRow('#ff00d4')"
-            style="
-              width: 20px;
-              height: 20px;
-              background: #ff00d4;
-              cursor: pointer;
-              border-radius: 3px;
-            "
-            title="Rose"
-          ></div>
-        </div>
       </div>
       <div class="table-container">
         <table id="my-table">
           <thead>
             <tr>
               <th class="col-associe">Associé</th>
-              <th class="col-temps">Matin</th>
-              <th class="col-temps">A-M</th>
               <th class="col-chantier">Chantier</th>
               <th class="col-date">Date</th>
               <th class="col-matos">Matériel</th>
@@ -1399,28 +1394,46 @@
             "Contact...",
           ];
           const cp = (v) => (PH.includes((v || "").trim()) ? "" : v || "");
+
+          const associeVal = cp(tr.querySelector(".select-associe")?.value);
+          const chantierVal = cp(tr.cells[1]?.innerText);
+          const vehiculeVal = cp(tr.querySelector(".select-vehicule")?.value);
+          const clientVal = cp(tr.querySelector(".select-client")?.value);
+          const consigneVal = cp(tr.cells[6]?.innerText);
+          const chauffeurVal = cp(tr.querySelector(".select-chauffeur")?.value);
+          const NcommandeVal = cp(tr.cells[8]?.innerText);
+          const NchantierVal = cp(tr.cells[9]?.innerText);
+
+          if (
+            !associeVal &&
+            !chantierVal &&
+            !vehiculeVal &&
+            !clientVal &&
+            !consigneVal &&
+            !chauffeurVal &&
+            !NcommandeVal &&
+            !NchantierVal
+          )
+            return;
           lignes.push({
-            associe: cp(tr.querySelector(".select-associe")?.value),
-            matin: tr.cells[1]?.innerText || "",
-            apres: tr.cells[2]?.innerText || "",
-            chantier: cp(tr.cells[3]?.innerText),
-            date: tr.cells[4]?.innerText || "",
-            vehicule: cp(tr.querySelector(".select-vehicule")?.value),
-            client: cp(tr.querySelector(".select-client")?.value),
+            associe: associeVal,
+            chantier: chantierVal,
+            date: tr.cells[2]?.innerText || "",
+            vehicule: vehiculeVal,
+            client: clientVal,
             telephoneNom: contactName,
             telephoneNumero: phoneNumber,
-            consigne: cp(tr.cells[8]?.innerText),
-            chauffeur: cp(tr.querySelector(".select-chauffeur")?.value),
-            n_commande: cp(tr.cells[10]?.innerText),
-            n_chantier: cp(tr.cells[11]?.innerText),
-            n_bon: cp(tr.cells[12]?.innerText),
+            consigne: consigneVal,
+            chauffeur: chauffeurVal,
+            n_commande: NcommandeVal,
+            n_chantier: NchantierVal,
             couleur: tr.style.backgroundColor || "",
           });
         });
         const titre = document.getElementById("display-date").innerText;
         const fenetreImpression = window.open("", "", "height=600,width=800");
         fenetreImpression.document.write(
-          `<html><head><title>Impression Planning</title><style>body{font-family:sans-serif;margin:20px;}h2{text-align:center;}table{border-collapse:collapse;width:100%;font-size:11px;}th,td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top;}th{background-color:#007bff!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.telephone-cell{white-space:normal;line-height:1.3;}.telephone-name{font-size:11px;color:#000;}.telephone-number{font-size:10px;color:#666;font-style:italic;}@media print{th{background-color:#007bff!important;color:white!important;}}</style></head><body><h2>${titre}</h2><table><thead><tr><th>Associé</th><th>Matin</th><th>A-M</th><th>Chantier</th><th>Véhicule</th><th>Client</th><th>Contact</th><th>Consigne</th><th>Chauffeur</th><th>N° Commande</th><th>N° Chantier</th><th>N° Bon</th></tr></thead><tbody>`,
+          `<html><head><title>Impression Planning</title><style>body{font-family:sans-serif;margin:20px;}h2{text-align:center;}table{border-collapse:collapse;width:100%;font-size:11px;}th,td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top;}th{background-color:#007bff!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.telephone-cell{white-space:normal;line-height:1.3;}.telephone-name{font-size:11px;color:#000;}.telephone-number{font-size:11px;color:#000;font-style:italic;}@media print{th{background-color:#007bff!important;color:white!important;}}</style></head><body><h2>${titre}</h2><table><thead><tr><th>Associé</th><th>Chantier</th><th>Véhicule</th><th>Client</th><th>Contact</th><th>Consigne</th><th>Chauffeur</th><th>N° Commande</th><th>N° Chantier</th></tr></thead><tbody>`,
         );
         lignes.forEach((ligne) => {
           const bgColor = ligne.couleur
@@ -1433,7 +1446,7 @@
               telephoneHTML += `<div class="telephone-number">${ligne.telephoneNumero}</div>`;
           }
           fenetreImpression.document.write(
-            `<tr${bgColor}><td>${ligne.associe}</td><td>${ligne.matin}</td><td>${ligne.apres}</td><td>${ligne.chantier}</td><td>${ligne.vehicule}</td><td>${ligne.client}</td><td class="telephone-cell">${telephoneHTML}</td><td>${ligne.consigne}</td><td>${ligne.chauffeur}</td><td>${ligne.n_commande}</td><td>${ligne.n_chantier}</td><td>${ligne.n_bon}</td></tr>`,
+            `<tr${bgColor}><td>${ligne.associe}</td><td>${ligne.chantier}</td><td>${ligne.vehicule}</td><td>${ligne.client}</td><td class="telephone-cell">${telephoneHTML}</td><td>${ligne.consigne}</td><td>${ligne.chauffeur}</td><td>${ligne.n_commande}</td><td>${ligne.n_chantier}</td></tr>`,
           );
         });
         fenetreImpression.document.write(`</tbody></table></body></html>`);
@@ -3385,10 +3398,8 @@
 
           rows.push({
             associe: tr.querySelector(".select-associe").value,
-            matin: tr.cells[1].innerText,
-            apres: tr.cells[2].innerText,
-            chantier: tr.cells[3].innerText,
-            date: tr.cells[4].innerText,
+            chantier: tr.cells[1].innerText,
+            date: tr.cells[2].innerText,
             vehicule: tr.querySelector(".select-vehicule").value,
             client: tr.querySelector(".select-client").value,
             telephone:
@@ -3397,18 +3408,18 @@
                 ?.getAttribute("data-telephone-full") ||
               tr.querySelector(".select-telephone")?.value ||
               "",
-            consigne: tr.cells[8].innerText,
+            consigne: tr.cells[6].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[10].innerText,
-            n_chantier: tr.cells[11].innerText,
-            n_bon: tr.cells[12].innerText,
-            tarif: tr.cells[13].innerText,
-            supplement_client: tr.cells[14].innerText,
-            IC_client: tr.cells[15].innerText,
-            tarif_affrete: tr.cells[16].innerText,
-            supplement_affrete: tr.cells[17].innerText,
-            IC_affrete: tr.cells[18].innerText,
-            commentaire: tr.cells[19].innerText,
+            n_commande: tr.cells[8].innerText,
+            n_chantier: tr.cells[9].innerText,
+            n_bon: tr.cells[10].innerText,
+            tarif: tr.cells[11].innerText,
+            supplement_client: tr.cells[12].innerText,
+            IC_client: tr.cells[13].innerText,
+            tarif_affrete: tr.cells[14].innerText,
+            supplement_affrete: tr.cells[15].innerText,
+            IC_affrete: tr.cells[16].innerText,
+            commentaire: tr.cells[17].innerText,
 
             snapshot: snapshot,
             couleurs_cellules:
@@ -3745,8 +3756,6 @@
           <td class="matos-cell">
             <input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé...">
           </td>
-          <td contenteditable="true">${data ? data.matin : "0.5"}</td>
-          <td contenteditable="true">${data ? data.apres : "0.5"}</td>
 
           <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
 
@@ -4073,25 +4082,23 @@
 
         const data = {
           associe: ligne.querySelector(".select-associe").value,
-          matin: ligne.cells[1].innerText,
-          apres: ligne.cells[2].innerText,
-          chantier: ligne.cells[3].innerText,
-          date: ligne.cells[4].innerText,
+          chantier: ligne.cells[1].innerText,
+          date: ligne.cells[2].innerText,
           vehicule: ligne.querySelector(".select-vehicule").value,
           client: ligne.querySelector(".select-client").value,
           telephone: ligne.querySelector(".select-telephone").value,
-          consigne: ligne.cells[8].innerText,
+          consigne: ligne.cells[6].innerText,
           chauffeur: ligne.querySelector(".select-chauffeur").value,
-          n_commande: ligne.cells[10].innerText,
-          n_chantier: ligne.cells[11].innerText,
-          n_bon: ligne.cells[12].innerText,
-          tarif: ligne.cells[13].innerText,
-          supplement_client: ligne.cells[14].innerText,
-          IC_client: ligne.cells[15].innerText,
-          tarif_affrete: ligne.cells[16].innerText,
-          supplement_affrete: ligne.cells[17].innerText,
-          IC_affrete: ligne.cells[18].innerText,
-          commentaire: ligne.cells[19].innerText,
+          n_commande: ligne.cells[8].innerText,
+          n_chantier: ligne.cells[9].innerText,
+          n_bon: ligne.cells[10].innerText,
+          tarif: ligne.cells[11].innerText,
+          supplement_client: ligne.cells[12].innerText,
+          IC_client: ligne.cells[13].innerText,
+          tarif_affrete: ligne.cells[14].innerText,
+          supplement_affrete: ligne.cells[15].innerText,
+          IC_affrete: ligne.cells[16].innerText,
+          commentaire: ligne.cells[17].innerText,
         };
 
         ajouterLigne(data);
@@ -4108,25 +4115,23 @@
         document.querySelectorAll("#table-body tr").forEach((tr) => {
           rows.push({
             associe: tr.querySelector(".select-associe").value,
-            matin: tr.cells[1].innerText,
-            apres: tr.cells[2].innerText,
-            chantier: tr.cells[3].innerText,
-            date: tr.cells[4].innerText,
+            chantier: tr.cells[1].innerText,
+            date: tr.cells[2].innerText,
             vehicule: tr.querySelector(".select-vehicule").value,
             client: tr.querySelector(".select-client").value,
             telephone: tr.querySelector(".select-telephone").value,
-            consigne: tr.cells[8].innerText,
+            consigne: tr.cells[6].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[10].innerText,
-            n_chantier: tr.cells[11].innerText,
-            n_bon: tr.cells[12].innerText,
-            tarif: tr.cells[13].innerText,
-            supplement_client: tr.cells[14].innerText,
-            IC_client: tr.cells[15].innerText,
-            tarif_affrete: tr.cells[16].innerText,
-            supplement_affrete: tr.cells[17].innerText,
-            IC_affrete: tr.cells[18].innerText,
-            commentaire: tr.cells[19].innerText,
+            n_commande: tr.cells[8].innerText,
+            n_chantier: tr.cells[9].innerText,
+            n_bon: tr.cells[10].innerText,
+            tarif: tr.cells[11].innerText,
+            supplement_client: tr.cells[12].innerText,
+            IC_client: tr.cells[13].innerText,
+            tarif_affrete: tr.cells[14].innerText,
+            supplement_affrete: tr.cells[15].innerText,
+            IC_affrete: tr.cells[16].innerText,
+            commentaire: tr.cells[17].innerText,
           });
         });
 
@@ -4812,8 +4817,6 @@
 
             const headers = [
               "Associé",
-              "Matin",
-              "A-M",
               "Chantier",
               "Date Chantier",
               "Véhicule",
@@ -4938,8 +4941,6 @@
 
                 const rowData = [
                   clean(row.associe, "Associé..."),
-                  row.matin,
-                  row.apres,
                   clean(row.chantier, "Chantier..."),
                   row.date,
                   clean(row.vehicule, "Véhicule..."),
