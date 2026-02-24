@@ -1288,16 +1288,24 @@
 
         const k = parseFloat(base["k_" + annee]) || 0;
         const c0 = parseFloat(base["c0_" + annee]) || 0;
-        const cm1Global =
-          transportConfigGroupInfo["GLOBAL_SETTINGS"]?.["ALL"]?.[
-            "cm1_" + moisAnnee
-          ];
-        const cm1 =
-          cm1Global !== undefined
-            ? parseFloat(cm1Global)
-            : parseFloat(base["cm1_" + moisAnnee]) || 0;
+        const usesCM =
+          transportConfigGroupInfo[groupOrAssocie]?.["_useCM_" + cat] === true;
 
-        return { k, cm1, c0 };
+        let cm1;
+        if (usesCM) {
+          cm1 = parseFloat(base["cm1_" + moisAnnee]) || 0;
+        } else {
+          const cm1Global =
+            transportConfigGroupInfo["GLOBAL_SETTINGS"]?.["ALL"]?.[
+              "cm1_" + moisAnnee
+            ];
+          cm1 =
+            cm1Global !== undefined
+              ? parseFloat(cm1Global)
+              : parseFloat(base["cm1_" + moisAnnee]) || 0;
+        }
+
+        return { k, cm1, c0, usesCM };
       }
 
       function setCatValue(groupOrAssocie, cat, field, value) {
@@ -1311,18 +1319,26 @@
           transportConfigGroupInfo[groupOrAssocie][cat] = {};
         }
 
-        if (field === "cm1") {
-          // Sauvegarde dans un emplacement UNIQUE pour tout le mois
-          if (!transportConfigGroupInfo["GLOBAL_SETTINGS"])
-            transportConfigGroupInfo["GLOBAL_SETTINGS"] = {};
-          if (!transportConfigGroupInfo["GLOBAL_SETTINGS"]["ALL"])
-            transportConfigGroupInfo["GLOBAL_SETTINGS"]["ALL"] = {};
+        const usesCM =
+          transportConfigGroupInfo[groupOrAssocie]?.["_useCM_" + cat] === true;
 
-          transportConfigGroupInfo["GLOBAL_SETTINGS"]["ALL"][
-            "cm1_" + moisAnnee
-          ] = parseFloat(value) || 0;
+        if (field === "cm1") {
+          if (usesCM) {
+            transportConfigGroupInfo[groupOrAssocie][cat]["cm1_" + moisAnnee] =
+              parseFloat(value) || 0;
+          } else {
+            if (!transportConfigGroupInfo["GLOBAL_SETTINGS"])
+              transportConfigGroupInfo["GLOBAL_SETTINGS"] = {};
+            if (!transportConfigGroupInfo["GLOBAL_SETTINGS"]["ALL"])
+              transportConfigGroupInfo["GLOBAL_SETTINGS"]["ALL"] = {};
+            transportConfigGroupInfo["GLOBAL_SETTINGS"]["ALL"][
+              "cm1_" + moisAnnee
+            ] = parseFloat(value) || 0;
+          }
+        } else if (field === "useCM") {
+          transportConfigGroupInfo[groupOrAssocie]["_useCM_" + cat] =
+            value === true;
         } else {
-          // Reste inchangé pour K et C0
           let storageKey = field === "k" ? "k_" + annee : "c0_" + annee;
           transportConfigGroupInfo[groupOrAssocie][cat][storageKey] =
             parseFloat(value) || 0;
@@ -2128,6 +2144,28 @@
         refreshAllPlanningTarifs();
       }
 
+      function toggleUseCM(groupOrAssocie, cat, checked) {
+        setCatValue(groupOrAssocie, cat, "useCM", checked);
+
+        localStorage.setItem(
+          "transportConfigGroupInfo",
+          JSON.stringify(transportConfigGroupInfo),
+        );
+
+        renderConfigUI();
+        renderConfigUI2();
+        refreshAllPlanningTarifs();
+
+        const sn = document.getElementById("save-notif");
+        if (sn) {
+          sn.textContent = checked
+            ? `"${groupOrAssocie}" utilise désormais CM (mois actuel) pour ${cat}`
+            : `"${groupOrAssocie}" utilise désormais CM-1 (mois précédent) pour ${cat}`;
+          sn.style.display = "inline";
+          setTimeout(() => (sn.style.display = "none"), 3000);
+        }
+      }
+
       // ============================================================
       // Bloc HTML de rendu d'une catégorie (partagé entre renderConfigUI et renderConfigUI2)
       // ============================================================
@@ -2138,6 +2176,12 @@
           catInfo.cm1,
           catInfo.c0,
         );
+
+        const usesCM = catInfo.usesCM;
+        const cmLabel = usesCM ? "CM" : "CM-1";
+        const cmColor = usesCM ? "#7b2d8b" : "#e67e00";
+        const cmBg = usesCM ? "#f9f0ff" : "#fff8ee";
+        const cmBorder = usesCM ? "#7b2d8b" : "#e67e00";
 
         return `
           <div style="margin-bottom:12px; text-align:left; border-bottom: 1px solid #ddd; padding-bottom: 8px; background: #f9f9f9; padding: 8px; border-radius: 4px;">
@@ -2165,15 +2209,24 @@
               </div>
             </div>
 
-            <!-- CM-1 (mensuel) -->
-            <div style="background:#fff8ee; border-radius:4px; padding:6px; margin-bottom:6px;">
-              <div style="font-size:10px; color:#555; font-weight:bold; margin-bottom:4px;">📆 Valeur mensuelle (${moisAnnee})</div>
+            <!-- CM ou CM-1 (mensuel) -->
+            <div style="background:${cmBg}; border-radius:4px; padding:6px; margin-bottom:6px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <div style="font-size:10px; color:#555; font-weight:bold;">📆 Valeur mensuelle (${moisAnnee})</div>
+                <label style="font-size:10px; cursor:pointer; display:flex; align-items:center; gap:4px; color:${cmColor}; font-weight:bold;"
+                  title="Cochez si ce groupe utilise le CM du mois actuel plutôt que le CM-1 du mois précédent">
+                  <input type="checkbox" ${usesCM ? "checked" : ""}
+                    onchange="toggleUseCM('${groupOrAssocie}', '${cat}', this.checked)"
+                    style="cursor:pointer;">
+                  Utilise CM (mois actuel)
+                </label>
+              </div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                 <div>
-                  <label style="font-size: 11px; color:#e67e00; display: block; margin-bottom: 3px; font-weight:bold;">CM-1</label>
+                  <label style="font-size: 11px; color:${cmColor}; display: block; margin-bottom: 3px; font-weight:bold;">${cmLabel}</label>
                   <input type="number" step="0.01" value="${catInfo.cm1 !== 0 ? catInfo.cm1 : ""}"
                     onchange="updateCategoryValue('${groupOrAssocie}', '${cat}', 'cm1', this.value)"
-                    style="width:100%; padding: 5px; font-size:0.9em; text-align: center; border: 2px solid #e67e00; border-radius: 3px; background:#fff8ee;">
+                    style="width:100%; padding: 5px; font-size:0.9em; text-align: center; border: 2px solid ${cmBorder}; border-radius: 3px; background:${cmBg};">
                 </div>
                 <div>
                   <label style="font-size: 11px; color:#666; display: block; margin-bottom: 3px;">📊 Indice (%)</label>
