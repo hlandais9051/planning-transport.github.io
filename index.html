@@ -1701,11 +1701,11 @@
 
               if (td.classList.contains("col-consigne")) {
                 val = "Consigne : " + val;
-              } else if (cellIndex === 10) {
+              } else if (cellIndex === 8) {
                 val = "N° Commande : " + val;
-              } else if (cellIndex === 11) {
+              } else if (cellIndex === 9) {
                 val = "N° Chantier : " + val;
-              } else if (cellIndex === 12) {
+              } else if (cellIndex === 10) {
                 val = "N° Bon : " + val;
               }
             }
@@ -3927,12 +3927,12 @@
             } else if (contenuSaisi === "") {
               const index = cell.cellIndex;
               const map = {
-                3: "Chantier...",
-                8: "Consigne...",
-                10: "N° Commande...",
-                11: "N° Chantier...",
-                12: "N° Bon...",
-                19: "Commentaire...",
+                1: "Chantier...",
+                6: "Consigne...",
+                8: "N° Commande...",
+                9: "N° Chantier...",
+                10: "N° Bon...",
+                17: "Commentaire...",
               };
               if (map[index]) {
                 cell.textContent = map[index];
