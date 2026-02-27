@@ -357,16 +357,22 @@
       }
       .config-table {
         width: 100%;
-        border-collapse: collapse;
+        border-collapse: separate;
+        border-spacing: 0;
         margin-bottom: 20px;
         background: white;
       }
       .config-table th,
       .config-table td {
-        border: 1px solid #ccc;
+        border-right: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
         padding: 8px;
         text-align: center;
         font-size: 0.9rem;
+      }
+      .config-table th:first-child,
+      .config-table td:first-child {
+        border-left: 1px solid #ccc;
       }
       .config-table th {
         background: #f2f2f2;
@@ -374,6 +380,7 @@
         position: sticky;
         top: 0;
         z-index: 10;
+        border-bottom: 1px solid #bbb !important;
       }
       .client-header,
       .group-header {
@@ -1260,6 +1267,8 @@
       </table>
     </div>
     <script>
+      const PILIERS_KEY = "Piliers communs";
+      const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
       const defaultMatosList = [
         "6x4",
         "8x4",
@@ -1282,6 +1291,123 @@
       function getSelectedMonth() {
         const dateValeur = document.getElementById("current-date-picker").value;
         return dateValeur ? dateValeur.substring(0, 7) : "";
+      }
+
+      function estPilier(nom) {
+        return baseAssocies.includes((nom || "").toUpperCase());
+      }
+
+      function getTarifAffretePilier(associeNom, matosNom) {
+        if (!estPilier(associeNom)) return 0;
+        const propre = transportConfigAssocie[associeNom]?.[matosNom];
+        if (propre && parseFloat(propre.tarif) > 0) {
+          return parseFloat(propre.tarif);
+        }
+        const commun = transportConfigAssocie[PILIERS_KEY]?.[matosNom];
+        return commun ? parseFloat(commun.tarif) || 0 : 0;
+      }
+
+      function getICAffreteAvecPilier(associeNom, matosNom) {
+        if (!estPilier(associeNom)) {
+          return getICAffrete(associeNom, matosNom);
+        }
+
+        const propre = transportConfigAssocie[associeNom]?.[matosNom];
+        const tarifPropre = propre ? parseFloat(propre.tarif) : 0;
+
+        let tarif, indice;
+
+        if (tarifPropre > 0) {
+          tarif = tarifPropre;
+          const indiceData = propre.indice;
+          const moisAnnee = getSelectedMonth();
+          if (typeof indiceData === "object") {
+            indice = parseFloat(indiceData[moisAnnee]) || 0;
+          } else {
+            indice = parseFloat(indiceData) || 0;
+          }
+          if (indice === 0) {
+            const cat = transportConfigMateriel[matosNom];
+            if (cat && transportConfigGroupInfo[associeNom]) {
+              const { k, cm1, c0 } = getCatValues(associeNom, cat);
+              indice = calculateIndice(k, cm1, c0);
+            }
+          }
+        } else {
+          const commun = transportConfigAssocie[PILIERS_KEY]?.[matosNom];
+          tarif = commun ? parseFloat(commun.tarif) || 0 : 0;
+          indice = 0;
+          if (commun) {
+            const moisAnnee = getSelectedMonth();
+            if (typeof commun.indice === "object") {
+              indice = parseFloat(commun.indice[moisAnnee]) || 0;
+            } else {
+              indice = parseFloat(commun.indice) || 0;
+            }
+          }
+          if (indice === 0) {
+            const cat = transportConfigMateriel[matosNom];
+            if (cat) {
+              const sourceKey = transportConfigGroupInfo[PILIERS_KEY]
+                ? PILIERS_KEY
+                : associeNom;
+              const { k, cm1, c0 } = getCatValues(sourceKey, cat);
+              indice = calculateIndice(k, cm1, c0);
+            }
+          }
+        }
+        return tarif * (indice / 100);
+      }
+
+      function initialiserPiliers() {
+        if (!transportConfigAssocie[PILIERS_KEY]) {
+          const fullMatosList = new Set(defaultMatosList);
+          for (let g in transportConfigGroup)
+            Object.keys(transportConfigGroup[g]).forEach((m) =>
+              fullMatosList.add(m),
+            );
+          for (let a in transportConfigAssocie)
+            Object.keys(transportConfigAssocie[a]).forEach((m) =>
+              fullMatosList.add(m),
+            );
+
+          transportConfigAssocie[PILIERS_KEY] = {};
+          fullMatosList.forEach((m) => {
+            let tarifInit = 0;
+            for (const p of baseAssocies) {
+              if (transportConfigAssocie[p]?.[m]?.tarif > 0) {
+                tarifInit = parseFloat(transportConfigAssocie[p][m].tarif);
+                break;
+              }
+            }
+            transportConfigAssocie[PILIERS_KEY][m] = {
+              tarif: tarifInit,
+              indice: 0,
+            };
+          });
+          localStorage.setItem(
+            "transport_config_associe",
+            JSON.stringify(transportConfigAssocie),
+          );
+        }
+      }
+
+      function pilierAOverride(pilierNom, matosNom) {
+        const propre = transportConfigAssocie[pilierNom]?.[matosNom];
+        return propre && parseFloat(propre.tarif) > 0;
+      }
+
+      function resetPilierOverride(pilierNom, matosNom) {
+        if (transportConfigAssocie[pilierNom]?.[matosNom]) {
+          transportConfigAssocie[pilierNom][matosNom].tarif = 0;
+          transportConfigAssocie[pilierNom][matosNom].indice = 0;
+        }
+        localStorage.setItem(
+          "transport_config_associe",
+          JSON.stringify(transportConfigAssocie),
+        );
+        renderConfigUI2();
+        refreshAllPlanningTarifs();
       }
 
       function getCatValues(groupOrAssocie, cat) {
@@ -1898,7 +2024,6 @@
         if (!list) return;
 
         const options = Array.from(list.options);
-        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
 
         options.sort((a, b) => {
           const valA = a.value.toUpperCase();
@@ -1973,6 +2098,9 @@
         if (!associeNom || !matosNom || !transportConfigAssocie[associeNom])
           return 0;
 
+        if (estPilier(associeNom))
+          return getICAffreteAvecPilier(associeNom, matosNom);
+
         const data = transportConfigAssocie[associeNom][matosNom];
         if (!data) return 0;
 
@@ -1988,7 +2116,6 @@
           indice = parseFloat(indiceData) || 0;
         }
 
-        // Si pas d'indice spécifique, calculer depuis la catégorie
         if (indice === 0) {
           const catDuMatos = transportConfigMateriel[matosNom];
           if (catDuMatos && transportConfigGroupInfo[associeNom]) {
@@ -2018,6 +2145,11 @@
             transportConfigAssocie[associeName][val] = { tarif: 0, indice: 0 };
           }
         }
+
+        if (!transportConfigAssocie[PILIERS_KEY])
+          transportConfigAssocie[PILIERS_KEY] = {};
+        if (!transportConfigAssocie[PILIERS_KEY][val])
+          transportConfigAssocie[PILIERS_KEY][val] = { tarif: 0, indice: 0 };
 
         localStorage.setItem(
           "transport_config_group",
@@ -2085,7 +2217,6 @@
       function trierPlanningParAssocie() {
         const tableBody = document.getElementById("table-body");
         const rows = Array.from(tableBody.querySelectorAll("tr"));
-        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
 
         const rowsToSort = rows.filter(
           (tr) => !tr.classList.contains("group-separator"),
@@ -2132,9 +2263,6 @@
         return Math.round(result * 100) / 100;
       }
 
-      // ============================================================
-      // updateCategoryValue : maintenant redirige vers setCatValue
-      // ============================================================
       function updateCategoryValue(group, cat, field, value) {
         setCatValue(group, cat, field, value);
 
@@ -2170,9 +2298,6 @@
         }
       }
 
-      // ============================================================
-      // Bloc HTML de rendu d'une catégorie (partagé entre renderConfigUI et renderConfigUI2)
-      // ============================================================
       function buildCatBlock(groupOrAssocie, cat, moisAnnee, annee) {
         const catInfo = getCatValues(groupOrAssocie, cat);
         const calculatedIndice = calculateIndice(
@@ -2376,7 +2501,6 @@
       }
 
       function updateGroupCatIndice(associe, categorie, valeur) {
-        // Redirige vers la nouvelle logique (cm1 mensuel)
         setCatValue(associe, categorie, "cm1", valeur);
         renderConfigUI();
         renderConfigUI2();
@@ -2736,10 +2860,9 @@
             ) || 0;
 
           if (isComboChange || tarifA === 0) {
-            if (
-              transportConfigAssocie[associe] &&
-              transportConfigAssocie[associe][matos]
-            ) {
+            if (estPilier(associe)) {
+              tarifA = getTarifAffretePilier(associe, matos);
+            } else if (transportConfigAssocie[associe]?.[matos]) {
               tarifA =
                 parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
             }
@@ -2795,7 +2918,7 @@
       function refreshAllPlanningTarifs() {
         const rows = document.querySelectorAll("#table-body tr");
         rows.forEach((tr) => {
-          const dateLigne = tr.cells[2]?.innerText || "";
+          const dateLigne = tr.cells[4]?.innerText || "";
           const estMemeMois = estMemeMoisQueSelection(dateLigne);
 
           if (!estMemeMois) {
@@ -2820,11 +2943,13 @@
           }
 
           if (associe && matos) {
-            const tarifA =
-              transportConfigAssocie[associe] &&
-              transportConfigAssocie[associe][matos]
-                ? parseFloat(transportConfigAssocie[associe][matos].tarif) || 0
-                : 0;
+            let tarifA = 0;
+            if (estPilier(associe)) {
+              tarifA = getTarifAffretePilier(associe, matos);
+            } else if (transportConfigAssocie[associe]?.[matos]) {
+              tarifA =
+                parseFloat(transportConfigAssocie[associe][matos].tarif) || 0;
+            }
             const icA = getICAffrete(associe, matos);
             tr.querySelector(".cell-tarif-affrete").textContent =
               tarifA.toFixed(2) + " €";
@@ -2845,14 +2970,15 @@
         const associeListDatalist = document.getElementById("list-associe");
         if (!container) return;
 
+        initialiserPiliers();
+
         const moisAnnee = getSelectedMonth();
         const annee = getSelectedYear();
 
         associeListDatalist.innerHTML = "";
-        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
-        const allAssociesSet = new Set([
-          ...Object.keys(transportConfigAssocie),
-        ]);
+        const allAssociesSet = new Set(
+          Object.keys(transportConfigAssocie).filter((k) => k !== PILIERS_KEY),
+        );
 
         Array.from(allAssociesSet)
           .sort()
@@ -2860,42 +2986,166 @@
             associeListDatalist.innerHTML += `<option value="${name}">`;
           });
 
-        const groupePiliers = Array.from(allAssociesSet)
-          .filter((name) => baseAssocies.includes(name.toUpperCase()))
-          .sort((a, b) => a.localeCompare(b));
-
-        const groupeAffretes = Array.from(allAssociesSet)
-          .filter((name) => !baseAssocies.includes(name.toUpperCase()))
-          .sort((a, b) => a.localeCompare(b));
-
-        const sortedEntries = [...groupePiliers, ...groupeAffretes];
-
-        let html = `<table class="config-table"><thead><tr><th>Associé</th><th style="width: 20%;">Catégorie</th><th style="width: 25%;">Matériel</th><th style="width: 13%;">Tarif (€)</th><th style="width: 10%;">Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
-
         const categories = Object.keys(transportConfigCategorie).sort();
         const allGlobalMaterials = Object.keys(transportConfigMateriel).sort();
 
-        if (sortedEntries.length === 0) {
-          html += `<tr><td colspan="6"><i>Aucun associé configuré.</i></td></tr>`;
+        let html = `<table class="config-table"><thead><tr><th>Associé</th><th style="width: 20%;">Catégorie</th><th style="width: 25%;">Matériel</th><th style="width: 13%;">Tarif (€)</th><th style="width: 10%;">Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
+
+        html += `<tr>
+          <td colspan="6" style="text-align:center;color:#000;padding:15px;background-color: #f2f2f2;border: 1px solid #ccc;font-size:0.95em">
+              🏗️ TARIFS COMMUNS PILIERS —
+              <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:#fffb00;color:#333;border:1px solid #ccc;margin:0 3px">ALLARD</span>
+              <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:#00eeff;color:#333;border:1px solid #ccc;margin:0 3px">LANDAIS</span>
+              <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:#e27aff;color:#333;border:1px solid #ccc;margin:0 3px">STD</span>
+          </td>
+        </tr>`;
+
+        if (!transportConfigGroupInfo[PILIERS_KEY])
+          transportConfigGroupInfo[PILIERS_KEY] = {};
+        const piliersData = transportConfigAssocie[PILIERS_KEY] || {};
+        const piliersKeys = Array.from(
+          new Set([...allGlobalMaterials, ...Object.keys(piliersData)]),
+        ).sort();
+        const piliersRowCount = Math.max(1, piliersKeys.length);
+
+        const piliersLeftBlock = `<td rowspan="${piliersRowCount}" class="group-header" style="vertical-align:top;background:#f8f9fa;border-left:1px solid #ccc;">
+          <strong style="color:#000;font-size:1em">PILIERS COMMUNS</strong>
+          <div style="margin-top:15px;border-top:1px solid #ccc;padding-top:10px">
+            <p style="font-weight:bold;font-size:0.85em;margin-bottom:10px;color:#000">Indices Carburant / Cat :</p>
+            ${categories.map((cat) => buildCatBlock(PILIERS_KEY, cat, moisAnnee, annee)).join("")}
+          </div>
+        </td>`;
+
+        if (piliersKeys.length === 0) {
+          html += `<tr>${piliersLeftBlock}<td colspan="5"><i style="color:#999">Aucun matériel configuré.</i></td></tr>`;
         } else {
-          sortedEntries.forEach((entry, index) => {
-            if (index > 0) {
-              html += `<tr style="background-color: white;"><td colspan="6" style="height: 25px; border: none;"></td></tr>`;
+          piliersKeys.forEach((k, idx) => {
+            if (transportConfigAssocie[PILIERS_KEY][k] === undefined)
+              transportConfigAssocie[PILIERS_KEY][k] = { tarif: 0, indice: 0 };
+            const val = transportConfigAssocie[PILIERS_KEY][k];
+            const currentCat = transportConfigMateriel[k] || "";
+            let indiceA = val.indice || 0,
+              isUsingCat = false;
+            if ((!val.indice || val.indice === 0) && currentCat) {
+              const { k: kv, cm1, c0 } = getCatValues(PILIERS_KEY, currentCat);
+              indiceA = calculateIndice(kv, cm1, c0);
+              isUsingCat = true;
             }
+            html += `<tr style="background:white">
+              ${idx === 0 ? piliersLeftBlock : ""}
+              <td style="text-align:left;padding-left:10px">
+                <select onchange="setMaterielCategorie('${k}',this.value)" style="width:100%;padding:4px">
+                  <option value="">-- Sans --</option>
+                  ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
+                </select>
+              </td>
+              <td>${k}</td>
+              <td><input type="number" step="0.01" value="${val.tarif || 0}" onchange="updatePiliersTarif('${k}',this.value)" style="width:100%;border:1px solid #000"></td>
+              <td><input type="number" step="0.01" value="${indiceA || "0"}" placeholder="${isUsingCat}" onchange="updatePiliersIndice('${k}',this.value)" style="width:100%;${isUsingCat}"></td>
+              <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${k}')" style="color:red;cursor:pointer">x</button></td>
+            </tr>`;
+          });
+        }
 
-            const estPilier = baseAssocies.includes(entry.toUpperCase());
-            const precedentEtaitPilier =
-              index > 0 &&
-              baseAssocies.includes(sortedEntries[index - 1].toUpperCase());
+        baseAssocies.forEach((pilierNom) => {
+          if (!transportConfigAssocie[pilierNom])
+            transportConfigAssocie[pilierNom] = {};
+          const matsList = Array.from(
+            new Set([
+              ...allGlobalMaterials,
+              ...Object.keys(transportConfigAssocie[pilierNom]),
+            ]),
+          ).sort();
+          const nbOverrides = matsList.filter((m) =>
+            pilierAOverride(pilierNom, m),
+          ).length;
+          const rowCount = Math.max(1, matsList.length);
+          const badgeBg =
+            pilierNom === "ALLARD"
+              ? "#fffb00"
+              : pilierNom === "LANDAIS"
+                ? "#00eeff"
+                : "#e27aff";
 
-            if (index > 0 && !estPilier && precedentEtaitPilier) {
-              html += `<tr style="background-color: #f1f3f4;"><td colspan="6" style="text-align:center; font-weight:bold; color:#5f6368; padding:10px; border:1px solid #dee2e6;">AUTRES AFFRÉTÉS</td></tr>`;
+          // Séparateur
+          html += `<tr style="background:white"><td colspan="6" style="height:8px;border:none"></td></tr>`;
+
+          const pilierLeftBlock = `<td rowspan="${rowCount}" class="group-header" style="vertical-align:top;background:#f8f9fa;border-left:1px solid #ccc;">
+            <span style="display:inline-block;padding:3px 8px;border-radius:12px;font-size:12px;font-weight:bold;background:${badgeBg};color:#333;border:1px solid #ccc">${pilierNom}</span>
+            <div style="margin-top:15px;border-top:1px solid #ccc;padding-top:10px">
+              <p style="font-weight:bold;font-size:0.85em;margin-bottom:10px;color:#555">Indices Carburant / Cat :</p>
+              ${categories.map((cat) => buildCatBlock(pilierNom, cat, moisAnnee, annee)).join("")}
+            </div>
+          </td>`;
+
+          matsList.forEach((m, idx) => {
+            if (!transportConfigAssocie[pilierNom][m])
+              transportConfigAssocie[pilierNom][m] = { tarif: 0, indice: 0 };
+            const val = transportConfigAssocie[pilierNom][m];
+            const hasOverride = parseFloat(val.tarif) > 0;
+            const currentCat = transportConfigMateriel[m] || "";
+            let indiceA = val.indice || 0,
+              isUsingCat = false;
+            if (
+              (!val.indice || val.indice === 0) &&
+              currentCat &&
+              !hasOverride
+            ) {
+              const { k: kv, cm1, c0 } = getCatValues(PILIERS_KEY, currentCat);
+              indiceA = calculateIndice(kv, cm1, c0);
+              isUsingCat = true;
+            } else if (
+              (!val.indice || val.indice === 0) &&
+              currentCat &&
+              hasOverride
+            ) {
+              const { k: kv, cm1, c0 } = getCatValues(pilierNom, currentCat);
+              indiceA = calculateIndice(kv, cm1, c0);
+              isUsingCat = true;
             }
+            const communTarif =
+              transportConfigAssocie[PILIERS_KEY]?.[m]?.tarif || 0;
+            const rowBg = hasOverride ? "background:white" : "";
+            const tarifStyle = hasOverride
+              ? "border:1px solid #ccc"
+              : "color:#aaa";
 
-            if (!transportConfigAssocie[entry]) {
+            html += `<tr style="${rowBg}">
+              ${idx === 0 ? pilierLeftBlock : ""}
+              <td style="text-align:left;padding-left:10px">
+                <select onchange="setMaterielCategorie('${m}',this.value)" style="width:100%;padding:4px">
+                  <option value="">-- Sans --</option>
+                  ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
+                </select>
+              </td>
+              <td>${m}</td>
+              <td>
+                <input type="number" step="0.01" 
+                  value="${hasOverride ? val.tarif : ""}" 
+                  placeholder="${communTarif || "0"}"
+                  onchange="updateAssocieTarif('${pilierNom}','${m}',this.value)"
+                  style="width:100%;${tarifStyle}">
+              </td>
+              <td><input type="number" step="0.01" value="${indiceA || "0"}" placeholder="${isUsingCat}" onchange="updateAssocieIndice('${pilierNom}','${m}',this.value)" style="width:100%;${isUsingCat}"></td>
+              <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${m}')" style="color:red;cursor:pointer">x</button></td>
+            </tr>`;
+          });
+        });
+
+        const sortedAffretes = Object.keys(transportConfigAssocie)
+          .filter(
+            (k) => k !== PILIERS_KEY && !baseAssocies.includes(k.toUpperCase()),
+          )
+          .sort();
+
+        if (sortedAffretes.length > 0) {
+          html += `<tr style="background:#f1f3f4"><td colspan="6" style="text-align:center;font-weight:bold;color:#5f6368;padding:10px;border:1px solid #dee2e6">AUTRES AFFRÉTÉS</td></tr>`;
+
+          sortedAffretes.forEach((entry, index) => {
+            if (index > 0)
+              html += `<tr style="background:white"><td colspan="6" style="height:25px;border:none"></td></tr>`;
+            if (!transportConfigAssocie[entry])
               transportConfigAssocie[entry] = {};
-            }
-
             const keys = Array.from(
               new Set([
                 ...allGlobalMaterials,
@@ -2903,63 +3153,87 @@
               ]),
             ).sort();
             const rowSpanCount = Math.max(1, keys.length);
-
-            const leftBlockHTML = `
-              <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;">
-                <strong>${entry}</strong><br>
-                <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
-                <div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;">
-                  <p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>
-                  ${categories.map((cat) => buildCatBlock(entry, cat, moisAnnee, annee)).join("")}
-                </div>
-              </td>`;
-
+            const leftBlock = `<td rowspan="${rowSpanCount}" class="group-header" style="vertical-align:top;background:#f8f9fa">
+              <strong>${entry}</strong><br>
+              <button class="btn-delete" style="margin-top:5px" onclick="deleteEntry2('${entry}')">Supprimer</button>
+              <div style="margin-top:15px;border-top:1px solid #ccc;padding-top:10px">
+                <p style="font-weight:bold;font-size:0.85em;margin-bottom:10px;color:#555">Indices Carburant / Cat :</p>
+                ${categories.map((cat) => buildCatBlock(entry, cat, moisAnnee, annee)).join("")}
+              </div>
+            </td>`;
             keys.forEach((k, idx) => {
-              if (!transportConfigAssocie[entry][k]) {
+              if (!transportConfigAssocie[entry][k])
                 transportConfigAssocie[entry][k] = { tarif: 0, indice: 0 };
-              }
               const val = transportConfigAssocie[entry][k];
               const currentCat = transportConfigMateriel[k] || "";
-
-              let indiceAafficher = val.indice || 0;
-              let isUsingCategory = false;
-
+              let indiceA = val.indice || 0,
+                isUsingCat = false;
               if ((!val.indice || val.indice === 0) && currentCat) {
-                const { k: kVal, cm1, c0 } = getCatValues(entry, currentCat);
-                indiceAafficher = calculateIndice(kVal, cm1, c0);
-                isUsingCategory = true;
+                const { k: kv, cm1, c0 } = getCatValues(entry, currentCat);
+                indiceA = calculateIndice(kv, cm1, c0);
+                isUsingCat = true;
               }
-
               html += `<tr>
-                ${idx === 0 ? leftBlockHTML : ""}
-                <td style="text-align:left; padding-left:10px;">
-                  <select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;">
-                    <option value="">-- Sans --</option>
-                    ${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}
-                  </select>
-                </td>
+                ${idx === 0 ? leftBlock : ""}
+                <td style="text-align:left;padding-left:10px"><select onchange="setMaterielCategorie('${k}',this.value)" style="width:100%;padding:4px"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
                 <td>${k}</td>
-                <td>
-                  <input type="number" step="0.01" value="${val.tarif || 0}"
-                    onchange="updateAssocieTarif('${entry}', '${k}', this.value)"
-                    style="width:100%;">
-                </td>
-                <td>
-                  <input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}"
-                    placeholder="${isUsingCategory}"
-                    onchange="updateAssocieIndice('${entry}', '${k}', this.value)"
-                    style="width:100%; ${isUsingCategory}">
-                </td>
-                <td>
-                  <button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button>
-                </td>
+                <td><input type="number" step="0.01" value="${val.tarif || 0}" onchange="updateAssocieTarif('${entry}','${k}',this.value)" style="width:100%"></td>
+                <td><input type="number" step="0.01" value="${indiceA || "0"}" placeholder="${isUsingCat}" onchange="updateAssocieIndice('${entry}','${k}',this.value)" style="width:100%;${isUsingCat}"></td>
+                <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${k}')" style="color:red;cursor:pointer">x</button></td>
               </tr>`;
             });
           });
         }
 
-        container.innerHTML = html + `</tbody></table>`;
+        html += `</tbody></table>`;
+        container.innerHTML = html;
         trierDatalist("list-associe");
+      }
+
+      function updatePiliersTarif(matosNom, valeur) {
+        if (!transportConfigAssocie[PILIERS_KEY])
+          transportConfigAssocie[PILIERS_KEY] = {};
+        if (!transportConfigAssocie[PILIERS_KEY][matosNom])
+          transportConfigAssocie[PILIERS_KEY][matosNom] = {
+            tarif: 0,
+            indice: 0,
+          };
+        transportConfigAssocie[PILIERS_KEY][matosNom].tarif =
+          parseFloat(valeur) || 0;
+        localStorage.setItem(
+          "transport_config_associe",
+          JSON.stringify(transportConfigAssocie),
+        );
+        refreshAllPlanningTarifs();
+        const sn = document.getElementById("save-notif");
+        if (sn) {
+          sn.textContent = `Tarif commun ${matosNom} mis à jour !`;
+          sn.style.display = "inline";
+          setTimeout(() => (sn.style.display = "none"), 2000);
+        }
+      }
+
+      function updatePiliersIndice(matosNom, valeur) {
+        const moisAnnee = getSelectedMonth();
+        if (!transportConfigAssocie[PILIERS_KEY])
+          transportConfigAssocie[PILIERS_KEY] = {};
+        if (!transportConfigAssocie[PILIERS_KEY][matosNom])
+          transportConfigAssocie[PILIERS_KEY][matosNom] = {
+            tarif: 0,
+            indice: {},
+          };
+        if (
+          typeof transportConfigAssocie[PILIERS_KEY][matosNom].indice !==
+          "object"
+        )
+          transportConfigAssocie[PILIERS_KEY][matosNom].indice = {};
+        transportConfigAssocie[PILIERS_KEY][matosNom].indice[moisAnnee] =
+          parseFloat(valeur) || 0;
+        localStorage.setItem(
+          "transport_config_associe",
+          JSON.stringify(transportConfigAssocie),
+        );
+        refreshAllPlanningTarifs();
       }
 
       function updateAssocieTarif(entry, mat, val) {
@@ -3110,6 +3384,7 @@
             );
           }
           for (let associe in transportConfigAssocie) {
+            if (associe === PILIERS_KEY) continue;
             Object.keys(transportConfigAssocie[associe]).forEach((m) =>
               uniqueMatos.add(m),
             );
@@ -3521,8 +3796,6 @@
         const val = input.value.toUpperCase();
 
         if (val) {
-          const baseAssocies = ["LANDAIS", "ALLARD", "STD"];
-
           if (baseAssocies.includes(val)) {
             cell.classList.add("color-" + val.toLowerCase());
           } else {
@@ -3630,13 +3903,18 @@
         }
 
         if (associe && vehicule) {
-          if (
-            transportConfigAssocie[associe] &&
-            transportConfigAssocie[associe][vehicule]
-          ) {
+          if (estPilier(associe)) {
+            snapshot.tarif_affrete_snapshot = getTarifAffretePilier(
+              associe,
+              vehicule,
+            );
+            const icA = getICAffreteAvecPilier(associe, vehicule);
+            const tarif = snapshot.tarif_affrete_snapshot;
+            snapshot.indice_affrete_snapshot =
+              tarif > 0 ? (icA / tarif) * 100 : 0;
+          } else if (transportConfigAssocie[associe]?.[vehicule]) {
             snapshot.tarif_affrete_snapshot =
               parseFloat(transportConfigAssocie[associe][vehicule].tarif) || 0;
-
             let indice =
               parseFloat(transportConfigAssocie[associe][vehicule].indice) || 0;
             if (indice === 0) {
@@ -3653,9 +3931,6 @@
         return snapshot;
       }
 
-      /**
-       * Applique les tarifs depuis un snapshot vers une ligne
-       */
       function applySnapshotToRow(tr, snapshot) {
         if (!snapshot) return;
 
@@ -3689,9 +3964,6 @@
         }
       }
 
-      /**
-       * Extrait le nom du contact depuis la valeur complète "NOM - 06 12 34 56 78"
-       */
       function extractContactName(fullValue) {
         if (!fullValue) return "";
 
@@ -3702,9 +3974,6 @@
         return fullValue;
       }
 
-      /**
-       * Extrait le numéro depuis la valeur complète "NOM - 06 12 34 56 78"
-       */
       function extractPhoneNumber(fullValue) {
         if (!fullValue) return "";
 

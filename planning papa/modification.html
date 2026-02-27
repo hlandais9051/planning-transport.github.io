@@ -2795,7 +2795,7 @@
       function refreshAllPlanningTarifs() {
         const rows = document.querySelectorAll("#table-body tr");
         rows.forEach((tr) => {
-          const dateLigne = tr.cells[4]?.innerText || "";
+          const dateLigne = tr.cells[2]?.innerText || "";
           const estMemeMois = estMemeMoisQueSelection(dateLigne);
 
           if (!estMemeMois) {
