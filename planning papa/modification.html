@@ -1238,6 +1238,8 @@
       ];
       const defaultChauffeursList = [];
       let isMouseDown = false;
+      let estEnTrainDeColler = false;
+      let pendingTimeouts = [];
 
       function getSelectedYear() {
         const dateValeur = document.getElementById("current-date-picker").value;
@@ -3078,6 +3080,7 @@
       }
 
       function saveCurrentDay() {
+        if (estEnTrainDeColler) return;
         const date = document.getElementById("current-date-picker").value;
         if (!date) return;
         const rows = [];
@@ -3629,9 +3632,11 @@
         updateRowHighlight(tr);
         filterTable();
         trierPlanningParAssocie();
-        setTimeout(() => {
+        const tid = setTimeout(() => {
+          pendingTimeouts = pendingTimeouts.filter((t) => t !== tid);
           updateRowTarif(tr);
         }, 50);
+        pendingTimeouts.push(tid);
       }
 
       function forceRecalculTousLesTarifs() {
@@ -3732,17 +3737,25 @@
           return;
         const data = JSON.parse(buffer);
         const tableBody = document.getElementById("table-body");
+
+        pendingTimeouts.forEach((t) => clearTimeout(t));
+        pendingTimeouts = [];
         tableBody.innerHTML = "";
         const datePicker = document.getElementById("current-date-picker");
         const dateFormatee = new Date(datePicker.value).toLocaleDateString(
           "fr-FR",
         );
+        estEnTrainDeColler = true;
         data.forEach((row) => {
           row.date = dateFormatee;
           ajouterLigne(row);
         });
         saveCurrentDay();
-        afficherNotification("Journée collée", "#2196F3");
+        setTimeout(() => {
+          estEnTrainDeColler = false;
+          saveCurrentDay();
+          afficherNotification("Journée collée", "#2196F3");
+        }, 150);
       }
 
       function verifierIntegriteDonnees() {
@@ -3981,7 +3994,8 @@
         verifierEtReparerSiNecessaire();
         const datePicker = document.getElementById("current-date-picker");
         const displayDate = document.getElementById("display-date");
-        const aujourdhui = new Date().toISOString().split("T")[0];
+        const now = new Date();
+        const aujourdhui = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
         datePicker.value = aujourdhui;
         displayDate.textContent =
           "Planning du " + new Date(aujourdhui).toLocaleDateString("fr-FR");
