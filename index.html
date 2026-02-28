@@ -1704,7 +1704,7 @@
             savedColors[rowId] = color;
           }
         });
-        localStorage.setItem("planningColors", JSON.stringify(allSavedColors));
+        saveCurrentDay();
       }
 
       function filterTable() {
@@ -2444,15 +2444,14 @@
         if (!bonCell) return;
         const texte = bonCell.textContent.trim();
         const hasBon = texte !== "" && texte !== "N° Bon...";
+        if (!hasBon) return;
         const cells = tr.querySelectorAll("td");
-        cells.forEach((td) => {
-          if (hasBon) {
-            td.style.backgroundColor = "#d4edda";
-          } else {
-            if (!td.querySelector(".select-associe"))
-              td.style.backgroundColor = "";
-            else appliquerCouleurAssocie(td.querySelector(".select-associe"));
-          }
+        cells.forEach((td, index) => {
+          if (index === 0) return; // jamais toucher la couleur associé
+          const currentBg = td.style.backgroundColor;
+          if (currentBg && currentBg !== "" && currentBg !== "transparent")
+            return;
+          td.style.backgroundColor = "#d4edda";
         });
       }
 
@@ -3587,8 +3586,12 @@
 
         if (data) {
           appliquerCouleurAssocie(inputAssocie);
-          if (data.couleur) {
-            tr.style.backgroundColor = data.couleur;
+          if (data.couleurs_cellules) {
+            Object.keys(data.couleurs_cellules).forEach((index) => {
+              const td = cells[parseInt(index)];
+              if (td) td.style.backgroundColor = data.couleurs_cellules[index];
+            });
+          } else if (data.couleur) {
             cells.forEach((td) => {
               if (!td.classList.contains("matos-cell"))
                 td.style.backgroundColor = data.couleur;
@@ -3961,34 +3964,7 @@
         }
       }
 
-      function chargerCouleursDate(date) {
-        const allSavedColors = JSON.parse(
-          localStorage.getItem("planningColors") || "{}",
-        );
-        const savedColors = allSavedColors[date] || {};
-        const rows = document.querySelectorAll("#table-body tr");
-        rows.forEach((row) => {
-          const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
-          const data = savedColors[rowId];
-          if (data) {
-            const cells = row.querySelectorAll("td");
-            if (typeof data === "object" && data.type === "partial") {
-              Object.keys(data.cells).forEach((index) => {
-                if (cells[index])
-                  cells[index].style.backgroundColor = data.cells[index];
-              });
-            } else {
-              cells.forEach((td, index) => {
-                const hasSpecificColor =
-                  td.style.backgroundColor !== "" &&
-                  td.style.backgroundColor !== "transparent";
-                if (index === 0 && hasSpecificColor) return;
-                td.style.backgroundColor = data;
-              });
-            }
-          }
-        });
-      }
+      function chargerCouleursDate(date) {}
 
       document.addEventListener("DOMContentLoaded", function () {
         verifierEtReparerSiNecessaire();
