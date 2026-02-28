@@ -513,68 +513,6 @@
         display: flex;
         gap: 15px;
       }
-      .piliers-communs-header {
-        background: linear-gradient(
-          135deg,
-          #1a1a2e 0%,
-          #16213e 50%,
-          #0f3460 100%
-        );
-        color: white;
-        padding: 12px 15px;
-        border-radius: 6px 6px 0 0;
-        margin-bottom: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .piliers-communs-section {
-        border: 2px solid #0f3460;
-        border-radius: 6px;
-        margin-bottom: 30px;
-        overflow: hidden;
-      }
-      .piliers-communs-body {
-        background: #f0f4ff;
-        padding: 10px;
-      }
-      .badge-sync {
-        display: inline-block;
-        padding: 2px 7px;
-        border-radius: 10px;
-        font-size: 10px;
-        font-weight: bold;
-        margin-left: 5px;
-        vertical-align: middle;
-      }
-      .badge-commun {
-        background: #007bff;
-        color: white;
-      }
-      .badge-custom {
-        background: #ff6b35;
-        color: white;
-      }
-      .btn-reset-to-common {
-        background: none;
-        border: 1px solid #007bff;
-        color: #007bff;
-        border-radius: 3px;
-        padding: 2px 5px;
-        font-size: 15px;
-        cursor: pointer;
-        margin-left: 5px;
-      }
-      .btn-reset-to-common:hover {
-        background: #007bff;
-        color: white;
-      }
-      .pilier-row-synced td {
-        border-left: 3px solid #007bff !important;
-      }
-      .pilier-row-custom td {
-        border-left: 3px solid #ff6b35 !important;
-      }
     </style>
   </head>
   <body>
@@ -1299,9 +1237,6 @@
         "8x2 AMP GRUE",
       ];
       const defaultChauffeursList = [];
-      const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
-      const pilierCommunKey = "Piliers Commun";
-
       let isMouseDown = false;
       let estEnTrainDeColler = false;
       let pendingTimeouts = [];
@@ -1373,266 +1308,6 @@
         localStorage.setItem(
           "transportConfigGroupInfo",
           JSON.stringify(transportConfigGroupInfo),
-        );
-      }
-
-      function getPilierCommunTarif(matos) {
-        const annee = getSelectedYear();
-        const data = transportConfigAssocie[pilierCommunKey]?.[matos];
-        if (!data) return 0;
-        if (typeof data.tarif === "object" && data.tarif !== null)
-          return parseFloat(data.tarif[annee]) || 0;
-        return parseFloat(data.tarif) || 0;
-      }
-
-      function getPilierCommunIndice(matos) {
-        const moisAnnee = getSelectedMonth();
-        const data = transportConfigAssocie[pilierCommunKey]?.[matos];
-        if (!data) return 0;
-        if (typeof data.indice === "object")
-          return parseFloat(data.indice[moisAnnee]) || 0;
-        return parseFloat(data.indice) || 0;
-      }
-
-      function isPilierOverridden(pilierName, matos) {
-        if (!baseAssocies.includes(pilierName.toUpperCase())) return false;
-        return (
-          transportConfigAssocie[pilierName]?.[matos]?.["_override"] === true
-        );
-      }
-
-      function setPilierOverride(pilierName, matos, isOverride) {
-        if (!transportConfigAssocie[pilierName])
-          transportConfigAssocie[pilierName] = {};
-        if (!transportConfigAssocie[pilierName][matos])
-          transportConfigAssocie[pilierName][matos] = { tarif: 0, indice: 0 };
-        transportConfigAssocie[pilierName][matos]["_override"] = isOverride;
-        localStorage.setItem(
-          "transport_config_associe",
-          JSON.stringify(transportConfigAssocie),
-        );
-      }
-
-      function syncPiliersFromCommon(matos, forceAll = false) {
-        const annee = getSelectedYear();
-        const moisAnnee = getSelectedMonth();
-        const communData = transportConfigAssocie[pilierCommunKey]?.[matos];
-        if (!communData) return;
-        const communTarif =
-          typeof communData.tarif === "object"
-            ? communData.tarif[annee] || 0
-            : communData.tarif || 0;
-        const communIndice =
-          typeof communData.indice === "object"
-            ? communData.indice[moisAnnee] || 0
-            : communData.indice || 0;
-
-        baseAssocies.forEach((pilier) => {
-          if (!forceAll && isPilierOverridden(pilier, matos)) return; // skip if custom override
-          if (!transportConfigAssocie[pilier])
-            transportConfigAssocie[pilier] = {};
-          if (!transportConfigAssocie[pilier][matos])
-            transportConfigAssocie[pilier][matos] = { tarif: {}, indice: {} };
-
-          if (
-            typeof transportConfigAssocie[pilier][matos].tarif !== "object" ||
-            transportConfigAssocie[pilier][matos].tarif === null
-          ) {
-            transportConfigAssocie[pilier][matos].tarif = {};
-          }
-          transportConfigAssocie[pilier][matos].tarif[annee] = communTarif;
-
-          if (
-            typeof transportConfigAssocie[pilier][matos].indice !== "object" ||
-            transportConfigAssocie[pilier][matos].indice === null
-          ) {
-            transportConfigAssocie[pilier][matos].indice = {};
-          }
-          transportConfigAssocie[pilier][matos].indice[moisAnnee] =
-            communIndice;
-          transportConfigAssocie[pilier][matos]["_override"] = false;
-        });
-        localStorage.setItem(
-          "transport_config_associe",
-          JSON.stringify(transportConfigAssocie),
-        );
-      }
-
-      function syncCatFromCommon(cat, forceAll = false) {
-        const annee = getSelectedYear();
-        const moisAnnee = getSelectedMonth();
-        const communCatInfo = transportConfigGroupInfo[pilierCommunKey]?.[cat];
-        if (!communCatInfo) return;
-
-        baseAssocies.forEach((pilier) => {
-          const overrideKey = "_catOverride_" + cat;
-          if (
-            !forceAll &&
-            transportConfigGroupInfo[pilier]?.[overrideKey] === true
-          )
-            return;
-          if (!transportConfigGroupInfo[pilier])
-            transportConfigGroupInfo[pilier] = {};
-          if (!transportConfigGroupInfo[pilier][cat])
-            transportConfigGroupInfo[pilier][cat] = {};
-          // Copy all fields
-          Object.assign(transportConfigGroupInfo[pilier][cat], communCatInfo);
-          // Also copy useCM flag
-          const useCMKey = "_useCM_" + cat;
-          transportConfigGroupInfo[pilier][useCMKey] =
-            transportConfigGroupInfo[pilierCommunKey]?.[useCMKey] || false;
-          transportConfigGroupInfo[pilier][overrideKey] = false;
-        });
-        localStorage.setItem(
-          "transportConfigGroupInfo",
-          JSON.stringify(transportConfigGroupInfo),
-        );
-      }
-
-      function updatePilierCommunTarif(matos, value) {
-        const annee = getSelectedYear();
-        if (!transportConfigAssocie[pilierCommunKey])
-          transportConfigAssocie[pilierCommunKey] = {};
-        if (!transportConfigAssocie[pilierCommunKey][matos])
-          transportConfigAssocie[pilierCommunKey][matos] = {
-            tarif: {},
-            indice: {},
-          };
-        if (
-          typeof transportConfigAssocie[pilierCommunKey][matos].tarif !==
-          "object"
-        )
-          transportConfigAssocie[pilierCommunKey][matos].tarif = {};
-        transportConfigAssocie[pilierCommunKey][matos].tarif[annee] =
-          parseFloat(value) || 0;
-        localStorage.setItem(
-          "transport_config_associe",
-          JSON.stringify(transportConfigAssocie),
-        );
-        syncPiliersFromCommon(matos);
-        refreshAllPlanningTarifs();
-        renderConfigUI2();
-      }
-
-      function updatePilierCommunIndice(matos, value) {
-        const moisAnnee = getSelectedMonth();
-        if (!transportConfigAssocie[pilierCommunKey])
-          transportConfigAssocie[pilierCommunKey] = {};
-        if (!transportConfigAssocie[pilierCommunKey][matos])
-          transportConfigAssocie[pilierCommunKey][matos] = {
-            tarif: {},
-            indice: {},
-          };
-        if (
-          typeof transportConfigAssocie[pilierCommunKey][matos].indice !==
-          "object"
-        )
-          transportConfigAssocie[pilierCommunKey][matos].indice = {};
-        transportConfigAssocie[pilierCommunKey][matos].indice[moisAnnee] =
-          parseFloat(value) || 0;
-        localStorage.setItem(
-          "transport_config_associe",
-          JSON.stringify(transportConfigAssocie),
-        );
-        syncPiliersFromCommon(matos);
-        refreshAllPlanningTarifs();
-        renderConfigUI2();
-      }
-
-      function resetPilierToCommon(pilierName, matos) {
-        setPilierOverride(pilierName, matos, false);
-        syncPiliersFromCommon(matos, false);
-        refreshAllPlanningTarifs();
-        renderConfigUI2();
-        afficherNotification(
-          `${pilierName} / ${matos} réinitialisé aux valeurs communes`,
-          "#007bff",
-        );
-      }
-
-      function updatePilierIndividuelTarif(pilierName, matos, value) {
-        const annee = getSelectedYear();
-        if (!transportConfigAssocie[pilierName])
-          transportConfigAssocie[pilierName] = {};
-        if (!transportConfigAssocie[pilierName][matos])
-          transportConfigAssocie[pilierName][matos] = { tarif: {}, indice: {} };
-        if (
-          typeof transportConfigAssocie[pilierName][matos].tarif !== "object" ||
-          transportConfigAssocie[pilierName][matos].tarif === null
-        ) {
-          transportConfigAssocie[pilierName][matos].tarif = {};
-        }
-        transportConfigAssocie[pilierName][matos].tarif[annee] =
-          parseFloat(value) || 0;
-        transportConfigAssocie[pilierName][matos]["_override"] = true;
-        localStorage.setItem(
-          "transport_config_associe",
-          JSON.stringify(transportConfigAssocie),
-        );
-        refreshAllPlanningTarifs();
-      }
-
-      function updatePilierIndividuelIndice(pilierName, matos, value) {
-        const moisAnnee = getSelectedMonth();
-        if (!transportConfigAssocie[pilierName])
-          transportConfigAssocie[pilierName] = {};
-        if (!transportConfigAssocie[pilierName][matos])
-          transportConfigAssocie[pilierName][matos] = { tarif: {}, indice: {} };
-        if (
-          typeof transportConfigAssocie[pilierName][matos].indice !== "object"
-        )
-          transportConfigAssocie[pilierName][matos].indice = {};
-        transportConfigAssocie[pilierName][matos].indice[moisAnnee] =
-          parseFloat(value) || 0;
-        transportConfigAssocie[pilierName][matos]["_override"] = true;
-        localStorage.setItem(
-          "transport_config_associe",
-          JSON.stringify(transportConfigAssocie),
-        );
-        refreshAllPlanningTarifs();
-      }
-
-      function updatePilierCommunCatValue(cat, field, value) {
-        setCatValue(pilierCommunKey, cat, field, value);
-        syncCatFromCommon(cat);
-        renderConfigUI2();
-        refreshAllPlanningTarifs();
-      }
-
-      function togglePilierCommunUseCM(cat, checked) {
-        setCatValue(pilierCommunKey, cat, "useCM", checked);
-        syncCatFromCommon(cat);
-        renderConfigUI2();
-        refreshAllPlanningTarifs();
-      }
-
-      function ensurePiliersCommunsExists() {
-        if (!transportConfigAssocie[pilierCommunKey]) {
-          transportConfigAssocie[pilierCommunKey] = {};
-        }
-        baseAssocies.forEach((pilier) => {
-          if (transportConfigAssocie[pilier]) {
-            Object.keys(transportConfigAssocie[pilier]).forEach((matos) => {
-              if (!transportConfigAssocie[pilierCommunKey][matos]) {
-                transportConfigAssocie[pilierCommunKey][matos] = {
-                  tarif: {},
-                  indice: {},
-                };
-              }
-            });
-          }
-        });
-        defaultMatosList.forEach((m) => {
-          if (!transportConfigAssocie[pilierCommunKey][m]) {
-            transportConfigAssocie[pilierCommunKey][m] = {
-              tarif: {},
-              indice: {},
-            };
-          }
-        });
-        localStorage.setItem(
-          "transport_config_associe",
-          JSON.stringify(transportConfigAssocie),
         );
       }
 
@@ -2193,13 +1868,6 @@
           if (!transportConfigAssocie[associeName][val])
             transportConfigAssocie[associeName][val] = { tarif: 0, indice: 0 };
         }
-        if (!transportConfigAssocie[pilierCommunKey])
-          transportConfigAssocie[pilierCommunKey] = {};
-        if (!transportConfigAssocie[pilierCommunKey][val])
-          transportConfigAssocie[pilierCommunKey][val] = {
-            tarif: {},
-            indice: {},
-          };
         localStorage.setItem(
           "transport_config_group",
           JSON.stringify(transportConfigGroup),
@@ -2323,13 +1991,7 @@
         }
       }
 
-      function buildCatBlock(
-        groupOrAssocie,
-        cat,
-        moisAnnee,
-        annee,
-        isPilierCommun = false,
-      ) {
+      function buildCatBlock(groupOrAssocie, cat, moisAnnee, annee) {
         const catInfo = getCatValues(groupOrAssocie, cat);
         const calculatedIndice = calculateIndice(
           catInfo.k,
@@ -2341,63 +2003,46 @@
         const cmColor = usesCM ? "#7b2d8b" : "#e67e00";
         const cmBg = usesCM ? "#f9f0ff" : "#fff8ee";
         const cmBorder = usesCM ? "#7b2d8b" : "#e67e00";
-        if (isPilierCommun) {
-          return `
-            <div style="margin-bottom:12px;text-align:left;border-bottom:1px solid #ddd;padding-bottom:8px;background:#f0f4ff;padding:8px;border-radius:4px;border-left:3px solid #0f3460;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <label style="font-size:0.85em;color:#0f3460;font-weight:bold;">${cat}</label>
-                <button onclick="deleteCategorie('${cat}')" style="background:none;border:none;color:red;cursor:pointer;font-size:12px;">✕</button>
-              </div>
-              <div style="background:#e8efff;border-radius:4px;padding:6px;margin-bottom:6px;">
-                <div style="font-size:10px;color:#555;font-weight:bold;margin-bottom:4px;">📅 Valeurs annuelles (${annee})</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                  <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">K</label><input type="number" step="0.001" value="${catInfo.k !== 0 ? catInfo.k : ""}" onchange="updatePilierCommunCatValue('${cat}','k',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
-                  <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">C0</label><input type="number" step="0.01" value="${catInfo.c0 !== 0 ? catInfo.c0 : ""}" onchange="updatePilierCommunCatValue('${cat}','c0',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
-                </div>
-              </div>
-              <div style="background:${cmBg};border-radius:4px;padding:6px;margin-bottom:6px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                  <div style="font-size:10px;color:#555;font-weight:bold;">📆 Valeur mensuelle (${moisAnnee})</div>
-                  <label style="font-size:10px;cursor:pointer;display:flex;align-items:center;gap:4px;color:${cmColor};font-weight:bold;" title="Cochez si ce groupe utilise le CM du mois actuel">
-                    <input type="checkbox" ${usesCM ? "checked" : ""} onchange="togglePilierCommunUseCM('${cat}',this.checked)" style="cursor:pointer;">
-                    Utilise CM (mois actuel)
-                  </label>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                  <div><label style="font-size:11px;color:${cmColor};display:block;margin-bottom:3px;font-weight:bold;">${cmLabel}</label><input type="number" step="0.01" value="${catInfo.cm1 !== 0 ? catInfo.cm1 : ""}" onchange="updatePilierCommunCatValue('${cat}','cm1',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:2px solid ${cmBorder};border-radius:3px;background:${cmBg};"></div>
-                  <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">📊 Indice (%)</label><input type="text" value="${calculatedIndice !== 0 ? calculatedIndice.toFixed(2) + " %" : ""}" readonly style="width:100%;padding:5px;font-size:1em;text-align:center;background:#e8f5e9;font-weight:bold;color:#27ae60;border:2px solid #27ae60;border-radius:3px;"></div>
-                </div>
-              </div>
-            </div>`;
-        }
-
         return `
-          <div style="margin-bottom:12px;text-align:left;border-bottom:1px solid #ddd;padding-bottom:8px;background:#f9f9f9;padding:8px;border-radius:4px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <label style="font-size:0.85em;color:#333;font-weight:bold;">${cat}</label>
-              <button onclick="deleteCategorie('${cat}')" style="background:none;border:none;color:red;cursor:pointer;font-size:12px;">✕</button>
+          <div style="margin-bottom:12px; text-align:left; border-bottom: 1px solid #ddd; padding-bottom: 8px; background: #f9f9f9; padding: 8px; border-radius: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <label style="font-size: 0.85em; color:#333; font-weight: bold;">${cat}</label>
+              <button onclick="deleteCategorie('${cat}')" style="background:none; border:none; color:red; cursor:pointer; font-size:12px;">✕</button>
             </div>
-            <div style="background:#eef6ff;border-radius:4px;padding:6px;margin-bottom:6px;">
-              <div style="font-size:10px;color:#555;font-weight:bold;margin-bottom:4px;">📅 Valeurs annuelles (${annee})</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">K</label><input type="number" step="0.001" value="${catInfo.k !== 0 ? catInfo.k : ""}" onchange="updateCategoryValue('${groupOrAssocie}','${cat}','k',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
-                <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">C0</label><input type="number" step="0.01" value="${catInfo.c0 !== 0 ? catInfo.c0 : ""}" onchange="updateCategoryValue('${groupOrAssocie}','${cat}','c0',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
+            <div style="background:#eef6ff; border-radius:4px; padding:6px; margin-bottom:6px;">
+              <div style="font-size:10px; color:#555; font-weight:bold; margin-bottom:4px;">📅 Valeurs annuelles (${annee})</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="font-size: 11px; color:#666; display: block; margin-bottom: 3px;">K</label>
+                  <input type="number" step="0.001" value="${catInfo.k !== 0 ? catInfo.k : ""}" onchange="updateCategoryValue('${groupOrAssocie}', '${cat}', 'k', this.value)" style="width:100%; padding: 5px; font-size:0.9em; text-align: center; border: 1px solid #ddd; border-radius: 3px;">
+                </div>
+                <div>
+                  <label style="font-size: 11px; color:#666; display: block; margin-bottom: 3px;">C0</label>
+                  <input type="number" step="0.01" value="${catInfo.c0 !== 0 ? catInfo.c0 : ""}" onchange="updateCategoryValue('${groupOrAssocie}', '${cat}', 'c0', this.value)" style="width:100%; padding: 5px; font-size:0.9em; text-align: center; border: 1px solid #ddd; border-radius: 3px;">
+                </div>
               </div>
             </div>
-            <div style="background:${cmBg};border-radius:4px;padding:6px;margin-bottom:6px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <div style="font-size:10px;color:#555;font-weight:bold;">📆 Valeur mensuelle (${moisAnnee})</div>
-                <label style="font-size:10px;cursor:pointer;display:flex;align-items:center;gap:4px;color:${cmColor};font-weight:bold;" title="Cochez si ce groupe utilise le CM du mois actuel">
-                  <input type="checkbox" ${usesCM ? "checked" : ""} onchange="toggleUseCM('${groupOrAssocie}','${cat}',this.checked)" style="cursor:pointer;">
+            <div style="background:${cmBg}; border-radius:4px; padding:6px; margin-bottom:6px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <div style="font-size:10px; color:#555; font-weight:bold;">📆 Valeur mensuelle (${moisAnnee})</div>
+                <label style="font-size:10px; cursor:pointer; display:flex; align-items:center; gap:4px; color:${cmColor}; font-weight:bold;" title="Cochez si ce groupe utilise le CM du mois actuel plutôt que le CM-1 du mois précédent">
+                  <input type="checkbox" ${usesCM ? "checked" : ""} onchange="toggleUseCM('${groupOrAssocie}', '${cat}', this.checked)" style="cursor:pointer;">
                   Utilise CM (mois actuel)
                 </label>
               </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div><label style="font-size:11px;color:${cmColor};display:block;margin-bottom:3px;font-weight:bold;">${cmLabel}</label><input type="number" step="0.01" value="${catInfo.cm1 !== 0 ? catInfo.cm1 : ""}" onchange="updateCategoryValue('${groupOrAssocie}','${cat}','cm1',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:2px solid ${cmBorder};border-radius:3px;background:${cmBg};"></div>
-                <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">📊 Indice (%)</label><input type="text" value="${calculatedIndice !== 0 ? calculatedIndice.toFixed(2) + " %" : ""}" readonly style="width:100%;padding:5px;font-size:1em;text-align:center;background:#e8f5e9;font-weight:bold;color:#27ae60;border:2px solid #27ae60;border-radius:3px;"></div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="font-size: 11px; color:${cmColor}; display: block; margin-bottom: 3px; font-weight:bold;">${cmLabel}</label>
+                  <input type="number" step="0.01" value="${catInfo.cm1 !== 0 ? catInfo.cm1 : ""}" onchange="updateCategoryValue('${groupOrAssocie}', '${cat}', 'cm1', this.value)" style="width:100%; padding: 5px; font-size:0.9em; text-align: center; border: 2px solid ${cmBorder}; border-radius: 3px; background:${cmBg};">
+                </div>
+                <div>
+                  <label style="font-size: 11px; color:#666; display: block; margin-bottom: 3px;">📊 Indice (%)</label>
+                  <input type="text" value="${calculatedIndice !== 0 ? calculatedIndice.toFixed(2) + " %" : ""}" readonly style="width:100%; padding: 5px; font-size:1em; text-align: center; background: #e8f5e9; font-weight: bold; color: #27ae60; border: 2px solid #27ae60; border-radius: 3px;">
+                </div>
               </div>
             </div>
-          </div>`;
+          </div>
+        `;
       }
 
       function renderConfigUI() {
@@ -2954,21 +2599,16 @@
         if (!container) return;
         const moisAnnee = getSelectedMonth();
         const annee = getSelectedYear();
-
-        ensurePiliersCommunsExists();
-
         associeListDatalist.innerHTML = "";
+        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
         const allAssociesSet = new Set([
           ...Object.keys(transportConfigAssocie),
         ]);
-        allAssociesSet.delete(pilierCommunKey);
-
         Array.from(allAssociesSet)
           .sort()
           .forEach((name) => {
             associeListDatalist.innerHTML += `<option value="${name}">`;
           });
-
         const groupePiliers = Array.from(allAssociesSet)
           .filter((name) => baseAssocies.includes(name.toUpperCase()))
           .sort((a, b) => a.localeCompare(b));
@@ -2976,108 +2616,21 @@
           .filter((name) => !baseAssocies.includes(name.toUpperCase()))
           .sort((a, b) => a.localeCompare(b));
         const sortedEntries = [...groupePiliers, ...groupeAffretes];
+        let html = `<table class="config-table"><thead><tr><th>Associé</th><th style="width: 20%;">Catégorie</th><th style="width: 25%;">Matériel</th><th style="width: 13%;">Tarif (€)</th><th style="width: 10%;">Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
         const categories = Object.keys(transportConfigCategorie).sort();
         const allGlobalMaterials = Object.keys(transportConfigMateriel).sort();
-
-        const communMatos = Array.from(
-          new Set([
-            ...allGlobalMaterials,
-            ...Object.keys(transportConfigAssocie[pilierCommunKey] || {}),
-          ]),
-        ).sort();
-
-        let htmlCommun = `<div class="piliers-communs-section">
-          <div class="piliers-communs-header">
-            <div>
-              <strong style="font-size:1.1em;">PILIERS COMMUNS</strong>
-              <div style="font-size:0.8em;opacity:0.85;margin-top:2px;">Tarifs et indices partagés entre
-                <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#fffb00;color:#333;margin:0 2px">ALLARD</span>
-                <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#00eeff;color:#333;margin:0 2px">LANDAIS</span>
-                <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#e27aff;color:#333;margin:0 2px">STD</span>
-              </div>
-            </div>
-          </div>
-          <div class="piliers-communs-body">
-            <table class="config-table"><thead><tr><th>Indices Carburant / Cat.</th><th style="width:20%;">Catégorie</th><th style="width:25%;">Matériel</th><th style="width:13%;">Tarif Commun (€)</th><th style="width:10%;">Indice Commun (%)</th><th>Action</th></tr></thead><tbody>`;
-
-        if (communMatos.length === 0) {
-          htmlCommun += `<tr><td colspan="6"><i>Aucun matériel. Ajoutez du matériel ci-dessus.</i></td></tr>`;
-        } else {
-          const communRowSpan = communMatos.length;
-          communMatos.forEach((matos, matosIdx) => {
-            if (!transportConfigAssocie[pilierCommunKey][matos])
-              transportConfigAssocie[pilierCommunKey][matos] = {
-                tarif: {},
-                indice: {},
-              };
-            const val = transportConfigAssocie[pilierCommunKey][matos];
-            const currentCat = transportConfigMateriel[matos] || "";
-            const tarifVal =
-              typeof val.tarif === "object" && val.tarif !== null
-                ? val.tarif[annee] || 0
-                : val.tarif || 0;
-            let indiceAafficher = 0;
-            let isUsingCategory = false;
-            const indiceData = val.indice;
-            if (typeof indiceData === "object")
-              indiceAafficher = indiceData[moisAnnee] || 0;
-            else indiceAafficher = indiceData || 0;
-            if (indiceAafficher === 0 && currentCat) {
-              const { k, cm1, c0 } = getCatValues(pilierCommunKey, currentCat);
-              indiceAafficher = calculateIndice(k, cm1, c0);
-              isUsingCategory = true;
-            }
-            htmlCommun += `<tr style="background:#f0f4ff;">
-              ${
-                matosIdx === 0
-                  ? `<td rowspan="${communRowSpan}" class="group-header" style="vertical-align:top;background:#e8efff;">
-                <div style="padding:5px;">
-                  <p style="font-weight:bold;font-size:0.85em;margin-bottom:10px;color:#0f3460;">Indices Carburant Communs :</p>
-                  ${categories.map((cat) => buildCatBlock(pilierCommunKey, cat, moisAnnee, annee, true)).join("")}
-                  ${categories.length === 0 ? '<i style="font-size:11px;color:#888;">Aucune catégorie créée</i>' : ""}
-                </div>
-              </td>`
-                  : ""
-              }
-              <td style="text-align:left;padding-left:10px;"><select onchange="setMaterielCategorie('${matos}',this.value)" style="width:100%;padding:4px;"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
-              <td><strong>${matos}</strong></td>
-              <td><input type="number" step="0.01" value="${tarifVal || 0}" onchange="updatePilierCommunTarif('${matos}',this.value)" style="width:100%;background:#e8efff;border:1px solid #7a9fd4;border-radius:3px;padding:4px;font-weight:bold;"></td>
-              <td><input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="updatePilierCommunIndice('${matos}',this.value)" style="width:100%;background:#e8efff;border:1px solid #7a9fd4;border-radius:3px;padding:4px;"></td>
-              <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${matos}')" style="color:red;cursor:pointer;">x</button></td>
-            </tr>`;
-          });
-        }
-        htmlCommun += `</tbody></table></div></div>`;
-
-        let html = `<table class="config-table"><thead><tr><th>Associé</th><th style="width:20%;">Catégorie</th><th style="width:25%;">Matériel</th><th style="width:13%;">Tarif (€)</th><th style="width:10%;">Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
-
-        html += `<tr>
-          <td colspan="6" style="text-align:center;color:#000;padding:15px;background-color:#f2f2f2;border:1px solid #ccc;font-size:0.95em">
-            TARIFS INDIVIDUELS PILIERS —
-            <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:#fffb00;color:#333;border:1px solid #ccc;margin:0 3px">ALLARD</span>
-            <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:#00eeff;color:#333;border:1px solid #ccc;margin:0 3px">LANDAIS</span>
-            <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:#e27aff;color:#333;border:1px solid #ccc;margin:0 3px">STD</span>
-            <div>
-              <span style="font-size:11px;color:#666;margin-left:10px;">
-                <span class="badge-sync badge-commun"></span> synchronisé avec Piliers Communs &nbsp;|&nbsp;
-                <span class="badge-sync badge-custom"></span> valeur individuelle
-              </span>
-            </div>
-          </td>
-        </tr>`;
-
         if (sortedEntries.length === 0) {
           html += `<tr><td colspan="6"><i>Aucun associé configuré.</i></td></tr>`;
         } else {
           sortedEntries.forEach((entry, index) => {
             if (index > 0)
-              html += `<tr style="background-color:white;"><td colspan="6" style="height:25px;border:none;"></td></tr>`;
+              html += `<tr style="background-color: white;"><td colspan="6" style="height: 25px; border: none;"></td></tr>`;
             const estPilier = baseAssocies.includes(entry.toUpperCase());
             const precedentEtaitPilier =
               index > 0 &&
               baseAssocies.includes(sortedEntries[index - 1].toUpperCase());
             if (index > 0 && !estPilier && precedentEtaitPilier)
-              html += `<tr style="background-color:#f1f3f4;"><td colspan="6" style="text-align:center;font-weight:bold;color:#5f6368;padding:10px;border:1px solid #dee2e6;">AUTRES AFFRÉTÉS</td></tr>`;
+              html += `<tr style="background-color: #f1f3f4;"><td colspan="6" style="text-align:center; font-weight:bold; color:#5f6368; padding:10px; border:1px solid #dee2e6;">AUTRES AFFRÉTÉS</td></tr>`;
             if (!transportConfigAssocie[entry])
               transportConfigAssocie[entry] = {};
             const keys = Array.from(
@@ -3087,27 +2640,10 @@
               ]),
             ).sort();
             const rowSpanCount = Math.max(1, keys.length);
-
-            let leftBlockBg = "#f8f9fa";
-            if (estPilier) {
-              if (entry.toUpperCase() === "ALLARD") leftBlockBg = "#fffde7";
-              else if (entry.toUpperCase() === "LANDAIS")
-                leftBlockBg = "#e0feff";
-              else if (entry.toUpperCase() === "STD") leftBlockBg = "#f8e8ff";
-            }
-
-            const leftBlockHTML = `<td rowspan="${rowSpanCount}" class="group-header" style="vertical-align:top;background-color:${leftBlockBg};">
-              <strong>${entry}</strong><br>
-              <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
-              <div style="margin-top:15px;border-top:1px solid #ccc;padding-top:10px;">
-                <p style="font-weight:bold;font-size:0.85em;margin-bottom:10px;color:#555;">Indices Carburant / Cat :</p>
-                ${categories.map((cat) => buildCatBlock(entry, cat, moisAnnee, annee)).join("")}
-              </div>
-            </td>`;
-
+            const leftBlockHTML = `<td rowspan="${rowSpanCount}" class="group-header" style="vertical-align: top; background-color: #f8f9fa;"><strong>${entry}</strong><br><button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button><div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;"><p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant / Cat :</p>${categories.map((cat) => buildCatBlock(entry, cat, moisAnnee, annee)).join("")}</div></td>`;
             keys.forEach((k, idx) => {
               if (!transportConfigAssocie[entry][k])
-                transportConfigAssocie[entry][k] = { tarif: {}, indice: {} };
+                transportConfigAssocie[entry][k] = { tarif: 0, indice: 0 };
               const val = transportConfigAssocie[entry][k];
               const currentCat = transportConfigMateriel[k] || "";
               let indiceAafficher = val.indice || 0;
@@ -3117,60 +2653,24 @@
                 indiceAafficher = calculateIndice(kVal, cm1, c0);
                 isUsingCategory = true;
               }
-              const tarifVal =
-                typeof val.tarif === "object" && val.tarif !== null
-                  ? val.tarif[annee] || 0
-                  : val.tarif || 0;
-
-              let syncBadgeHTML = "";
-              let rowStyleClass = "";
-              if (estPilier) {
-                const isOverridden = isPilierOverridden(entry, k);
-                if (isOverridden) {
-                  syncBadgeHTML = `<button class="btn-reset-to-common" onclick="resetPilierToCommon('${entry}','${k}')">↩</button>`;
-                  rowStyleClass = `class="pilier-row-custom"`;
-                } else {
-                  syncBadgeHTML = "";
-                  rowStyleClass = `class="pilier-row-synced"`;
-                }
-              }
-
-              const onChangeTarif = estPilier
-                ? `updatePilierIndividuelTarif('${entry}','${k}',this.value);renderConfigUI2();`
-                : `updateAssocieTarif('${entry}','${k}',this.value)`;
-              const onChangeIndice = estPilier
-                ? `updatePilierIndividuelIndice('${entry}','${k}',this.value);renderConfigUI2();`
-                : `updateAssocieIndice('${entry}','${k}',this.value)`;
-
-              const inputBg =
-                estPilier && !isPilierOverridden(entry, k)
-                  ? "#f0f7ff"
-                  : "white";
-              const inputBorder =
-                estPilier && !isPilierOverridden(entry, k) ? "#7a9fd4" : "#ddd";
-
-              html += `<tr ${rowStyleClass}>
+              html += `<tr>
                 ${idx === 0 ? leftBlockHTML : ""}
-                <td style="text-align:left;padding-left:10px;"><select onchange="setMaterielCategorie('${k}',this.value)" style="width:100%;padding:4px;"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
+                <td style="text-align:left; padding-left:10px;"><select onchange="setMaterielCategorie('${k}', this.value)" style="width:100%; padding:4px;"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
                 <td>${k}</td>
-                <td>
-                  <input type="number" step="0.01" value="${tarifVal}" onchange="${onChangeTarif}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
-                  ${syncBadgeHTML ? `<div style="margin-top:4px;">${syncBadgeHTML}</div>` : ""}
-                </td>
-                <td>
-                  <input type="number" step="0.01" value="${typeof indiceAafficher === "object" ? indiceAafficher[moisAnnee] || 0 : indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="${onChangeIndice}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
-                </td>
-                <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${k}')" style="color:red;cursor:pointer;">x</button></td>
+                <td><input type="number" step="0.01" value="${typeof val.tarif === "object" && val.tarif !== null ? val.tarif[annee] || 0 : val.tarif || 0}" onchange="updateAssocieTarif('${entry}', '${k}', this.value)" style="width:100%;"></td>
+                <td><input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory}" onchange="updateAssocieIndice('${entry}', '${k}', this.value)" style="width:100%;"></td>
+                <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe', '${k}')" style="color:red; cursor:pointer;">x</button></td>
               </tr>`;
             });
           });
         }
-        container.innerHTML = htmlCommun + html + `</tbody></table>`;
+        container.innerHTML = html + `</tbody></table>`;
         trierDatalist("list-associe");
       }
 
       function updateAssocieTarif(entry, mat, val) {
         const annee = getSelectedYear();
+        // Tarif annuel : stocké sous forme d'objet { "2026": 120, "2027": 130 }
         if (
           typeof transportConfigAssocie[entry][mat].tarif !== "object" ||
           transportConfigAssocie[entry][mat].tarif === null
@@ -3218,9 +2718,6 @@
         fullMatosList.forEach((m) => {
           transportConfigAssocie[name][m] = { tarif: 0, indice: 0 };
         });
-        if (baseAssocies.includes(name)) {
-          fullMatosList.forEach((m) => syncPiliersFromCommon(m));
-        }
         localStorage.setItem(
           "transport_config_associe",
           JSON.stringify(transportConfigAssocie),
@@ -3301,12 +2798,10 @@
             Object.keys(transportConfigGroup[group]).forEach((m) =>
               uniqueMatos.add(m),
             );
-          for (let associe in transportConfigAssocie) {
-            if (associe === pilierCommunKey) return;
+          for (let associe in transportConfigAssocie)
             Object.keys(transportConfigAssocie[associe]).forEach((m) =>
               uniqueMatos.add(m),
             );
-          }
           listVehicule.innerHTML = "";
           Array.from(uniqueMatos)
             .sort()
@@ -4294,7 +3789,6 @@
             localStorage.getItem("transport_config_associe") || "{}",
           );
           for (let associeName in associes) {
-            if (associeName === pilierCommunKey) continue;
             for (let matos in associes[associeName]) {
               const val = associes[associeName][matos];
               if (
@@ -4365,7 +3859,6 @@
           );
           let modifie = false;
           for (let associeName in associes) {
-            if (associeName === pilierCommunKey) continue;
             for (let matos in associes[associeName]) {
               const val = associes[associeName][matos];
               if (
@@ -4475,8 +3968,6 @@
 
       document.addEventListener("DOMContentLoaded", function () {
         verifierEtReparerSiNecessaire();
-        ensurePiliersCommunsExists();
-
         const datePicker = document.getElementById("current-date-picker");
         const displayDate = document.getElementById("display-date");
         const now = new Date();
