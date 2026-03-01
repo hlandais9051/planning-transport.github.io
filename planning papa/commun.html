@@ -2389,14 +2389,6 @@
         renderConfigUI();
         renderConfigUI2();
         refreshAllPlanningTarifs();
-        const sn = document.getElementById("save-notif");
-        if (sn) {
-          sn.textContent = checked
-            ? `"${groupOrAssocie}" utilise désormais CM (mois actuel) pour ${cat}`
-            : `"${groupOrAssocie}" utilise désormais CM-1 (mois précédent) pour ${cat}`;
-          sn.style.display = "inline";
-          setTimeout(() => (sn.style.display = "none"), 3000);
-        }
       }
 
       function buildCatBlock(
@@ -2414,6 +2406,9 @@
         );
         const usesCM = catInfo.usesCM;
         const cmLabel = usesCM ? "CM" : "CM-1";
+        const cmText = usesCM
+          ? "Utilise CM (mois actuel)"
+          : "Utilise CM-1 (mois précédent)";
         const cmColor = usesCM ? "#7b2d8b" : "#e67e00";
         const cmBg = usesCM ? "#f9f0ff" : "#fff8ee";
         const cmBorder = usesCM ? "#7b2d8b" : "#e67e00";
@@ -2436,7 +2431,7 @@
                   <div style="font-size:10px;color:#555;font-weight:bold;">📆 Valeur mensuelle (${moisAnnee})</div>
                   <label style="font-size:10px;cursor:pointer;display:flex;align-items:center;gap:4px;color:${cmColor};font-weight:bold;" title="Cochez si ce groupe utilise le CM du mois actuel">
                     <input type="checkbox" ${usesCM ? "checked" : ""} onchange="togglePilierCommunUseCM('${cat}',this.checked)" style="cursor:pointer;">
-                    Utilise CM (mois actuel)
+                    ${cmText}
                   </label>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
@@ -2465,7 +2460,7 @@
                 <div style="font-size:10px;color:#555;font-weight:bold;">📆 Valeur mensuelle (${moisAnnee})</div>
                 <label style="font-size:10px;cursor:pointer;display:flex;align-items:center;gap:4px;color:${cmColor};font-weight:bold;" title="Cochez si ce groupe utilise le CM du mois actuel">
                   <input type="checkbox" ${usesCM ? "checked" : ""} onchange="toggleUseCM('${groupOrAssocie}','${cat}',this.checked)" style="cursor:pointer;">
-                  Utilise CM (mois actuel)
+                  ${cmText}
                 </label>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
