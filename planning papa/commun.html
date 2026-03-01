@@ -1475,9 +1475,7 @@
             transportConfigGroupInfo[pilier] = {};
           if (!transportConfigGroupInfo[pilier][cat])
             transportConfigGroupInfo[pilier][cat] = {};
-          // Copy all fields
           Object.assign(transportConfigGroupInfo[pilier][cat], communCatInfo);
-          // Also copy useCM flag
           const useCMKey = "_useCM_" + cat;
           transportConfigGroupInfo[pilier][useCMKey] =
             transportConfigGroupInfo[pilierCommunKey]?.[useCMKey] || false;
@@ -2086,7 +2084,6 @@
         const list = document.getElementById(id);
         if (!list) return;
         const options = Array.from(list.options);
-        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
         options.sort((a, b) => {
           const valA = a.value.toUpperCase();
           const valB = b.value.toUpperCase();
@@ -2257,7 +2254,6 @@
       function trierPlanningParAssocie() {
         const tableBody = document.getElementById("table-body");
         const rows = Array.from(tableBody.querySelectorAll("tr"));
-        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
         const rowsToSort = rows.filter(
           (tr) => !tr.classList.contains("group-separator"),
         );
@@ -2988,7 +2984,7 @@
 
         let htmlCommun = `<div class="piliers-communs-section">
           <div class="piliers-communs-header">
-            <div>
+            <div style="flex:1;">
               <strong style="font-size:1.1em;">PILIERS COMMUNS</strong>
               <div style="font-size:0.8em;opacity:0.85;margin-top:2px;">Tarifs et indices partagés entre
                 <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#fffb00;color:#333;margin:0 2px">ALLARD</span>
@@ -3040,8 +3036,8 @@
                   : ""
               }
               <td style="text-align:left;padding-left:10px;"><select onchange="setMaterielCategorie('${matos}',this.value)" style="width:100%;padding:4px;"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
-              <td><strong>${matos}</strong></td>
-              <td><input type="number" step="0.01" value="${tarifVal || 0}" onchange="updatePilierCommunTarif('${matos}',this.value)" style="width:100%;background:#e8efff;border:1px solid #7a9fd4;border-radius:3px;padding:4px;font-weight:bold;"></td>
+              <td>${matos}</td>
+              <td><input type="number" step="0.01" value="${tarifVal || 0}" onchange="updatePilierCommunTarif('${matos}',this.value)" style="width:100%;background:#e8efff;border:1px solid #7a9fd4;border-radius:3px;padding:4px;"></td>
               <td><input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="updatePilierCommunIndice('${matos}',this.value)" style="width:100%;background:#e8efff;border:1px solid #7a9fd4;border-radius:3px;padding:4px;"></td>
               <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${matos}')" style="color:red;cursor:pointer;">x</button></td>
             </tr>`;
@@ -3110,9 +3106,18 @@
                 transportConfigAssocie[entry][k] = { tarif: {}, indice: {} };
               const val = transportConfigAssocie[entry][k];
               const currentCat = transportConfigMateriel[k] || "";
-              let indiceAafficher = val.indice || 0;
+              let indiceAafficher = 0;
               let isUsingCategory = false;
-              if ((!val.indice || val.indice === 0) && currentCat) {
+              const indiceDataPilier = val.indice;
+              if (
+                typeof indiceDataPilier === "object" &&
+                indiceDataPilier !== null
+              ) {
+                indiceAafficher = parseFloat(indiceDataPilier[moisAnnee]) || 0;
+              } else {
+                indiceAafficher = parseFloat(indiceDataPilier) || 0;
+              }
+              if (indiceAafficher === 0 && currentCat) {
                 const { k: kVal, cm1, c0 } = getCatValues(entry, currentCat);
                 indiceAafficher = calculateIndice(kVal, cm1, c0);
                 isUsingCategory = true;
@@ -3154,11 +3159,13 @@
                 <td style="text-align:left;padding-left:10px;"><select onchange="setMaterielCategorie('${k}',this.value)" style="width:100%;padding:4px;"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
                 <td>${k}</td>
                 <td>
-                  <input type="number" step="0.01" value="${tarifVal}" onchange="${onChangeTarif}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
-                  ${syncBadgeHTML ? `<div style="margin-top:4px;">${syncBadgeHTML}</div>` : ""}
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <input type="number" step="0.01" value="${tarifVal}" onchange="${onChangeTarif}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
+                    ${syncBadgeHTML ? syncBadgeHTML : ""}
+                  </div>
                 </td>
                 <td>
-                  <input type="number" step="0.01" value="${typeof indiceAafficher === "object" ? indiceAafficher[moisAnnee] || 0 : indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="${onChangeIndice}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
+                  <input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="${onChangeIndice}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
                 </td>
                 <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${k}')" style="color:red;cursor:pointer;">x</button></td>
               </tr>`;
@@ -3652,7 +3659,6 @@
         cell.className = "matos-cell";
         const val = input.value.toUpperCase();
         if (val) {
-          const baseAssocies = ["LANDAIS", "ALLARD", "STD"];
           if (baseAssocies.includes(val))
             cell.classList.add("color-" + val.toLowerCase());
           else {
