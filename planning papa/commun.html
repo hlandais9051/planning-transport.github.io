@@ -691,14 +691,14 @@
               class="btn btn-copy-img"
               style="width: 100%; margin-bottom: 5px"
             >
-              Copier Image
+              Copier Planning (suppl client)
             </button>
             <button
               id="copy-image-client"
               class="btn"
               style="background-color: #07cc00; width: 100%; margin-bottom: 5px"
             >
-              Planning Gueno
+              Planning (tarif affrété)
             </button>
             <button
               id="export-excel"
@@ -776,13 +776,6 @@
       </div>
 
       <div id="config-section-client">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-client')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Clients
         </h2>
@@ -798,14 +791,30 @@
             flex-wrap: wrap;
           "
         >
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau Groupe :</strong><br />
             <input type="text" id="new-group-name" placeholder="Nom..." />
             <button onclick="addNewGroup()" class="btn btn-add">
               Créer Groupe
             </button>
           </div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau Client :</strong><br />
             <input type="text" id="new-client-name" placeholder="Nom..." />
             <button onclick="addNewClient()" class="btn btn-add">
@@ -813,7 +822,15 @@
             </button>
           </div>
           <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouvelle Catégorie :</strong><br />
             <input
               type="text"
@@ -827,7 +844,15 @@
               Ajouter partout
             </button>
           </div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau Matériel :</strong><br />
             <input type="text" id="global-matos-client" placeholder="Nom..." />
             <button
@@ -837,18 +862,20 @@
               Ajouter partout
             </button>
           </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-client')"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
         <div id="config-container"></div>
       </div>
 
       <div id="config-section-associe">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-associe')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Associés - Affrétés
         </h2>
@@ -864,7 +891,15 @@
             flex-wrap: wrap;
           "
         >
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouvel Affrété :</strong><br />
             <input type="text" id="new-config2-name" placeholder="Nom..." />
             <button onclick="addNewClient2()" class="btn btn-add">
@@ -872,7 +907,15 @@
             </button>
           </div>
           <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouvelle Catégorie :</strong><br />
             <input
               type="text"
@@ -886,7 +929,15 @@
               Ajouter partout
             </button>
           </div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau Matériel :</strong><br />
             <input type="text" id="global-matos-associe" placeholder="Nom..." />
             <button
@@ -896,18 +947,20 @@
               Ajouter partout
             </button>
           </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-associe')"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
         <div id="config-container-2"></div>
       </div>
 
       <div id="config-section-chauffeur">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-chauffeur')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Chauffeurs
         </h2>
@@ -922,7 +975,15 @@
             gap: 10px;
           "
         >
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau chauffeur :</strong><br />
             <input
               type="text"
@@ -933,18 +994,20 @@
               Créer Chauffeur
             </button>
           </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-chauffeur')"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
         <div id="config-container-chauffeur"></div>
       </div>
 
       <div id="config-section-telephone">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-telephone')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Téléphones Clients
         </h2>
@@ -959,7 +1022,15 @@
             gap: 10px;
           "
         >
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau contact :</strong><br />
             <input
               type="text"
@@ -978,6 +1049,15 @@
             />
             <button onclick="addNewTelephone()" class="btn btn-add">
               Créer
+            </button>
+          </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-telephone')"
+            >
+              Fermer
             </button>
           </div>
         </div>
@@ -1063,8 +1143,8 @@
           <div
             onclick="setColorToSelectedRow('#ffffff')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #fff;
               border: 1px solid #ccc;
               cursor: pointer;
@@ -1075,8 +1155,8 @@
           <div
             onclick="setColorToSelectedRow('#ffee00')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #ffee00;
               cursor: pointer;
               border-radius: 3px;
@@ -1086,8 +1166,8 @@
           <div
             onclick="setColorToSelectedRow('#ffae00')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #ffae00;
               cursor: pointer;
               border-radius: 3px;
@@ -1097,8 +1177,8 @@
           <div
             onclick="setColorToSelectedRow('#ff0000')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #ff0000;
               cursor: pointer;
               border-radius: 3px;
@@ -1108,8 +1188,8 @@
           <div
             onclick="setColorToSelectedRow('#b700ff')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #b700ff;
               cursor: pointer;
               border-radius: 3px;
@@ -1119,8 +1199,8 @@
           <div
             onclick="setColorToSelectedRow('#ff00d4')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #ff00d4;
               cursor: pointer;
               border-radius: 3px;
@@ -1166,8 +1246,8 @@
               <th class="col-telephone">Contact Client</th>
               <th class="col-consigne">Consigne</th>
               <th class="col-chauffeur">Chauffeur</th>
-              <th class="col-ncommande">N° Commande</th>
               <th class="col-nchantier">N° Chantier</th>
+              <th class="col-ncommande">N° Commande</th>
               <th class="col-nbon">N° Bon</th>
               <th class="col-tarif hide-export">Tarif-client</th>
               <th class="col-supplement-client hide-export">
@@ -1697,8 +1777,8 @@
           const PH = [
             "Chantier...",
             "Consigne...",
-            "N° Commande...",
             "N° Chantier...",
+            "N° Commande...",
             "N° Bon...",
             "Commentaire...",
             "Véhicule...",
@@ -1745,7 +1825,7 @@
         const titre = document.getElementById("display-date").innerText;
         const fenetreImpression = window.open("", "", "height=600,width=800");
         fenetreImpression.document.write(
-          `<html><head><title>Impression Planning</title><style>body{font-family:sans-serif;margin:20px;}h2{text-align:center;}table{border-collapse:collapse;width:100%;font-size:11px;}th,td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top;}th{background-color:#007bff!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.telephone-cell{white-space:normal;line-height:1.3;}.telephone-name{font-size:11px;color:#000;}.telephone-number{font-size:11px;color:#000;font-style:italic;}@media print{th{background-color:#007bff!important;color:white!important;}}</style></head><body><h2>${titre}</h2><table><thead><tr><th>Associé</th><th>Chantier</th><th>Véhicule</th><th>Client</th><th>Contact</th><th>Consigne</th><th>Chauffeur</th><th>N° Commande</th><th>N° Chantier</th></tr></thead><tbody>`,
+          `<html><head><title>Impression Planning</title><style>body{font-family:sans-serif;margin:20px;}h2{text-align:center;}table{border-collapse:collapse;width:100%;font-size:11px;}th,td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top;}th{background-color:#007bff!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.telephone-cell{white-space:normal;line-height:1.3;}.telephone-name{font-size:11px;color:#000;}.telephone-number{font-size:11px;color:#000;font-style:italic;}@media print{th{background-color:#007bff!important;color:white!important;}}</style></head><body><h2>${titre}</h2><table><thead><tr><th>Associé</th><th>Chantier</th><th>Véhicule</th><th>Client</th><th>Contact</th><th>Consigne</th><th>Chauffeur</th><th>N° Chantier</th><th>N° Commande</th></tr></thead><tbody>`,
         );
         lignes.forEach((ligne) => {
           const bgColor = ligne.couleur
@@ -1895,8 +1975,8 @@
             "Contact...",
             "Consigne...",
             "Chauffeur...",
-            "N° Commande...",
             "N° Chantier...",
+            "N° Commande...",
             "N° Bon...",
             "Commentaire...",
           ];
@@ -1922,8 +2002,8 @@
               const cellIndex = td.cellIndex;
               if (td.classList.contains("col-consigne"))
                 val = "Consigne : " + val;
-              else if (cellIndex === 8) val = "N° Commande : " + val;
-              else if (cellIndex === 9) val = "N° Chantier : " + val;
+              else if (cellIndex === 8) val = "N° Chantier : " + val;
+              else if (cellIndex === 9) val = "N° Commande : " + val;
               else if (cellIndex === 10) val = "N° Bon : " + val;
             }
           }
@@ -3903,8 +3983,8 @@
         };
         const valChantier = data ? data.chantier : "Chantier...";
         const valConsigne = data ? data.consigne : "Consigne...";
-        const valCommande = data ? data.n_commande : "N° Commande...";
         const valChantierNum = data ? data.n_chantier : "N° Chantier...";
+        const valCommande = data ? data.n_commande : "N° Commande...";
         const valBon = data ? data.n_bon : "N° Bon...";
         const valComm = data ? data.commentaire : "Commentaire...";
 
@@ -3917,8 +3997,8 @@
           <td class="matos-cell col-telephone" data-telephone-full="${data ? data.telephone : ""}"><input class="combo-input select-telephone" list="list-telephone" value="${data ? extractContactName(data.telephone) : ""}" placeholder="Contact..."></td>
           <td contenteditable="true" class="col-consigne ${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
           <td class="matos-cell"><input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur..."></td>
-          <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
           <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
+          <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
           <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
           <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
           <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
@@ -3948,8 +4028,8 @@
             const placeholders = [
               "Chantier...",
               "Consigne...",
-              "N° Commande...",
               "N° Chantier...",
+              "N° Commande...",
               "N° Bon...",
               "Commentaire...",
             ];
@@ -3976,8 +4056,8 @@
               const map = {
                 1: "Chantier...",
                 6: "Consigne...",
-                8: "N° Commande...",
-                9: "N° Chantier...",
+                8: "N° Chantier...",
+                9: "N° Commande...",
                 10: "N° Bon...",
                 17: "Commentaire...",
               };
@@ -3992,8 +4072,8 @@
             const placeholders = [
               "Chantier...",
               "Consigne...",
-              "N° Commande...",
               "N° Chantier...",
+              "N° Commande...",
               "N° Bon...",
               "Commentaire...",
             ];
@@ -4803,8 +4883,8 @@
               "Téléphone",
               "Consigne",
               "Chauffeur",
-              "N° Commande",
               "N° Chantier",
+              "N° Commande",
               "N° Bon",
               "Tarif",
               "Supplement Client",
@@ -4842,14 +4922,14 @@
                   row.telephone && row.telephone !== "Contact...";
                 const aUnChauffeur =
                   row.chauffeur && row.chauffeur !== "Chauffeur...";
-                const aUnCommande =
-                  row.n_commande &&
-                  row.n_commande !== "N° Commande..." &&
-                  row.n_commande !== "";
                 const aUnChantierNum =
                   row.n_chantier &&
                   row.n_chantier !== "N° Chantier..." &&
                   row.n_chantier !== "";
+                const aUnCommande =
+                  row.n_commande &&
+                  row.n_commande !== "N° Commande..." &&
+                  row.n_commande !== "";
                 const aUnBon =
                   row.n_bon && row.n_bon !== "N° Bon..." && row.n_bon !== "";
                 const aUnCommentaire =
@@ -4916,8 +4996,8 @@
                   clean(row.telephone, "Contact..."),
                   clean(row.consigne, "Consigne..."),
                   clean(row.chauffeur, "Chauffeur..."),
-                  clean(row.n_commande, "N° Commande..."),
                   clean(row.n_chantier, "N° Chantier..."),
+                  clean(row.n_commande, "N° Commande..."),
                   clean(row.n_bon, "N° Bon..."),
                   tarif || 0,
                   suppClient || 0,
