@@ -776,13 +776,6 @@
       </div>
 
       <div id="config-section-client">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-client')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Clients
         </h2>
@@ -798,14 +791,30 @@
             flex-wrap: wrap;
           "
         >
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau Groupe :</strong><br />
             <input type="text" id="new-group-name" placeholder="Nom..." />
             <button onclick="addNewGroup()" class="btn btn-add">
               Créer Groupe
             </button>
           </div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau Client :</strong><br />
             <input type="text" id="new-client-name" placeholder="Nom..." />
             <button onclick="addNewClient()" class="btn btn-add">
@@ -813,7 +822,15 @@
             </button>
           </div>
           <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouvelle Catégorie :</strong><br />
             <input
               type="text"
@@ -827,7 +844,15 @@
               Ajouter partout
             </button>
           </div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau Matériel :</strong><br />
             <input type="text" id="global-matos-client" placeholder="Nom..." />
             <button
@@ -837,18 +862,20 @@
               Ajouter partout
             </button>
           </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-client')"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
         <div id="config-container"></div>
       </div>
 
       <div id="config-section-associe">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-associe')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Associés - Affrétés
         </h2>
@@ -864,7 +891,15 @@
             flex-wrap: wrap;
           "
         >
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouvel Affrété :</strong><br />
             <input type="text" id="new-config2-name" placeholder="Nom..." />
             <button onclick="addNewClient2()" class="btn btn-add">
@@ -872,7 +907,15 @@
             </button>
           </div>
           <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouvelle Catégorie :</strong><br />
             <input
               type="text"
@@ -886,7 +929,15 @@
               Ajouter partout
             </button>
           </div>
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau Matériel :</strong><br />
             <input type="text" id="global-matos-associe" placeholder="Nom..." />
             <button
@@ -896,18 +947,20 @@
               Ajouter partout
             </button>
           </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-associe')"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
         <div id="config-container-2"></div>
       </div>
 
       <div id="config-section-chauffeur">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-chauffeur')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Chauffeurs
         </h2>
@@ -922,7 +975,15 @@
             gap: 10px;
           "
         >
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau chauffeur :</strong><br />
             <input
               type="text"
@@ -933,18 +994,20 @@
               Créer Chauffeur
             </button>
           </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-chauffeur')"
+            >
+              Fermer
+            </button>
+          </div>
         </div>
         <div id="config-container-chauffeur"></div>
       </div>
 
       <div id="config-section-telephone">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-telephone')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Téléphones Clients
         </h2>
@@ -959,7 +1022,15 @@
             gap: 10px;
           "
         >
-          <div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
             <strong>Nouveau contact :</strong><br />
             <input
               type="text"
@@ -978,6 +1049,15 @@
             />
             <button onclick="addNewTelephone()" class="btn btn-add">
               Créer
+            </button>
+          </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-telephone')"
+            >
+              Fermer
             </button>
           </div>
         </div>
