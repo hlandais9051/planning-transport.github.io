@@ -561,7 +561,7 @@
         color: #007bff;
         border-radius: 3px;
         padding: 2px 5px;
-        font-size: 15px;
+        font-size: 10px;
         cursor: pointer;
         margin-left: 5px;
       }
@@ -1208,6 +1208,46 @@
             title="Rose"
           ></div>
         </div>
+        <div style="display: flex; align-items: center; gap: 6px">
+          <button
+            id="btn-undo"
+            onclick="undoPlanning()"
+            title="Annuler (Ctrl+Z)"
+            style="
+              background: #546e7a;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 5px 9px;
+              font-size: 18px;
+              cursor: pointer;
+              opacity: 0.35;
+              transition: opacity 0.2s;
+            "
+            disabled
+          >
+            ↩
+          </button>
+          <button
+            id="btn-redo"
+            onclick="redoPlanning()"
+            title="Rétablir (Ctrl+Y)"
+            style="
+              background: #546e7a;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 5px 9px;
+              font-size: 18px;
+              cursor: pointer;
+              opacity: 0.35;
+              transition: opacity 0.2s;
+            "
+            disabled
+          >
+            ↪
+          </button>
+        </div>
         <div style="flex-grow: 1"></div>
         <div>
           Le :
@@ -1385,6 +1425,139 @@
       let isMouseDown = false;
       let estEnTrainDeColler = false;
       let pendingTimeouts = [];
+
+      const UNDO_MAX = 50;
+      let undoStack = []; // états passés
+      let redoStack = []; // états annulés (disponibles pour redo)
+      let undoDebounceTimer = null;
+      let isUndoRedoAction = false; // évite de capturer pendant undo/redo
+      let lastCapturedData = {}; // dernière donnée capturée par date (anti-doublon)
+      let isInitialLoading = true;
+
+      function captureUndoStateBefore() {
+        if (isUndoRedoAction || estEnTrainDeColler || isInitialLoading) return;
+        const date = document.getElementById("current-date-picker")?.value;
+        if (!date) return;
+        const saved = localStorage.getItem("planning_" + date);
+        if (!saved) return;
+        // Anti-doublon : ne pas capturer si identique au dernier état capturé
+        if (lastCapturedData[date] === saved) return;
+        undoStack.push({ date, data: saved });
+        if (undoStack.length > UNDO_MAX) undoStack.shift();
+        lastCapturedData[date] = saved;
+        // Effacer le redo pour cette date (nouvelle action utilisateur)
+        redoStack = redoStack.filter((s) => s.date !== date);
+        updateUndoRedoButtons();
+      }
+
+      function undoPlanning() {
+        const date = document.getElementById("current-date-picker")?.value;
+        if (!date || undoStack.length === 0) return;
+        // Chercher le dernier état pour cette date
+        let idx = undoStack.length - 1;
+        while (idx >= 0 && undoStack[idx].date !== date) idx--;
+        if (idx < 0) return;
+        // Sauvegarder l'état actuel dans redo
+        const currentSaved = localStorage.getItem("planning_" + date);
+        if (currentSaved) {
+          redoStack.push({ date, data: currentSaved });
+        }
+        // Restaurer l'état précédent
+        const stateToRestore = undoStack[idx];
+        undoStack.splice(idx, 1);
+        isUndoRedoAction = true;
+        localStorage.setItem("planning_" + date, stateToRestore.data);
+        lastCapturedData[date] = stateToRestore.data; // mettre à jour anti-doublon
+        rechargerPlanningDepuisLocalStorage(date);
+        isUndoRedoAction = false;
+        updateUndoRedoButtons();
+        afficherNotification("↩ Annulation", "#546e7a");
+      }
+
+      function redoPlanning() {
+        const date = document.getElementById("current-date-picker")?.value;
+        if (!date || redoStack.length === 0) return;
+        let idx = redoStack.length - 1;
+        while (idx >= 0 && redoStack[idx].date !== date) idx--;
+        if (idx < 0) return;
+        // Sauvegarder l'état actuel dans undo avant de redo
+        const currentSaved = localStorage.getItem("planning_" + date);
+        if (currentSaved) {
+          undoStack.push({ date, data: currentSaved });
+          lastCapturedData[date] = currentSaved;
+        }
+        const stateToRestore = redoStack[idx];
+        redoStack.splice(idx, 1);
+        isUndoRedoAction = true;
+        localStorage.setItem("planning_" + date, stateToRestore.data);
+        lastCapturedData[date] = stateToRestore.data; // mettre à jour anti-doublon
+        rechargerPlanningDepuisLocalStorage(date);
+        isUndoRedoAction = false;
+        updateUndoRedoButtons();
+        afficherNotification("↪ Rétablissement", "#546e7a");
+      }
+
+      function rechargerPlanningDepuisLocalStorage(date) {
+        pendingTimeouts.forEach((t) => clearTimeout(t));
+        pendingTimeouts = [];
+        const tableBody = document.getElementById("table-body");
+        tableBody.innerHTML = "";
+        const saved = localStorage.getItem("planning_" + date);
+        if (saved) {
+          try {
+            const rows = JSON.parse(saved);
+            if (rows.length > 0) {
+              rows.forEach(ajouterLigne);
+              setTimeout(forceRecalculTousLesTarifs, 100);
+              return;
+            }
+          } catch (e) {}
+        }
+        ajouterLigne();
+      }
+
+      function updateUndoRedoButtons() {
+        const date = document.getElementById("current-date-picker")?.value;
+        const btnUndo = document.getElementById("btn-undo");
+        const btnRedo = document.getElementById("btn-redo");
+        if (!btnUndo || !btnRedo) return;
+        const hasUndo = date && undoStack.some((s) => s.date === date);
+        const hasRedo = date && redoStack.some((s) => s.date === date);
+        btnUndo.disabled = !hasUndo;
+        btnUndo.style.opacity = hasUndo ? "1" : "0.35";
+        btnRedo.disabled = !hasRedo;
+        btnRedo.style.opacity = hasRedo ? "1" : "0.35";
+      }
+
+      document.addEventListener("keydown", function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+          const active = document.activeElement;
+          if (
+            active &&
+            (active.isContentEditable ||
+              active.tagName === "INPUT" ||
+              active.tagName === "TEXTAREA")
+          )
+            return;
+          e.preventDefault();
+          undoPlanning();
+        }
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          (e.key === "y" || (e.key === "z" && e.shiftKey))
+        ) {
+          const active = document.activeElement;
+          if (
+            active &&
+            (active.isContentEditable ||
+              active.tagName === "INPUT" ||
+              active.tagName === "TEXTAREA")
+          )
+            return;
+          e.preventDefault();
+          redoPlanning();
+        }
+      });
 
       function getSelectedYear() {
         const dateValeur = document.getElementById("current-date-picker").value;
@@ -1794,8 +1967,8 @@
           const clientVal = cp(tr.querySelector(".select-client")?.value);
           const consigneVal = cp(tr.cells[6]?.innerText);
           const chauffeurVal = cp(tr.querySelector(".select-chauffeur")?.value);
-          const NcommandeVal = cp(tr.cells[8]?.innerText);
-          const NchantierVal = cp(tr.cells[9]?.innerText);
+          const NchantierVal = cp(tr.cells[8]?.innerText);
+          const NcommandeVal = cp(tr.cells[9]?.innerText);
           if (
             !associeVal &&
             !chantierVal &&
@@ -1803,8 +1976,8 @@
             !clientVal &&
             !consigneVal &&
             !chauffeurVal &&
-            !NcommandeVal &&
-            !NchantierVal
+            !NchantierVal &&
+            !NcommandeVal
           )
             return;
           lignes.push({
@@ -1817,8 +1990,8 @@
             telephoneNumero: phoneNumber,
             consigne: consigneVal,
             chauffeur: chauffeurVal,
-            n_commande: NcommandeVal,
             n_chantier: NchantierVal,
+            n_commande: NcommandeVal,
             couleur: tr.style.backgroundColor || "",
           });
         });
@@ -1838,7 +2011,7 @@
               telephoneHTML += `<div class="telephone-number">${ligne.telephoneNumero}</div>`;
           }
           fenetreImpression.document.write(
-            `<tr${bgColor}><td>${ligne.associe}</td><td>${ligne.chantier}</td><td>${ligne.vehicule}</td><td>${ligne.client}</td><td class="telephone-cell">${telephoneHTML}</td><td>${ligne.consigne}</td><td>${ligne.chauffeur}</td><td>${ligne.n_commande}</td><td>${ligne.n_chantier}</td></tr>`,
+            `<tr${bgColor}><td>${ligne.associe}</td><td>${ligne.chantier}</td><td>${ligne.vehicule}</td><td>${ligne.client}</td><td class="telephone-cell">${telephoneHTML}</td><td>${ligne.consigne}</td><td>${ligne.chauffeur}</td><td>${ligne.n_chantier}</td><td>${ligne.n_commande}</td></tr>`,
           );
         });
         fenetreImpression.document.write(`</tbody></table></body></html>`);
@@ -3641,17 +3814,6 @@
         return totalMarge;
       }
 
-      function calculerMargeReelle() {
-        const totalClient = calculerMarge_Client();
-        const totalAffrete = calculerMarge_Affrete();
-        const margeNette = totalClient - totalAffrete;
-        const display = document.getElementById("marge-nette");
-        if (display) {
-          display.textContent = margeNette.toFixed(2) + " €";
-          display.style.color = margeNette >= 0 ? "#28a745" : "#dc3545";
-        }
-      }
-
       function rgbToHex(rgb) {
         if (!rgb || rgb === "" || rgb === "transparent") return "";
         if (rgb.startsWith("#")) return rgb;
@@ -3669,6 +3831,7 @@
         if (estEnTrainDeColler) return;
         const date = document.getElementById("current-date-picker").value;
         if (!date) return;
+        if (!isUndoRedoAction) captureUndoStateBefore();
         const rows = [];
         document.querySelectorAll("#table-body tr").forEach((tr) => {
           const dateLigne = tr.cells[2]?.innerText || "";
@@ -3708,8 +3871,8 @@
               "",
             consigne: tr.cells[6].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[8].innerText,
-            n_chantier: tr.cells[9].innerText,
+            n_chantier: tr.cells[8].innerText,
+            n_commande: tr.cells[9].innerText,
             n_bon: tr.cells[10].innerText,
             tarif: tr.cells[11].innerText,
             supplement_client: tr.cells[12].innerText,
@@ -3973,9 +4136,8 @@
         const tr = document.createElement("tr");
         tr.style.backgroundColor = "";
         tr.removeAttribute("style");
-        const getPlaceholderClass = (val, defaultText) => {
-          return !val || val === defaultText ? "placeholder-style" : "";
-        };
+        const getPlaceholderClass = (val, defaultText) =>
+          !val || val === defaultText ? "placeholder-style" : "";
         const valChantier = data ? data.chantier : "Chantier...";
         const valConsigne = data ? data.consigne : "Consigne...";
         const valChantierNum = data ? data.n_chantier : "N° Chantier...";
@@ -4268,8 +4430,8 @@
           telephone: ligne.querySelector(".select-telephone").value,
           consigne: ligne.cells[6].innerText,
           chauffeur: ligne.querySelector(".select-chauffeur").value,
-          n_commande: ligne.cells[8].innerText,
-          n_chantier: ligne.cells[9].innerText,
+          n_chantier: ligne.cells[8].innerText,
+          n_commande: ligne.cells[9].innerText,
           n_bon: ligne.cells[10].innerText,
           tarif: ligne.cells[11].innerText,
           supplement_client: ligne.cells[12].innerText,
@@ -4299,8 +4461,8 @@
             telephone: tr.querySelector(".select-telephone").value,
             consigne: tr.cells[6].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[8].innerText,
-            n_chantier: tr.cells[9].innerText,
+            n_chantier: tr.cells[8].innerText,
+            n_commande: tr.cells[9].innerText,
             n_bon: tr.cells[10].innerText,
             tarif: tr.cells[11].innerText,
             supplement_client: tr.cells[12].innerText,
@@ -4577,10 +4739,13 @@
           JSON.parse(saved).forEach(ajouterLigne);
           setTimeout(() => {
             forceRecalculTousLesTarifs();
+            isInitialLoading = false;
+            lastCapturedData = {};
           }, 100);
         } else {
           ajouterLigne();
         }
+        setTimeout(updateUndoRedoButtons, 200);
 
         datePicker.addEventListener("change", function () {
           const nouvelleDate = this.value;
@@ -4592,6 +4757,7 @@
             JSON.parse(savedDay).forEach(ajouterLigne);
           else ajouterLigne();
           calculerTousLesTotaux();
+          updateUndoRedoButtons();
           setTimeout(() => {
             chargerCouleursDate(nouvelleDate);
           }, 100);
@@ -4938,8 +5104,8 @@
                   !aUnClient &&
                   !aUnTelephone &&
                   !aUnChauffeur &&
-                  !aUnCommande &&
                   !aUnChantierNum &&
+                  !aUnCommande &&
                   !aUnBon &&
                   !aUnCommentaire
                 )

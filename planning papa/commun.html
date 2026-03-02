@@ -513,8 +513,6 @@
         display: flex;
         gap: 15px;
       }
-
-      /* ===== PILIERS COMMUNS STYLES ===== */
       .piliers-communs-header {
         background: linear-gradient(
           135deg,
@@ -624,6 +622,7 @@
             </button>
           </div>
         </div>
+
         <div
           class="button-group"
           onmouseleave="
@@ -663,6 +662,7 @@
             </button>
           </div>
         </div>
+
         <div
           class="button-group"
           onmouseleave="
@@ -691,14 +691,14 @@
               class="btn btn-copy-img"
               style="width: 100%; margin-bottom: 5px"
             >
-              Copier Image
+              Copier Planning (suppl client)
             </button>
             <button
               id="copy-image-client"
               class="btn"
               style="background-color: #07cc00; width: 100%; margin-bottom: 5px"
             >
-              Planning Gueno
+              Planning (tarif affrété)
             </button>
             <button
               id="export-excel"
@@ -716,6 +716,7 @@
             </button>
           </div>
         </div>
+
         <div
           class="button-group"
           onmouseleave="
@@ -769,58 +770,12 @@
             </button>
           </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 6px">
-          <button
-            id="btn-undo"
-            onclick="undoPlanning()"
-            title="Annuler (Ctrl+Z)"
-            style="
-              background: #546e7a;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              padding: 8px 14px;
-              font-size: 18px;
-              cursor: pointer;
-              opacity: 0.35;
-              transition: opacity 0.2s;
-            "
-            disabled
-          >
-            ↩
-          </button>
-          <button
-            id="btn-redo"
-            onclick="redoPlanning()"
-            title="Rétablir (Ctrl+Y)"
-            style="
-              background: #546e7a;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              padding: 8px 14px;
-              font-size: 18px;
-              cursor: pointer;
-              opacity: 0.35;
-              transition: opacity 0.2s;
-            "
-            disabled
-          >
-            ↪
-          </button>
-        </div>
+
         <span id="save-notif" class="save-notif"></span>
         <span id="save-notif2" class="save-notif2"></span>
       </div>
 
       <div id="config-section-client">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-client')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Clients
         </h2>
@@ -836,47 +791,84 @@
             flex-wrap: wrap;
           "
         >
-          <div>
-            <strong>Nouveau Groupe :</strong><br /><input
-              type="text"
-              id="new-group-name"
-              placeholder="Nom..."
-            /><button onclick="addNewGroup()" class="btn btn-add">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
+            <strong>Nouveau Groupe :</strong><br />
+            <input type="text" id="new-group-name" placeholder="Nom..." />
+            <button onclick="addNewGroup()" class="btn btn-add">
               Créer Groupe
             </button>
           </div>
-          <div>
-            <strong>Nouveau Client :</strong><br /><input
-              type="text"
-              id="new-client-name"
-              placeholder="Nom..."
-            /><button onclick="addNewClient()" class="btn btn-add">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
+            <strong>Nouveau Client :</strong><br />
+            <input type="text" id="new-client-name" placeholder="Nom..." />
+            <button onclick="addNewClient()" class="btn btn-add">
               Créer Client
             </button>
           </div>
           <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
-          <div>
-            <strong>Nouvelle Catégorie :</strong><br /><input
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
+            <strong>Nouvelle Catégorie :</strong><br />
+            <input
               type="text"
               id="global-categorie-client"
               placeholder="Nom..."
-            /><button
+            />
+            <button
               onclick="addCategorie('client')"
               class="btn btn-config-client"
             >
               Ajouter partout
             </button>
           </div>
-          <div>
-            <strong>Nouveau Matériel :</strong><br /><input
-              type="text"
-              id="global-matos-client"
-              placeholder="Nom..."
-            /><button
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
+            <strong>Nouveau Matériel :</strong><br />
+            <input type="text" id="global-matos-client" placeholder="Nom..." />
+            <button
               onclick="addGlobalMatos('client')"
               class="btn btn-config-client"
             >
               Ajouter partout
+            </button>
+          </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-client')"
+            >
+              Fermer
             </button>
           </div>
         </div>
@@ -884,13 +876,6 @@
       </div>
 
       <div id="config-section-associe">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-associe')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Associés - Affrétés
         </h2>
@@ -906,38 +891,69 @@
             flex-wrap: wrap;
           "
         >
-          <div>
-            <strong>Nouvel Affrété :</strong><br /><input
-              type="text"
-              id="new-config2-name"
-              placeholder="Nom..."
-            /><button onclick="addNewClient2()" class="btn btn-add">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
+            <strong>Nouvel Affrété :</strong><br />
+            <input type="text" id="new-config2-name" placeholder="Nom..." />
+            <button onclick="addNewClient2()" class="btn btn-add">
               Créer Affrété
             </button>
           </div>
           <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
-          <div>
-            <strong>Nouvelle Catégorie :</strong><br /><input
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
+            <strong>Nouvelle Catégorie :</strong><br />
+            <input
               type="text"
               id="global-categorie-associe"
               placeholder="Nom..."
-            /><button
+            />
+            <button
               onclick="addCategorie('associe')"
               class="btn btn-config-client"
             >
               Ajouter partout
             </button>
           </div>
-          <div>
-            <strong>Nouveau Matériel :</strong><br /><input
-              type="text"
-              id="global-matos-associe"
-              placeholder="Nom..."
-            /><button
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
+            <strong>Nouveau Matériel :</strong><br />
+            <input type="text" id="global-matos-associe" placeholder="Nom..." />
+            <button
               onclick="addGlobalMatos('associe')"
               class="btn btn-config-associe"
             >
               Ajouter partout
+            </button>
+          </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-associe')"
+            >
+              Fermer
             </button>
           </div>
         </div>
@@ -945,13 +961,6 @@
       </div>
 
       <div id="config-section-chauffeur">
-        <button
-          class="btn btn-reset"
-          style="float: right; margin-top: 20px"
-          onclick="closeConfigs('config-section-chauffeur')"
-        >
-          Fermer
-        </button>
         <h2 style="margin-top: 20px; padding-top: 10px">
           Configuration Chauffeurs
         </h2>
@@ -966,13 +975,32 @@
             gap: 10px;
           "
         >
-          <div>
-            <strong>Nouveau chauffeur :</strong><br /><input
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-wrap: wrap;
+              flex: 1;
+            "
+          >
+            <strong>Nouveau chauffeur :</strong><br />
+            <input
               type="text"
               id="new-config-chauffeur-name"
               placeholder="Nom..."
-            /><button onclick="addNewChauffeur()" class="btn btn-add">
+            />
+            <button onclick="addNewChauffeur()" class="btn btn-add">
               Créer Chauffeur
+            </button>
+          </div>
+          <div>
+            <button
+              class="btn btn-reset"
+              style="float: right"
+              onclick="closeConfigs('config-section-chauffeur')"
+            >
+              Fermer
             </button>
           </div>
         </div>
@@ -991,9 +1019,7 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: flex;
-            align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
           "
         >
           <div
@@ -1005,7 +1031,7 @@
               flex: 1;
             "
           >
-            <strong style="white-space: nowrap">Nouveau contact :</strong>
+            <strong>Nouveau contact :</strong><br />
             <input
               type="text"
               id="new-config-telephone-client"
@@ -1028,6 +1054,7 @@
           <div>
             <button
               class="btn btn-reset"
+              style="float: right"
               onclick="closeConfigs('config-section-telephone')"
             >
               Fermer
@@ -1116,8 +1143,8 @@
           <div
             onclick="setColorToSelectedRow('#ffffff')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #fff;
               border: 1px solid #ccc;
               cursor: pointer;
@@ -1128,8 +1155,8 @@
           <div
             onclick="setColorToSelectedRow('#ffee00')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #ffee00;
               cursor: pointer;
               border-radius: 3px;
@@ -1139,8 +1166,8 @@
           <div
             onclick="setColorToSelectedRow('#ffae00')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #ffae00;
               cursor: pointer;
               border-radius: 3px;
@@ -1150,8 +1177,8 @@
           <div
             onclick="setColorToSelectedRow('#ff0000')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #ff0000;
               cursor: pointer;
               border-radius: 3px;
@@ -1161,8 +1188,8 @@
           <div
             onclick="setColorToSelectedRow('#b700ff')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #b700ff;
               cursor: pointer;
               border-radius: 3px;
@@ -1172,14 +1199,54 @@
           <div
             onclick="setColorToSelectedRow('#ff00d4')"
             style="
-              width: 20px;
-              height: 20px;
+              width: 25px;
+              height: 25px;
               background: #ff00d4;
               cursor: pointer;
               border-radius: 3px;
             "
             title="Rose"
           ></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px">
+          <button
+            id="btn-undo"
+            onclick="undoPlanning()"
+            title="Annuler (Ctrl+Z)"
+            style="
+              background: #546e7a;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 5px 9px;
+              font-size: 18px;
+              cursor: pointer;
+              opacity: 0.35;
+              transition: opacity 0.2s;
+            "
+            disabled
+          >
+            ↩
+          </button>
+          <button
+            id="btn-redo"
+            onclick="redoPlanning()"
+            title="Rétablir (Ctrl+Y)"
+            style="
+              background: #546e7a;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 5px 9px;
+              font-size: 18px;
+              cursor: pointer;
+              opacity: 0.35;
+              transition: opacity 0.2s;
+            "
+            disabled
+          >
+            ↪
+          </button>
         </div>
         <div style="flex-grow: 1"></div>
         <div>
@@ -1219,8 +1286,8 @@
               <th class="col-telephone">Contact Client</th>
               <th class="col-consigne">Consigne</th>
               <th class="col-chauffeur">Chauffeur</th>
-              <th class="col-ncommande">N° Commande</th>
               <th class="col-nchantier">N° Chantier</th>
+              <th class="col-ncommande">N° Commande</th>
               <th class="col-nbon">N° Bon</th>
               <th class="col-tarif hide-export">Tarif-client</th>
               <th class="col-supplement-client hide-export">
@@ -1354,6 +1421,7 @@
       const defaultChauffeursList = [];
       const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
       const pilierCommunKey = "Piliers Commun";
+
       let isMouseDown = false;
       let estEnTrainDeColler = false;
       let pendingTimeouts = [];
@@ -1364,7 +1432,7 @@
       let undoDebounceTimer = null;
       let isUndoRedoAction = false; // évite de capturer pendant undo/redo
       let lastCapturedData = {}; // dernière donnée capturée par date (anti-doublon)
-      let isInitialLoading = true; // vrai pendant le chargement initial, pour ne pas capturer
+      let isInitialLoading = true;
 
       function captureUndoStateBefore() {
         if (isUndoRedoAction || estEnTrainDeColler || isInitialLoading) return;
@@ -1492,12 +1560,13 @@
       });
 
       function getSelectedYear() {
-        const d = document.getElementById("current-date-picker").value;
-        return d ? d.substring(0, 4) : "";
+        const dateValeur = document.getElementById("current-date-picker").value;
+        return dateValeur ? dateValeur.substring(0, 4) : "";
       }
+
       function getSelectedMonth() {
-        const d = document.getElementById("current-date-picker").value;
-        return d ? d.substring(0, 7) : "";
+        const dateValeur = document.getElementById("current-date-picker").value;
+        return dateValeur ? dateValeur.substring(0, 7) : "";
       }
 
       function getCatValues(groupOrAssocie, cat) {
@@ -1836,23 +1905,26 @@
         ];
         menus.forEach((menuId) => {
           const el = document.getElementById(menuId);
-          if (menuId === id)
+          if (menuId === id) {
             el.style.display =
               el.style.display === "none" || el.style.display === ""
                 ? "block"
                 : "none";
-          else el.style.display = "none";
+          } else {
+            el.style.display = "none";
+          }
         });
       }
 
       window.onclick = function (event) {
         if (!event.target.matches(".btn")) {
-          [
+          const menus = [
             "sous-menu-add",
             "sous-menu-copy",
             "sous-menu-photos",
             "sous-menu-config",
-          ].forEach((menuId) => {
+          ];
+          menus.forEach((menuId) => {
             const el = document.getElementById(menuId);
             if (el) el.style.display = "none";
           });
@@ -1878,8 +1950,8 @@
           const PH = [
             "Chantier...",
             "Consigne...",
-            "N° Commande...",
             "N° Chantier...",
+            "N° Commande...",
             "N° Bon...",
             "Commentaire...",
             "Véhicule...",
@@ -1895,8 +1967,8 @@
           const clientVal = cp(tr.querySelector(".select-client")?.value);
           const consigneVal = cp(tr.cells[6]?.innerText);
           const chauffeurVal = cp(tr.querySelector(".select-chauffeur")?.value);
-          const NcommandeVal = cp(tr.cells[8]?.innerText);
-          const NchantierVal = cp(tr.cells[9]?.innerText);
+          const NchantierVal = cp(tr.cells[8]?.innerText);
+          const NcommandeVal = cp(tr.cells[9]?.innerText);
           if (
             !associeVal &&
             !chantierVal &&
@@ -1904,8 +1976,8 @@
             !clientVal &&
             !consigneVal &&
             !chauffeurVal &&
-            !NcommandeVal &&
-            !NchantierVal
+            !NchantierVal &&
+            !NcommandeVal
           )
             return;
           lignes.push({
@@ -1918,15 +1990,15 @@
             telephoneNumero: phoneNumber,
             consigne: consigneVal,
             chauffeur: chauffeurVal,
-            n_commande: NcommandeVal,
             n_chantier: NchantierVal,
+            n_commande: NcommandeVal,
             couleur: tr.style.backgroundColor || "",
           });
         });
         const titre = document.getElementById("display-date").innerText;
         const fenetreImpression = window.open("", "", "height=600,width=800");
         fenetreImpression.document.write(
-          `<html><head><title>Impression Planning</title><style>body{font-family:sans-serif;margin:20px;}h2{text-align:center;}table{border-collapse:collapse;width:100%;font-size:11px;}th,td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top;}th{background-color:#007bff!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.telephone-cell{white-space:normal;line-height:1.3;}.telephone-name{font-size:11px;color:#000;}.telephone-number{font-size:11px;color:#000;font-style:italic;}@media print{th{background-color:#007bff!important;color:white!important;}}</style></head><body><h2>${titre}</h2><table><thead><tr><th>Associé</th><th>Chantier</th><th>Véhicule</th><th>Client</th><th>Contact</th><th>Consigne</th><th>Chauffeur</th><th>N° Commande</th><th>N° Chantier</th></tr></thead><tbody>`,
+          `<html><head><title>Impression Planning</title><style>body{font-family:sans-serif;margin:20px;}h2{text-align:center;}table{border-collapse:collapse;width:100%;font-size:11px;}th,td{border:1px solid #ddd;padding:6px;text-align:left;vertical-align:top;}th{background-color:#007bff!important;color:white!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.telephone-cell{white-space:normal;line-height:1.3;}.telephone-name{font-size:11px;color:#000;}.telephone-number{font-size:11px;color:#000;font-style:italic;}@media print{th{background-color:#007bff!important;color:white!important;}}</style></head><body><h2>${titre}</h2><table><thead><tr><th>Associé</th><th>Chantier</th><th>Véhicule</th><th>Client</th><th>Contact</th><th>Consigne</th><th>Chauffeur</th><th>N° Chantier</th><th>N° Commande</th></tr></thead><tbody>`,
         );
         lignes.forEach((ligne) => {
           const bgColor = ligne.couleur
@@ -1939,7 +2011,7 @@
               telephoneHTML += `<div class="telephone-number">${ligne.telephoneNumero}</div>`;
           }
           fenetreImpression.document.write(
-            `<tr${bgColor}><td>${ligne.associe}</td><td>${ligne.chantier}</td><td>${ligne.vehicule}</td><td>${ligne.client}</td><td class="telephone-cell">${telephoneHTML}</td><td>${ligne.consigne}</td><td>${ligne.chauffeur}</td><td>${ligne.n_commande}</td><td>${ligne.n_chantier}</td></tr>`,
+            `<tr${bgColor}><td>${ligne.associe}</td><td>${ligne.chantier}</td><td>${ligne.vehicule}</td><td>${ligne.client}</td><td class="telephone-cell">${telephoneHTML}</td><td>${ligne.consigne}</td><td>${ligne.chauffeur}</td><td>${ligne.n_chantier}</td><td>${ligne.n_commande}</td></tr>`,
           );
         });
         fenetreImpression.document.write(`</tbody></table></body></html>`);
@@ -1989,6 +2061,7 @@
       }
 
       let startRowIndex = null;
+
       document
         .getElementById("my-table")
         .addEventListener("mousedown", function (e) {
@@ -2003,6 +2076,7 @@
               .forEach((el) => el.classList.remove("cell-selected"));
           td.classList.add("cell-selected");
         });
+
       document
         .getElementById("my-table")
         .addEventListener("mouseover", function (e) {
@@ -2012,10 +2086,12 @@
               td.classList.add("cell-selected");
           }
         });
+
       window.addEventListener("mouseup", () => {
         isMouseDown = false;
         startRowIndex = null;
       });
+
       document.addEventListener("click", function (e) {
         if (e.button === 2) return;
         if (!e.target.closest("#my-table"))
@@ -2023,6 +2099,7 @@
             .querySelectorAll(".cell-selected")
             .forEach((el) => el.classList.remove("cell-selected"));
       });
+
       document
         .getElementById("my-table")
         .addEventListener("contextmenu", function (e) {
@@ -2049,6 +2126,7 @@
             } catch (err) {}
           }
         });
+
       document.addEventListener("copy", function (e) {
         const selectedCells = document.querySelectorAll(".cell-selected");
         if (selectedCells.length === 0) return;
@@ -2070,8 +2148,8 @@
             "Contact...",
             "Consigne...",
             "Chauffeur...",
-            "N° Commande...",
             "N° Chantier...",
+            "N° Commande...",
             "N° Bon...",
             "Commentaire...",
           ];
@@ -2097,8 +2175,8 @@
               const cellIndex = td.cellIndex;
               if (td.classList.contains("col-consigne"))
                 val = "Consigne : " + val;
-              else if (cellIndex === 8) val = "N° Commande : " + val;
-              else if (cellIndex === 9) val = "N° Chantier : " + val;
+              else if (cellIndex === 8) val = "N° Chantier : " + val;
+              else if (cellIndex === 9) val = "N° Commande : " + val;
               else if (cellIndex === 10) val = "N° Bon : " + val;
             }
           }
@@ -2218,7 +2296,8 @@
         const materielQuery = document
           .getElementById("filter-materiel")
           .value.toUpperCase();
-        document.querySelectorAll("#table-body tr").forEach((tr) => {
+        const rows = document.querySelectorAll("#table-body tr");
+        rows.forEach((tr) => {
           const associeVal = tr.querySelector(".select-associe")
             ? tr.querySelector(".select-associe").value.toUpperCase()
             : "";
@@ -2258,7 +2337,6 @@
         const list = document.getElementById(id);
         if (!list) return;
         const options = Array.from(list.options);
-        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
         options.sort((a, b) => {
           const valA = a.value.toUpperCase();
           const valB = b.value.toUpperCase();
@@ -2286,8 +2364,9 @@
         if (groupeData && groupeData[matosNom]) {
           const tarifData = groupeData[matosNom].tarif;
           const annee = getSelectedYear();
-          if (typeof tarifData === "object" && tarifData !== null)
+          if (typeof tarifData === "object" && tarifData !== null) {
             return parseFloat(tarifData[annee]) || 0;
+          }
           return parseFloat(tarifData) || 0;
         }
         return 0;
@@ -2323,8 +2402,9 @@
         const data = transportConfigAssocie[associeNom][matosNom];
         if (!data) return 0;
         const annee = getSelectedYear();
-        if (typeof data.tarif === "object" && data.tarif !== null)
+        if (typeof data.tarif === "object" && data.tarif !== null) {
           return parseFloat(data.tarif[annee]) || 0;
+        }
         return parseFloat(data.tarif) || 0;
       }
 
@@ -2427,7 +2507,6 @@
       function trierPlanningParAssocie() {
         const tableBody = document.getElementById("table-body");
         const rows = Array.from(tableBody.querySelectorAll("tr"));
-        const baseAssocies = ["ALLARD", "LANDAIS", "STD"];
         const rowsToSort = rows.filter(
           (tr) => !tr.classList.contains("group-separator"),
         );
@@ -2483,14 +2562,6 @@
         renderConfigUI();
         renderConfigUI2();
         refreshAllPlanningTarifs();
-        const sn = document.getElementById("save-notif");
-        if (sn) {
-          sn.textContent = checked
-            ? `"${groupOrAssocie}" utilise désormais CM (mois actuel) pour ${cat}`
-            : `"${groupOrAssocie}" utilise désormais CM-1 (mois précédent) pour ${cat}`;
-          sn.style.display = "inline";
-          setTimeout(() => (sn.style.display = "none"), 3000);
-        }
       }
 
       function buildCatBlock(
@@ -2514,7 +2585,6 @@
         const cmColor = usesCM ? "#7b2d8b" : "#e67e00";
         const cmBg = usesCM ? "#f9f0ff" : "#fff8ee";
         const cmBorder = usesCM ? "#7b2d8b" : "#e67e00";
-
         if (isPilierCommun) {
           return `
             <div style="margin-bottom:12px;text-align:left;border-bottom:1px solid #ddd;padding-bottom:8px;background:#f0f4ff;padding:8px;border-radius:4px;border-left:3px solid #0f3460;">
@@ -2620,13 +2690,14 @@
         html += `</tbody></table>`;
         html += `<h3 style="margin-top:30px;">Assignation des Clients</h3><table class="config-table"><thead><tr><th style="width: 40%;">Client</th><th style="width: 40%;">Groupe assigné</th><th style="width: 20%;">Action</th></tr></thead><tbody>`;
         const clients = Object.keys(transportConfigClient).sort();
-        if (clients.length === 0)
+        if (clients.length === 0) {
           html += `<tr><td colspan="3"><i>Aucun client configuré.</i></td></tr>`;
-        else
+        } else {
           clients.forEach((client) => {
             const assignedGroup = transportConfigClient[client];
-            html += `<tr><td><strong>${client}</strong></td><td><select onchange="setClientGroup('${client}',this.value)" style="width:100%;padding:4px;"><option value="">-- Aucun groupe --</option>${groups.map((g) => `<option value="${g}" ${assignedGroup === g ? "selected" : ""}>${g}</option>`).join("")}</select></td><td><button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button></td></tr>`;
+            html += `<tr><td><strong>${client}</strong></td><td><select onchange="setClientGroup('${client}', this.value)" style="width:100%; padding:4px;"><option value="">-- Aucun groupe --</option>${groups.map((g) => `<option value="${g}" ${assignedGroup === g ? "selected" : ""}>${g}</option>`).join("")}</select></td><td><button onclick="deleteClient('${client}')" class="btn-delete">Supprimer</button></td></tr>`;
           });
+        }
         container.innerHTML = html + `</tbody></table>`;
       }
 
@@ -2829,6 +2900,13 @@
           );
           renderConfigUI();
         }
+      }
+
+      function getClientGroup(client) {
+        for (let group in transportConfigGroup) {
+          if (transportConfigGroup[group].includes(client)) return group;
+        }
+        return "";
       }
 
       function setClientGroup(client, groupName) {
@@ -3433,12 +3511,13 @@
           });
         let html = `<table class="config-table"><thead><tr><th>Chauffeur</th><th>Actions</th></tr></thead><tbody>`;
         const sortedEntries = Object.keys(transportConfigChauffeur).sort();
-        if (sortedEntries.length === 0)
+        if (sortedEntries.length === 0) {
           html += `<tr><td colspan="2"><i>Aucun chauffeur configuré manuellement.</i></td></tr>`;
-        else
+        } else {
           sortedEntries.forEach((entry) => {
             html += `<tr><td class="client-header">${entry}</td><td><button class="btn btn-reset" onclick="deleteChauffeur('${entry}')">Suppr. Chauffeur</button></td></tr>`;
           });
+        }
         container.innerHTML = html + `</tbody></table>`;
         trierDatalist("list-chauffeur");
       }
@@ -3478,7 +3557,7 @@
               uniqueMatos.add(m),
             );
           for (let associe in transportConfigAssocie) {
-            if (associe === pilierCommunKey) continue; // skip hidden key
+            if (associe === pilierCommunKey) continue;
             Object.keys(transportConfigAssocie[associe]).forEach((m) =>
               uniqueMatos.add(m),
             );
@@ -3571,20 +3650,21 @@
       function renderConfigTelephoneUI() {
         const container = document.getElementById("config-container-telephone");
         if (!container) return;
-        let html = `<table class="config-table" style="width:100%;table-layout:fixed;border-collapse:collapse;"><thead><tr><th style="width:25%;">Client</th><th style="width:25%;">Contact</th><th style="width:30%;">Numéro de Téléphone</th><th style="width:20%;">Action</th></tr></thead><tbody>`;
+        let html = `<table class="config-table" style="width:100%; table-layout: fixed; border-collapse: collapse;"><thead><tr><th style="width: 25%;">Client</th><th style="width: 25%;">Contact</th><th style="width: 30%;">Numéro de Téléphone</th><th style="width: 20%;">Action</th></tr></thead><tbody>`;
         const contacts = Object.keys(transportConfigTelephone).sort((a, b) => {
           const clientA = transportConfigTelephone[a].client || "";
           const clientB = transportConfigTelephone[b].client || "";
           return clientA.localeCompare(clientB) || a.localeCompare(b);
         });
-        if (contacts.length === 0)
+        if (contacts.length === 0) {
           html += `<tr><td colspan="4" style="text-align:center;"><i>Aucun contact configuré...</i></td></tr>`;
-        else
+        } else {
           contacts.forEach((name) => {
             const tel = transportConfigTelephone[name].numero || "";
             const client = transportConfigTelephone[name].client || "";
-            html += `<tr><td style="padding:8px;" contenteditable="true" onblur="updateClientInConfig('${name}',this.innerText)">${client}</td><td style="padding:8px;" contenteditable="true" onblur="updateNameInConfig('${name}',this.innerText)">${name}</td><td style="text-align:center;" contenteditable="true" onblur="updateTelInConfig('${name}',this.innerText)">${tel}</td><td style="text-align:center;"><button onclick="deleteTelephone('${name}')" class="btn-delete">Supprimer</button></td></tr>`;
+            html += `<tr><td style="padding: 8px;" contenteditable="true" onblur="updateClientInConfig('${name}', this.innerText)">${client}</td><td style="padding: 8px;" contenteditable="true" onblur="updateNameInConfig('${name}', this.innerText)">${name}</td><td style="text-align: center;" contenteditable="true" onblur="updateTelInConfig('${name}', this.innerText)">${tel}</td><td style="text-align: center;"><button onclick="deleteTelephone('${name}')" class="btn-delete">Supprimer</button></td></tr>`;
           });
+        }
         html += `</tbody></table>`;
         container.innerHTML = html;
       }
@@ -3599,6 +3679,7 @@
         renderConfigTelephoneUI();
         updateTelephoneDatalist();
       }
+
       function deleteTelephone(name) {
         if (confirm("Supprimer " + name + " ?")) {
           delete transportConfigTelephone[name];
@@ -3610,6 +3691,7 @@
           renderConfigTelephoneUI();
         }
       }
+
       function formatPhoneNumber(value) {
         const numbers = value.replace(/\D/g, "");
         return numbers.match(/.{1,2}/g)?.join(" ") || numbers;
@@ -3627,6 +3709,7 @@
         document.getElementById("total-price").textContent =
           total.toFixed(2) + " €";
       }
+
       function calculerTotalSupplement_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
@@ -3639,6 +3722,7 @@
         document.getElementById("total-price-supplement-client").textContent =
           total.toFixed(2) + " €";
       }
+
       function calculerTotalIC_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
@@ -3651,6 +3735,7 @@
         document.getElementById("total-price-IC-client").textContent =
           total.toFixed(2) + " €";
       }
+
       function calculerMarge_Client() {
         let totalMarge = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
@@ -3669,6 +3754,7 @@
           displayMarge.textContent = totalMarge.toFixed(2) + " €";
         return totalMarge;
       }
+
       function calculerTotalAffrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
@@ -3681,6 +3767,7 @@
         document.getElementById("total-price-affrete").textContent =
           total.toFixed(2) + " €";
       }
+
       function calculerTotalSupplement_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
@@ -3693,6 +3780,7 @@
         document.getElementById("total-price-supplement-affrete").textContent =
           total.toFixed(2) + " €";
       }
+
       function calculerTotalIC_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
@@ -3705,6 +3793,7 @@
         document.getElementById("total-price-IC-affrete").textContent =
           total.toFixed(2) + " €";
       }
+
       function calculerMarge_Affrete() {
         let totalMarge = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
@@ -3782,8 +3871,8 @@
               "",
             consigne: tr.cells[6].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[8].innerText,
-            n_chantier: tr.cells[9].innerText,
+            n_chantier: tr.cells[8].innerText,
+            n_commande: tr.cells[9].innerText,
             n_bon: tr.cells[10].innerText,
             tarif: tr.cells[11].innerText,
             supplement_client: tr.cells[12].innerText,
@@ -3808,7 +3897,6 @@
         cell.className = "matos-cell";
         const val = input.value.toUpperCase();
         if (val) {
-          const baseAssocies = ["LANDAIS", "ALLARD", "STD"];
           if (baseAssocies.includes(val))
             cell.classList.add("color-" + val.toLowerCase());
           else {
@@ -3823,8 +3911,9 @@
       function verifierDoublon(inputModifie) {
         const nomSaisi = inputModifie.value.trim();
         if (nomSaisi === "") return;
+        const toutesLesLignes = document.querySelectorAll("#table-body tr");
         let existeDeja = false;
-        document.querySelectorAll("#table-body tr").forEach((tr) => {
+        toutesLesLignes.forEach((tr) => {
           const inputChauffeur = tr.querySelector(".select-chauffeur");
           if (inputChauffeur && inputChauffeur !== inputModifie) {
             if (inputChauffeur.value.trim() === nomSaisi) existeDeja = true;
@@ -3950,6 +4039,7 @@
         if (fullValue.includes(" - ")) return fullValue.split(" - ")[0].trim();
         return fullValue;
       }
+
       function extractPhoneNumber(fullValue) {
         if (!fullValue) return "";
         if (fullValue.includes(" - ")) {
@@ -4050,10 +4140,11 @@
           !val || val === defaultText ? "placeholder-style" : "";
         const valChantier = data ? data.chantier : "Chantier...";
         const valConsigne = data ? data.consigne : "Consigne...";
-        const valCommande = data ? data.n_commande : "N° Commande...";
         const valChantierNum = data ? data.n_chantier : "N° Chantier...";
+        const valCommande = data ? data.n_commande : "N° Commande...";
         const valBon = data ? data.n_bon : "N° Bon...";
         const valComm = data ? data.commentaire : "Commentaire...";
+
         tr.innerHTML = `
           <td class="matos-cell"><input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé..."></td>
           <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
@@ -4063,8 +4154,8 @@
           <td class="matos-cell col-telephone" data-telephone-full="${data ? data.telephone : ""}"><input class="combo-input select-telephone" list="list-telephone" value="${data ? extractContactName(data.telephone) : ""}" placeholder="Contact..."></td>
           <td contenteditable="true" class="col-consigne ${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
           <td class="matos-cell"><input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur..."></td>
-          <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
           <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
+          <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
           <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
           <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
           <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
@@ -4078,6 +4169,7 @@
             <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
           </td>
         `;
+
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
           cell.addEventListener("input", () => {
             if (
@@ -4093,8 +4185,8 @@
             const placeholders = [
               "Chantier...",
               "Consigne...",
-              "N° Commande...",
               "N° Chantier...",
+              "N° Commande...",
               "N° Bon...",
               "Commentaire...",
             ];
@@ -4121,8 +4213,8 @@
               const map = {
                 1: "Chantier...",
                 6: "Consigne...",
-                8: "N° Commande...",
-                9: "N° Chantier...",
+                8: "N° Chantier...",
+                9: "N° Commande...",
                 10: "N° Bon...",
                 17: "Commentaire...",
               };
@@ -4137,8 +4229,8 @@
             const placeholders = [
               "Chantier...",
               "Consigne...",
-              "N° Commande...",
               "N° Chantier...",
+              "N° Commande...",
               "N° Bon...",
               "Commentaire...",
             ];
@@ -4161,6 +4253,7 @@
             }
           });
         });
+
         tr.querySelectorAll(".combo-input").forEach((input) => {
           input.addEventListener("change", () => {
             const estDerniereLigne = !tr.nextElementSibling;
@@ -4234,9 +4327,11 @@
             });
           }
         });
+
         tableBody.appendChild(tr);
         const inputAssocie = tr.querySelector(".select-associe");
         const cells = tr.querySelectorAll("td");
+
         if (data) {
           appliquerCouleurAssocie(inputAssocie);
           if (data.couleurs_cellules) {
@@ -4283,6 +4378,7 @@
           });
           appliquerCouleurAssocie(inputAssocie);
         }
+
         calculerTousLesTotaux();
         updateRowHighlight(tr);
         filterTable();
@@ -4295,9 +4391,10 @@
       }
 
       function forceRecalculTousLesTarifs() {
-        document
-          .querySelectorAll("#table-body tr")
-          .forEach((tr) => updateRowTarif(tr));
+        const rows = document.querySelectorAll("#table-body tr");
+        rows.forEach((tr) => {
+          updateRowTarif(tr);
+        });
         calculerTousLesTotaux();
       }
 
@@ -4333,8 +4430,8 @@
           telephone: ligne.querySelector(".select-telephone").value,
           consigne: ligne.cells[6].innerText,
           chauffeur: ligne.querySelector(".select-chauffeur").value,
-          n_commande: ligne.cells[8].innerText,
-          n_chantier: ligne.cells[9].innerText,
+          n_chantier: ligne.cells[8].innerText,
+          n_commande: ligne.cells[9].innerText,
           n_bon: ligne.cells[10].innerText,
           tarif: ligne.cells[11].innerText,
           supplement_client: ligne.cells[12].innerText,
@@ -4364,8 +4461,8 @@
             telephone: tr.querySelector(".select-telephone").value,
             consigne: tr.cells[6].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[8].innerText,
-            n_chantier: tr.cells[9].innerText,
+            n_chantier: tr.cells[8].innerText,
+            n_commande: tr.cells[9].innerText,
             n_bon: tr.cells[10].innerText,
             tarif: tr.cells[11].innerText,
             supplement_client: tr.cells[12].innerText,
@@ -4391,6 +4488,7 @@
           return;
         const data = JSON.parse(buffer);
         const tableBody = document.getElementById("table-body");
+
         pendingTimeouts.forEach((t) => clearTimeout(t));
         pendingTimeouts = [];
         tableBody.innerHTML = "";
@@ -4587,10 +4685,9 @@
                   notif.innerText = `🔧 Données réparées automatiquement\n${reparations} problème(s) corrigé(s)`;
                   notif.style.backgroundColor = "#2196F3";
                   notif.classList.add("notif-visible");
-                  setTimeout(
-                    () => notif.classList.remove("notif-visible"),
-                    3000,
-                  );
+                  setTimeout(() => {
+                    notif.classList.remove("notif-visible");
+                  }, 3000);
                 }
               }, 1000);
             }
@@ -4637,7 +4734,6 @@
         renderConfigUI2();
         renderConfigUIChauffeur();
         renderConfigTelephoneUI();
-
         const saved = localStorage.getItem("planning_" + aujourdhui);
         if (saved && JSON.parse(saved).length > 0) {
           JSON.parse(saved).forEach(ajouterLigne);
@@ -4645,11 +4741,11 @@
             forceRecalculTousLesTarifs();
             isInitialLoading = false;
             lastCapturedData = {};
-          }, 200);
+          }, 100);
         } else {
           ajouterLigne();
         }
-        setTimeout(updateUndoRedoButtons, 250);
+        setTimeout(updateUndoRedoButtons, 200);
 
         datePicker.addEventListener("change", function () {
           const nouvelleDate = this.value;
@@ -4664,7 +4760,7 @@
           updateUndoRedoButtons();
           setTimeout(() => {
             chargerCouleursDate(nouvelleDate);
-          }, 200);
+          }, 100);
         });
 
         document
@@ -4734,12 +4830,14 @@
             saveCurrentDay();
           }
         });
+
         document
           .getElementById("table-body")
           .addEventListener("change", (e) => {
             if (e.target.classList.contains("select-chauffeur"))
               verifierDoublon(e.target);
           });
+
         document.getElementById("table-body").addEventListener(
           "blur",
           function (e) {
@@ -4823,14 +4921,12 @@
               canvas.toBlob((blob) => {
                 if (blob) {
                   const item = new ClipboardItem({ "image/png": blob });
-                  navigator.clipboard
-                    .write([item])
-                    .then(() =>
-                      afficherNotification(
-                        "Planning copié (Vue Client)",
-                        "#2196F3",
-                      ),
+                  navigator.clipboard.write([item]).then(() => {
+                    afficherNotification(
+                      "Planning copié (Vue Client)",
+                      "#2196F3",
                     );
+                  });
                 }
               });
               area.style.width = "";
@@ -4845,9 +4941,9 @@
               });
               hiddenSelects.forEach((sel) => (sel.style.opacity = ""));
               allRows.forEach((row) => {
-                Array.from(row.cells).forEach(
-                  (cell) => (cell.style.display = ""),
-                );
+                Array.from(row.cells).forEach((cell) => {
+                  cell.style.display = "";
+                });
               });
             });
           });
@@ -4901,11 +4997,9 @@
             }).then((canvas) => {
               canvas.toBlob((blob) => {
                 const item = new ClipboardItem({ "image/png": blob });
-                navigator.clipboard
-                  .write([item])
-                  .then(() =>
-                    afficherNotification("Planning copié", "#2196F3"),
-                  );
+                navigator.clipboard.write([item]).then(() => {
+                  afficherNotification("Planning copié", "#2196F3");
+                });
               });
               area.style.width = "";
               area.style.minWidth = "";
@@ -4919,9 +5013,9 @@
               });
               hiddenSelects.forEach((sel) => (sel.style.opacity = ""));
               allRows.forEach((row) => {
-                Array.from(row.cells).forEach(
-                  (cell) => (cell.style.display = ""),
-                );
+                Array.from(row.cells).forEach((cell) => {
+                  cell.style.display = "";
+                });
               });
             });
           });
@@ -4950,8 +5044,8 @@
               "Téléphone",
               "Consigne",
               "Chauffeur",
-              "N° Commande",
               "N° Chantier",
+              "N° Commande",
               "N° Bon",
               "Tarif",
               "Supplement Client",
@@ -4989,14 +5083,14 @@
                   row.telephone && row.telephone !== "Contact...";
                 const aUnChauffeur =
                   row.chauffeur && row.chauffeur !== "Chauffeur...";
-                const aUnCommande =
-                  row.n_commande &&
-                  row.n_commande !== "N° Commande..." &&
-                  row.n_commande !== "";
                 const aUnChantierNum =
                   row.n_chantier &&
                   row.n_chantier !== "N° Chantier..." &&
                   row.n_chantier !== "";
+                const aUnCommande =
+                  row.n_commande &&
+                  row.n_commande !== "N° Commande..." &&
+                  row.n_commande !== "";
                 const aUnBon =
                   row.n_bon && row.n_bon !== "N° Bon..." && row.n_bon !== "";
                 const aUnCommentaire =
@@ -5010,8 +5104,8 @@
                   !aUnClient &&
                   !aUnTelephone &&
                   !aUnChauffeur &&
-                  !aUnCommande &&
                   !aUnChantierNum &&
+                  !aUnCommande &&
                   !aUnBon &&
                   !aUnCommentaire
                 )
@@ -5063,8 +5157,8 @@
                   clean(row.telephone, "Contact..."),
                   clean(row.consigne, "Consigne..."),
                   clean(row.chauffeur, "Chauffeur..."),
-                  clean(row.n_commande, "N° Commande..."),
                   clean(row.n_chantier, "N° Chantier..."),
+                  clean(row.n_commande, "N° Commande..."),
                   clean(row.n_bon, "N° Bon..."),
                   tarif || 0,
                   suppClient || 0,
@@ -5166,9 +5260,9 @@
               )
             ) {
               localStorage.clear();
-              Object.keys(backup).forEach((cle) =>
-                localStorage.setItem(cle, backup[cle]),
-              );
+              Object.keys(backup).forEach((cle) => {
+                localStorage.setItem(cle, backup[cle]);
+              });
               alert("✅ Tout a été restauré avec succès !");
               window.location.reload();
             }
@@ -5203,45 +5297,6 @@
       <h3 style="margin-top: 0">💡 Aide & Raccourcis</h3>
       <ul style="margin-top: 0; padding-left: 20px">
         <li style="margin-bottom: 2px">
-          <i
-            >Les <strong>Piliers Communs</strong> permettent de définir des
-            tarifs et indices partagés entre ALLARD, LANDAIS et STD.</i
-          >
-        </li>
-        <li style="margin-bottom: 2px">
-          <i
-            >Un badge
-            <span
-              style="
-                background: #007bff;
-                color: white;
-                padding: 1px 5px;
-                border-radius: 8px;
-                font-size: 11px;
-              "
-              >= COMMUN</span
-            >
-            indique que la valeur est synchronisée avec les Piliers Communs.</i
-          >
-        </li>
-        <li style="margin-bottom: 2px">
-          <i
-            >Un badge
-            <span
-              style="
-                background: #ff6b35;
-                color: white;
-                padding: 1px 5px;
-                border-radius: 8px;
-                font-size: 11px;
-              "
-              >CUSTOM</span
-            >
-            indique une valeur individuelle. Cliquez sur "↩ Commun" pour revenir
-            aux valeurs communes.</i
-          >
-        </li>
-        <li style="margin-bottom: 2px">
           <i>Cliquez dans les cases blanches pour saisir vos informations.</i>
         </li>
         <li style="margin-bottom: 2px">
@@ -5252,8 +5307,85 @@
         </li>
         <li style="margin-bottom: 2px">
           <i
-            >Dans les Configs, K et C0 sont <strong>annuels</strong>, CM-1 est
-            <strong>mensuel</strong>.</i
+            >Appuyez sur le bouton
+            <span style="color: #28a745; font-weight: bold">VERT</span> pour
+            rajouter une ligne.</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #dc3545; font-weight: bold">ROUGE</span> pour
+            tout supprimer la journée.</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #ff00b7; font-weight: bold">ROSE</span> pour
+            copier la journée actuelle.</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #00d69a; font-weight: bold">TURQUOISE</span>
+            pour coller la journée copiée.</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #6610f2; font-weight: bold">BLEU</span> pour
+            copier le planning entier en image.</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #07cc00; font-weight: bold">VERT CLAIR</span>
+            pour copier le planning jusqu'à la colonne "Supplément-client".</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #ff9500; font-weight: bold">ORANGE</span> pour
+            exporter le planning du mois en fichier Excel.</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #6c757d; font-weight: bold">GRIS</span> pour
+            configurer les prix des clients.</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #17a2b8; font-weight: bold">BLEU CLAIR</span>
+            pour configurer les prix des associés.</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur le bouton
+            <span style="color: #9b1594; font-weight: bold">VIOLET</span> pour
+            configurer la liste des chauffeurs.</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Dans les Configs, K et C0 sont <strong>annuels</strong> (changent
+            une fois par an), CM-1 est <strong>mensuel</strong> (à mettre à jour
+            chaque mois).</i
+          >
+        </li>
+        <li style="margin-bottom: 2px">
+          <i
+            >Appuyez sur les cases de filtres pour rechercher un associé ou un
+            client.</i
           >
         </li>
         <li style="margin-bottom: 2px">
@@ -5280,6 +5412,7 @@
         Fermer
       </button>
     </div>
+
     <div
       id="help-overlay"
       onclick="toggleHelp()"

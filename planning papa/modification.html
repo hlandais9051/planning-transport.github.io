@@ -1967,8 +1967,8 @@
           const clientVal = cp(tr.querySelector(".select-client")?.value);
           const consigneVal = cp(tr.cells[6]?.innerText);
           const chauffeurVal = cp(tr.querySelector(".select-chauffeur")?.value);
-          const NcommandeVal = cp(tr.cells[8]?.innerText);
-          const NchantierVal = cp(tr.cells[9]?.innerText);
+          const NchantierVal = cp(tr.cells[8]?.innerText);
+          const NcommandeVal = cp(tr.cells[9]?.innerText);
           if (
             !associeVal &&
             !chantierVal &&
@@ -1976,8 +1976,8 @@
             !clientVal &&
             !consigneVal &&
             !chauffeurVal &&
-            !NcommandeVal &&
-            !NchantierVal
+            !NchantierVal &&
+            !NcommandeVal
           )
             return;
           lignes.push({
@@ -1990,8 +1990,8 @@
             telephoneNumero: phoneNumber,
             consigne: consigneVal,
             chauffeur: chauffeurVal,
-            n_commande: NcommandeVal,
             n_chantier: NchantierVal,
+            n_commande: NcommandeVal,
             couleur: tr.style.backgroundColor || "",
           });
         });
@@ -2011,7 +2011,7 @@
               telephoneHTML += `<div class="telephone-number">${ligne.telephoneNumero}</div>`;
           }
           fenetreImpression.document.write(
-            `<tr${bgColor}><td>${ligne.associe}</td><td>${ligne.chantier}</td><td>${ligne.vehicule}</td><td>${ligne.client}</td><td class="telephone-cell">${telephoneHTML}</td><td>${ligne.consigne}</td><td>${ligne.chauffeur}</td><td>${ligne.n_commande}</td><td>${ligne.n_chantier}</td></tr>`,
+            `<tr${bgColor}><td>${ligne.associe}</td><td>${ligne.chantier}</td><td>${ligne.vehicule}</td><td>${ligne.client}</td><td class="telephone-cell">${telephoneHTML}</td><td>${ligne.consigne}</td><td>${ligne.chauffeur}</td><td>${ligne.n_chantier}</td><td>${ligne.n_commande}</td></tr>`,
           );
         });
         fenetreImpression.document.write(`</tbody></table></body></html>`);
@@ -3871,8 +3871,8 @@
               "",
             consigne: tr.cells[6].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[8].innerText,
-            n_chantier: tr.cells[9].innerText,
+            n_chantier: tr.cells[8].innerText,
+            n_commande: tr.cells[9].innerText,
             n_bon: tr.cells[10].innerText,
             tarif: tr.cells[11].innerText,
             supplement_client: tr.cells[12].innerText,
@@ -4430,8 +4430,8 @@
           telephone: ligne.querySelector(".select-telephone").value,
           consigne: ligne.cells[6].innerText,
           chauffeur: ligne.querySelector(".select-chauffeur").value,
-          n_commande: ligne.cells[8].innerText,
-          n_chantier: ligne.cells[9].innerText,
+          n_chantier: ligne.cells[8].innerText,
+          n_commande: ligne.cells[9].innerText,
           n_bon: ligne.cells[10].innerText,
           tarif: ligne.cells[11].innerText,
           supplement_client: ligne.cells[12].innerText,
@@ -4461,8 +4461,8 @@
             telephone: tr.querySelector(".select-telephone").value,
             consigne: tr.cells[6].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_commande: tr.cells[8].innerText,
-            n_chantier: tr.cells[9].innerText,
+            n_chantier: tr.cells[8].innerText,
+            n_commande: tr.cells[9].innerText,
             n_bon: tr.cells[10].innerText,
             tarif: tr.cells[11].innerText,
             supplement_client: tr.cells[12].innerText,
@@ -5104,8 +5104,8 @@
                   !aUnClient &&
                   !aUnTelephone &&
                   !aUnChauffeur &&
-                  !aUnCommande &&
                   !aUnChantierNum &&
+                  !aUnCommande &&
                   !aUnBon &&
                   !aUnCommentaire
                 )
