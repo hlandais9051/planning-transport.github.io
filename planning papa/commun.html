@@ -3556,7 +3556,7 @@
               uniqueMatos.add(m),
             );
           for (let associe in transportConfigAssocie) {
-            if (associe === pilierCommunKey) return;
+            if (associe === pilierCommunKey) continue;
             Object.keys(transportConfigAssocie[associe]).forEach((m) =>
               uniqueMatos.add(m),
             );

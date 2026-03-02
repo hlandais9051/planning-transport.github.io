@@ -1208,6 +1208,46 @@
             title="Rose"
           ></div>
         </div>
+        <div style="display: flex; align-items: center; gap: 6px">
+          <button
+            id="btn-undo"
+            onclick="undoPlanning()"
+            title="Annuler (Ctrl+Z)"
+            style="
+              background: #546e7a;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 5px 9px;
+              font-size: 18px;
+              cursor: pointer;
+              opacity: 0.35;
+              transition: opacity 0.2s;
+            "
+            disabled
+          >
+            ↩
+          </button>
+          <button
+            id="btn-redo"
+            onclick="redoPlanning()"
+            title="Rétablir (Ctrl+Y)"
+            style="
+              background: #546e7a;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 5px 9px;
+              font-size: 18px;
+              cursor: pointer;
+              opacity: 0.35;
+              transition: opacity 0.2s;
+            "
+            disabled
+          >
+            ↪
+          </button>
+        </div>
         <div style="flex-grow: 1"></div>
         <div>
           Le :
@@ -1385,6 +1425,138 @@
       let isMouseDown = false;
       let estEnTrainDeColler = false;
       let pendingTimeouts = [];
+
+      const UNDO_MAX = 50;
+      let undoStack = []; // états passés
+      let redoStack = []; // états annulés (disponibles pour redo)
+      let undoDebounceTimer = null;
+      let isUndoRedoAction = false; // évite de capturer pendant undo/redo
+      let lastCapturedData = {}; // dernière donnée capturée par date (anti-doublon)
+
+      function captureUndoStateBefore() {
+        if (isUndoRedoAction || estEnTrainDeColler) return;
+        const date = document.getElementById("current-date-picker")?.value;
+        if (!date) return;
+        const saved = localStorage.getItem("planning_" + date);
+        if (!saved) return;
+        // Anti-doublon : ne pas capturer si identique au dernier état capturé
+        if (lastCapturedData[date] === saved) return;
+        undoStack.push({ date, data: saved });
+        if (undoStack.length > UNDO_MAX) undoStack.shift();
+        lastCapturedData[date] = saved;
+        // Effacer le redo pour cette date (nouvelle action utilisateur)
+        redoStack = redoStack.filter((s) => s.date !== date);
+        updateUndoRedoButtons();
+      }
+
+      function undoPlanning() {
+        const date = document.getElementById("current-date-picker")?.value;
+        if (!date || undoStack.length === 0) return;
+        // Chercher le dernier état pour cette date
+        let idx = undoStack.length - 1;
+        while (idx >= 0 && undoStack[idx].date !== date) idx--;
+        if (idx < 0) return;
+        // Sauvegarder l'état actuel dans redo
+        const currentSaved = localStorage.getItem("planning_" + date);
+        if (currentSaved) {
+          redoStack.push({ date, data: currentSaved });
+        }
+        // Restaurer l'état précédent
+        const stateToRestore = undoStack[idx];
+        undoStack.splice(idx, 1);
+        isUndoRedoAction = true;
+        localStorage.setItem("planning_" + date, stateToRestore.data);
+        lastCapturedData[date] = stateToRestore.data; // mettre à jour anti-doublon
+        rechargerPlanningDepuisLocalStorage(date);
+        isUndoRedoAction = false;
+        updateUndoRedoButtons();
+        afficherNotification("↩ Annulation", "#546e7a");
+      }
+
+      function redoPlanning() {
+        const date = document.getElementById("current-date-picker")?.value;
+        if (!date || redoStack.length === 0) return;
+        let idx = redoStack.length - 1;
+        while (idx >= 0 && redoStack[idx].date !== date) idx--;
+        if (idx < 0) return;
+        // Sauvegarder l'état actuel dans undo avant de redo
+        const currentSaved = localStorage.getItem("planning_" + date);
+        if (currentSaved) {
+          undoStack.push({ date, data: currentSaved });
+          lastCapturedData[date] = currentSaved;
+        }
+        const stateToRestore = redoStack[idx];
+        redoStack.splice(idx, 1);
+        isUndoRedoAction = true;
+        localStorage.setItem("planning_" + date, stateToRestore.data);
+        lastCapturedData[date] = stateToRestore.data; // mettre à jour anti-doublon
+        rechargerPlanningDepuisLocalStorage(date);
+        isUndoRedoAction = false;
+        updateUndoRedoButtons();
+        afficherNotification("↪ Rétablissement", "#546e7a");
+      }
+
+      function rechargerPlanningDepuisLocalStorage(date) {
+        pendingTimeouts.forEach((t) => clearTimeout(t));
+        pendingTimeouts = [];
+        const tableBody = document.getElementById("table-body");
+        tableBody.innerHTML = "";
+        const saved = localStorage.getItem("planning_" + date);
+        if (saved) {
+          try {
+            const rows = JSON.parse(saved);
+            if (rows.length > 0) {
+              rows.forEach(ajouterLigne);
+              setTimeout(forceRecalculTousLesTarifs, 100);
+              return;
+            }
+          } catch (e) {}
+        }
+        ajouterLigne();
+      }
+
+      function updateUndoRedoButtons() {
+        const date = document.getElementById("current-date-picker")?.value;
+        const btnUndo = document.getElementById("btn-undo");
+        const btnRedo = document.getElementById("btn-redo");
+        if (!btnUndo || !btnRedo) return;
+        const hasUndo = date && undoStack.some((s) => s.date === date);
+        const hasRedo = date && redoStack.some((s) => s.date === date);
+        btnUndo.disabled = !hasUndo;
+        btnUndo.style.opacity = hasUndo ? "1" : "0.35";
+        btnRedo.disabled = !hasRedo;
+        btnRedo.style.opacity = hasRedo ? "1" : "0.35";
+      }
+
+      document.addEventListener("keydown", function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+          const active = document.activeElement;
+          if (
+            active &&
+            (active.isContentEditable ||
+              active.tagName === "INPUT" ||
+              active.tagName === "TEXTAREA")
+          )
+            return;
+          e.preventDefault();
+          undoPlanning();
+        }
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          (e.key === "y" || (e.key === "z" && e.shiftKey))
+        ) {
+          const active = document.activeElement;
+          if (
+            active &&
+            (active.isContentEditable ||
+              active.tagName === "INPUT" ||
+              active.tagName === "TEXTAREA")
+          )
+            return;
+          e.preventDefault();
+          redoPlanning();
+        }
+      });
 
       function getSelectedYear() {
         const dateValeur = document.getElementById("current-date-picker").value;
@@ -3384,7 +3556,7 @@
               uniqueMatos.add(m),
             );
           for (let associe in transportConfigAssocie) {
-            if (associe === pilierCommunKey) return;
+            if (associe === pilierCommunKey) continue;
             Object.keys(transportConfigAssocie[associe]).forEach((m) =>
               uniqueMatos.add(m),
             );
@@ -3669,6 +3841,7 @@
         if (estEnTrainDeColler) return;
         const date = document.getElementById("current-date-picker").value;
         if (!date) return;
+        if (!isUndoRedoAction) captureUndoStateBefore();
         const rows = [];
         document.querySelectorAll("#table-body tr").forEach((tr) => {
           const dateLigne = tr.cells[2]?.innerText || "";
@@ -3973,9 +4146,8 @@
         const tr = document.createElement("tr");
         tr.style.backgroundColor = "";
         tr.removeAttribute("style");
-        const getPlaceholderClass = (val, defaultText) => {
-          return !val || val === defaultText ? "placeholder-style" : "";
-        };
+        const getPlaceholderClass = (val, defaultText) =>
+          !val || val === defaultText ? "placeholder-style" : "";
         const valChantier = data ? data.chantier : "Chantier...";
         const valConsigne = data ? data.consigne : "Consigne...";
         const valChantierNum = data ? data.n_chantier : "N° Chantier...";
@@ -4581,6 +4753,7 @@
         } else {
           ajouterLigne();
         }
+        setTimeout(updateUndoRedoButtons, 200);
 
         datePicker.addEventListener("change", function () {
           const nouvelleDate = this.value;
@@ -4592,6 +4765,7 @@
             JSON.parse(savedDay).forEach(ajouterLigne);
           else ajouterLigne();
           calculerTousLesTotaux();
+          updateUndoRedoButtons();
           setTimeout(() => {
             chargerCouleursDate(nouvelleDate);
           }, 100);
