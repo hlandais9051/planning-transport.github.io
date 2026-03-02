@@ -561,7 +561,7 @@
         color: #007bff;
         border-radius: 3px;
         padding: 2px 5px;
-        font-size: 15px;
+        font-size: 10px;
         cursor: pointer;
         margin-left: 5px;
       }
@@ -1432,9 +1432,10 @@
       let undoDebounceTimer = null;
       let isUndoRedoAction = false; // évite de capturer pendant undo/redo
       let lastCapturedData = {}; // dernière donnée capturée par date (anti-doublon)
+      let isInitialLoading = true;
 
       function captureUndoStateBefore() {
-        if (isUndoRedoAction || estEnTrainDeColler) return;
+        if (isUndoRedoAction || estEnTrainDeColler || isInitialLoading) return;
         const date = document.getElementById("current-date-picker")?.value;
         if (!date) return;
         const saved = localStorage.getItem("planning_" + date);
@@ -3813,17 +3814,6 @@
         return totalMarge;
       }
 
-      function calculerMargeReelle() {
-        const totalClient = calculerMarge_Client();
-        const totalAffrete = calculerMarge_Affrete();
-        const margeNette = totalClient - totalAffrete;
-        const display = document.getElementById("marge-nette");
-        if (display) {
-          display.textContent = margeNette.toFixed(2) + " €";
-          display.style.color = margeNette >= 0 ? "#28a745" : "#dc3545";
-        }
-      }
-
       function rgbToHex(rgb) {
         if (!rgb || rgb === "" || rgb === "transparent") return "";
         if (rgb.startsWith("#")) return rgb;
@@ -4749,6 +4739,8 @@
           JSON.parse(saved).forEach(ajouterLigne);
           setTimeout(() => {
             forceRecalculTousLesTarifs();
+            isInitialLoading = false;
+            lastCapturedData = {};
           }, 100);
         } else {
           ajouterLigne();
