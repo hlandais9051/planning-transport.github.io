@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Planning Transport Mensuel</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
       * {
         box-sizing: border-box;
@@ -1124,6 +1124,47 @@
         >
           Réinitialiser
         </button>
+        <div style="display: flex; align-items: center; gap: 6px">
+          <button
+            id="btn-undo"
+            onclick="undoPlanning()"
+            title="Annuler (Ctrl+Z)"
+            style="
+              background: #546e7a;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 5px 9px;
+              font-size: 18px;
+              cursor: pointer;
+              opacity: 0.35;
+              transition: opacity 0.2s;
+            "
+            disabled
+          >
+            ↩
+          </button>
+          <button
+            id="btn-redo"
+            onclick="redoPlanning()"
+            title="Rétablir (Ctrl+Y)"
+            style="
+              background: #546e7a;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              padding: 5px 9px;
+              font-size: 18px;
+              cursor: pointer;
+              opacity: 0.35;
+              transition: opacity 0.2s;
+            "
+            disabled
+          >
+            ↪
+          </button>
+        </div>
+        <div style="flex-grow: 1"></div>
         <div
           id="color-picker-tools"
           class="hide-export"
@@ -1208,47 +1249,6 @@
             title="Rose"
           ></div>
         </div>
-        <div style="display: flex; align-items: center; gap: 6px">
-          <button
-            id="btn-undo"
-            onclick="undoPlanning()"
-            title="Annuler (Ctrl+Z)"
-            style="
-              background: #546e7a;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              padding: 5px 9px;
-              font-size: 18px;
-              cursor: pointer;
-              opacity: 0.35;
-              transition: opacity 0.2s;
-            "
-            disabled
-          >
-            ↩
-          </button>
-          <button
-            id="btn-redo"
-            onclick="redoPlanning()"
-            title="Rétablir (Ctrl+Y)"
-            style="
-              background: #546e7a;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              padding: 5px 9px;
-              font-size: 18px;
-              cursor: pointer;
-              opacity: 0.35;
-              transition: opacity 0.2s;
-            "
-            disabled
-          >
-            ↪
-          </button>
-        </div>
-        <div style="flex-grow: 1"></div>
         <div>
           Le :
           <input
@@ -1427,12 +1427,25 @@
       let pendingTimeouts = [];
 
       const UNDO_MAX = 50;
-      let undoStack = []; // états passés
-      let redoStack = []; // états annulés (disponibles pour redo)
+      let undoStack = JSON.parse(localStorage.getItem("undoStack") || "[]");
+      let redoStack = JSON.parse(localStorage.getItem("redoStack") || "[]");
       let undoDebounceTimer = null;
       let isUndoRedoAction = false; // évite de capturer pendant undo/redo
-      let lastCapturedData = {}; // dernière donnée capturée par date (anti-doublon)
+      let lastCapturedData = JSON.parse(
+        localStorage.getItem("lastCapturedData") || "{}",
+      );
       let isInitialLoading = true;
+
+      function sauvegarderUndoRedoEnLocal() {
+        try {
+          localStorage.setItem("undoStack", JSON.stringify(undoStack));
+          localStorage.setItem("redoStack", JSON.stringify(redoStack));
+          localStorage.setItem(
+            "lastCapturedData",
+            JSON.stringify(lastCapturedData),
+          );
+        } catch (e) {} // si localStorage plein, on ignore silencieusement
+      }
 
       function captureUndoStateBefore() {
         if (isUndoRedoAction || estEnTrainDeColler || isInitialLoading) return;
@@ -1440,13 +1453,12 @@
         if (!date) return;
         const saved = localStorage.getItem("planning_" + date);
         if (!saved) return;
-        // Anti-doublon : ne pas capturer si identique au dernier état capturé
         if (lastCapturedData[date] === saved) return;
         undoStack.push({ date, data: saved });
         if (undoStack.length > UNDO_MAX) undoStack.shift();
         lastCapturedData[date] = saved;
-        // Effacer le redo pour cette date (nouvelle action utilisateur)
         redoStack = redoStack.filter((s) => s.date !== date);
+        sauvegarderUndoRedoEnLocal();
         updateUndoRedoButtons();
       }
 
@@ -1467,10 +1479,13 @@
         undoStack.splice(idx, 1);
         isUndoRedoAction = true;
         localStorage.setItem("planning_" + date, stateToRestore.data);
-        lastCapturedData[date] = stateToRestore.data; // mettre à jour anti-doublon
+        lastCapturedData[date] = stateToRestore.data;
         rechargerPlanningDepuisLocalStorage(date);
-        isUndoRedoAction = false;
-        updateUndoRedoButtons();
+        setTimeout(() => {
+          isUndoRedoAction = false;
+          sauvegarderUndoRedoEnLocal();
+          updateUndoRedoButtons();
+        }, 200);
         afficherNotification("↩ Annulation", "#546e7a");
       }
 
@@ -1490,10 +1505,13 @@
         redoStack.splice(idx, 1);
         isUndoRedoAction = true;
         localStorage.setItem("planning_" + date, stateToRestore.data);
-        lastCapturedData[date] = stateToRestore.data; // mettre à jour anti-doublon
+        lastCapturedData[date] = stateToRestore.data;
         rechargerPlanningDepuisLocalStorage(date);
-        isUndoRedoAction = false;
-        updateUndoRedoButtons();
+        setTimeout(() => {
+          isUndoRedoAction = false;
+          sauvegarderUndoRedoEnLocal();
+          updateUndoRedoButtons();
+        }, 200);
         afficherNotification("↪ Rétablissement", "#546e7a");
       }
 
@@ -5032,13 +5050,124 @@
               );
               return;
             }
+
+            const clean = (val, def) =>
+              !val || val === def || val.trim() === "" ? "" : val;
+
+            // ── Styles réutilisables ────────────────────────────────────────
+            const borderThin = { style: "thin", color: { rgb: "CCCCCC" } };
+            const allBorders = {
+              top: borderThin,
+              bottom: borderThin,
+              left: borderThin,
+              right: borderThin,
+            };
+
+            const styleHeader = {
+              font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+              fill: { fgColor: { rgb: "1A56A0" } },
+              alignment: {
+                horizontal: "center",
+                vertical: "center",
+                wrapText: true,
+              },
+              border: allBorders,
+            };
+            const styleDataText = {
+              font: { sz: 10 },
+              alignment: { vertical: "center", wrapText: false },
+              border: allBorders,
+            };
+            const styleDataMoney = {
+              font: { sz: 10 },
+              numFmt: '#,##0.00 "€"',
+              alignment: { horizontal: "right", vertical: "center" },
+              border: allBorders,
+              fill: { fgColor: { rgb: "F0F7FF" } },
+            };
+            const styleDataMoneyAff = {
+              ...styleDataMoney,
+              fill: { fgColor: { rgb: "FFF0F0" } },
+            };
+            const styleTotalLabel = {
+              font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+              fill: { fgColor: { rgb: "2E7D32" } },
+              alignment: { horizontal: "right", vertical: "center" },
+              border: allBorders,
+            };
+            const styleTotalValue = {
+              font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+              numFmt: '#,##0.00 "€"',
+              fill: { fgColor: { rgb: "2E7D32" } },
+              alignment: { horizontal: "right", vertical: "center" },
+              border: allBorders,
+            };
+            const styleClientHeader = {
+              font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+              fill: { fgColor: { rgb: "6A1B9A" } },
+              alignment: { horizontal: "center", vertical: "center" },
+              border: allBorders,
+            };
+            const styleClientName = {
+              font: { bold: true, sz: 10, color: { rgb: "4A148C" } },
+              fill: { fgColor: { rgb: "EDE7F6" } },
+              alignment: { vertical: "center" },
+              border: allBorders,
+            };
+            const styleClientMoney = {
+              font: { sz: 10 },
+              numFmt: '#,##0.00 "€"',
+              fill: { fgColor: { rgb: "F3E5F5" } },
+              alignment: { horizontal: "right", vertical: "center" },
+              border: allBorders,
+            };
+            const styleClientTotal = {
+              font: { bold: true, sz: 10, color: { rgb: "FFFFFF" } },
+              fill: { fgColor: { rgb: "AB47BC" } },
+              alignment: { horizontal: "center", vertical: "center" },
+              border: allBorders,
+            };
+            const styleEmpty = { border: allBorders };
+
+            // ── Collecte des données ────────────────────────────────────────
             const monthPrefix = "planning_" + datePicker.substring(0, 7);
-            const workbook = XLSX.utils.book_new();
-            const allRows = [];
+            const keys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && key.startsWith(monthPrefix)) keys.push(key);
+            }
+            keys.sort();
+
+            const totauxParClient = {};
+            let totalClient = 0,
+              totalSupplement_client = 0,
+              IC_client = 0;
+            let totalAffrete = 0,
+              totalSupplement_affrete = 0,
+              IC_affrete = 0;
+
+            // worksheet sera construit cellule par cellule
+            const ws = {};
+            const NCOLS = 18; // colonnes 0..17 (A..R)
+            let R = 0; // ligne courante (0-based)
+
+            function setCell(c, v, s, numFmt) {
+              const ref = XLSX.utils.encode_cell({ r: R, c });
+              const cell = { v, s };
+              if (typeof v === "number") cell.t = "n";
+              else cell.t = "s";
+              if (numFmt) cell.z = numFmt;
+              ws[ref] = cell;
+            }
+            function setRange(range) {
+              ws["!ref"] = range;
+            }
+
+            // ── Ligne 0 : En-têtes ──────────────────────────────────────────
             const headers = [
               "Associé",
               "Chantier",
-              "Date Chantier",
+              "Date",
               "Véhicule",
               "Client",
               "Téléphone",
@@ -5047,29 +5176,21 @@
               "N° Chantier",
               "N° Commande",
               "N° Bon",
-              "Tarif",
-              "Supplement Client",
-              "IC-client",
+              "Tarif Client",
+              "Suppl. Client",
+              "IC Client",
               "Tarif Affrété",
-              "Supplément-Affrété",
-              "IC-affrete",
+              "Suppl. Affrété",
+              "IC Affrété",
               "Commentaire",
             ];
-            allRows.push(headers);
-            const keys = [];
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i);
-              if (key.startsWith(monthPrefix)) keys.push(key);
-            }
-            keys.sort();
-            let totalClient = 0,
-              totalSupplement_client = 0,
-              IC_client = 0,
-              totalAffrete = 0,
-              totalSupplement_affrete = 0,
-              IC_affrete = 0;
+            headers.forEach((h, c) => setCell(c, h, styleHeader));
+            R++;
+
+            // ── Lignes de données ───────────────────────────────────────────
+            let dataRowCount = 0;
             keys.forEach((key) => {
-              const dayData = JSON.parse(localStorage.getItem(key));
+              const dayData = JSON.parse(localStorage.getItem(key) || "[]");
               dayData.forEach((row) => {
                 const aUnAssocie = row.associe && row.associe !== "Associé...";
                 const aUnChantier =
@@ -5110,48 +5231,92 @@
                   !aUnCommentaire
                 )
                   return;
-                const tarif = parseFloat(
-                  (row.tarif || "0").replace(/[€\s]/g, "").replace(",", "."),
-                );
-                const suppClient = parseFloat(
-                  (row.supplement_client || "0")
-                    .replace(/[€\s]/g, "")
-                    .replace(",", "."),
-                );
-                const ICClient = parseFloat(
-                  (row.IC_client || "0")
-                    .replace(/[€\s]/g, "")
-                    .replace(",", "."),
-                );
-                const tarifAff = parseFloat(
-                  (row.tarif_affrete || "0")
-                    .replace(/[€\s]/g, "")
-                    .replace(",", "."),
-                );
-                const suppAff = parseFloat(
-                  (row.supplement_affrete || "0")
-                    .replace(/[€\s]/g, "")
-                    .replace(",", "."),
-                );
-                const ICAffrete = parseFloat(
-                  (row.IC_affrete || "0")
-                    .replace(/[€\s]/g, "")
-                    .replace(",", "."),
-                );
-                if (!isNaN(tarif)) totalClient += tarif;
-                if (!isNaN(suppClient)) totalSupplement_client += suppClient;
-                if (!isNaN(ICClient)) IC_client += ICClient;
-                if (!isNaN(tarifAff)) totalAffrete += tarifAff;
-                if (!isNaN(suppAff)) totalSupplement_affrete += suppAff;
-                if (!isNaN(ICAffrete)) IC_affrete += ICAffrete;
-                const clean = (val, def) => {
-                  if (!val || val === def || val.trim() === "") return "";
-                  return val;
+
+                const tarif =
+                  parseFloat(
+                    (row.tarif || "0").replace(/[€\s]/g, "").replace(",", "."),
+                  ) || 0;
+                const suppC =
+                  parseFloat(
+                    (row.supplement_client || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+                const icC =
+                  parseFloat(
+                    (row.IC_client || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+                const tarifAff =
+                  parseFloat(
+                    (row.tarif_affrete || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+                const suppAff =
+                  parseFloat(
+                    (row.supplement_affrete || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+                const icAff =
+                  parseFloat(
+                    (row.IC_affrete || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+
+                totalClient += tarif;
+                totalSupplement_client += suppC;
+                IC_client += icC;
+                totalAffrete += tarifAff;
+                totalSupplement_affrete += suppAff;
+                IC_affrete += icAff;
+
+                const nomClient =
+                  clean(row.client, "Client...") || "Sans client";
+                if (!totauxParClient[nomClient])
+                  totauxParClient[nomClient] = {
+                    tarif: 0,
+                    supp: 0,
+                    ic: 0,
+                    tarifAff: 0,
+                    suppAff: 0,
+                    icAff: 0,
+                  };
+                totauxParClient[nomClient].tarif += tarif;
+                totauxParClient[nomClient].supp += suppC;
+                totauxParClient[nomClient].ic += icC;
+                totauxParClient[nomClient].tarifAff += tarifAff;
+                totauxParClient[nomClient].suppAff += suppAff;
+                totauxParClient[nomClient].icAff += icAff;
+
+                // Couleur de fond alternée par associé
+                const assVal = (
+                  clean(row.associe, "Associé...") || ""
+                ).toUpperCase();
+                let rowFill = "FFFFFF";
+                if (assVal === "ALLARD") rowFill = "FFFDE7";
+                else if (assVal === "LANDAIS") rowFill = "E0FEFF";
+                else if (assVal === "STD") rowFill = "F8E8FF";
+                const styleRowText = {
+                  ...styleDataText,
+                  fill: { fgColor: { rgb: rowFill } },
                 };
-                allRows.push([
+                const styleRowMoney = {
+                  ...styleDataMoney,
+                  fill: { fgColor: { rgb: "D0E8FF" } },
+                };
+                const styleRowMoneyAff = {
+                  ...styleDataMoneyAff,
+                  fill: { fgColor: { rgb: "FFE0E0" } },
+                };
+
+                const textCols = [
                   clean(row.associe, "Associé..."),
                   clean(row.chantier, "Chantier..."),
-                  row.date,
+                  row.date || "",
                   clean(row.vehicule, "Véhicule..."),
                   clean(row.client, "Client..."),
                   clean(row.telephone, "Contact..."),
@@ -5160,58 +5325,155 @@
                   clean(row.n_chantier, "N° Chantier..."),
                   clean(row.n_commande, "N° Commande..."),
                   clean(row.n_bon, "N° Bon..."),
-                  tarif || 0,
-                  suppClient || 0,
-                  ICClient || 0,
-                  tarifAff || 0,
-                  suppAff || 0,
-                  ICAffrete || 0,
+                ];
+                textCols.forEach((v, c) => setCell(c, v, styleRowText));
+                [tarif, suppC, icC].forEach((v, i) =>
+                  setCell(11 + i, v, styleRowMoney, '#,##0.00 "€"'),
+                );
+                [tarifAff, suppAff, icAff].forEach((v, i) =>
+                  setCell(14 + i, v, styleRowMoneyAff, '#,##0.00 "€"'),
+                );
+                setCell(
+                  17,
                   clean(row.commentaire, "Commentaire..."),
-                ]);
+                  styleRowText,
+                );
+                R++;
+                dataRowCount++;
               });
             });
-            if (allRows.length <= 1) {
+
+            if (dataRowCount === 0) {
               alert("Aucune donnée enregistrée pour ce mois.");
               return;
             }
-            allRows.push([]);
-            allRows.push([
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "",
-              "TOTAL MOIS :",
-              totalClient.toFixed(2) + " €",
-              totalSupplement_client.toFixed(2) + " €",
-              IC_client.toFixed(2) + " €",
-              totalAffrete.toFixed(2) + " €",
-              totalSupplement_affrete.toFixed(2) + " €",
-              IC_affrete.toFixed(2) + " €",
-              "",
-            ]);
-            const worksheet = XLSX.utils.aoa_to_sheet(allRows);
-            const moneyCols = [13, 14, 15, 16, 17, 18];
-            for (let R = 1; R < allRows.length; R++) {
-              moneyCols.forEach((C) => {
-                const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-                if (
-                  worksheet[cellRef] &&
-                  typeof worksheet[cellRef].v === "number"
-                ) {
-                  worksheet[cellRef].t = "n";
-                  worksheet[cellRef].z = "0.00";
-                }
+
+            // ── Ligne vide de séparation ────────────────────────────────────
+            R++;
+
+            // ── Ligne TOTAL MOIS ────────────────────────────────────────────
+            for (let c = 0; c < 12; c++) setCell(c, "", styleTotalLabel);
+            setCell(11, "TOTAL MOIS ↓", styleTotalLabel);
+            [totalClient, totalSupplement_client, IC_client].forEach((v, i) => {
+              const ref = XLSX.utils.encode_cell({ r: R, c: 12 + i });
+              ws[ref] = { v, t: "n", z: '#,##0.00 "€"', s: styleTotalValue };
+            });
+            [totalAffrete, totalSupplement_affrete, IC_affrete].forEach(
+              (v, i) => {
+                const ref = XLSX.utils.encode_cell({ r: R, c: 15 + i });
+                ws[ref] = { v, t: "n", z: '#,##0.00 "€"', s: styleTotalValue };
+              },
+            );
+            setCell(17, "", styleTotalLabel);
+            R++;
+
+            // ── 2 lignes vides ──────────────────────────────────────────────
+            R += 2;
+
+            // ── En-tête section TOTAUX PAR CLIENT ───────────────────────────
+            const clientHeaderLabels = [
+              "CLIENT",
+              "TARIF CLIENT",
+              "SUPPL. CLIENT",
+              "IC CLIENT",
+              "TARIF AFFRÉTÉ",
+              "SUPPL. AFFRÉTÉ",
+              "IC AFFRÉTÉ",
+              "TOTAL CA",
+              "TOTAL AFFRÉTÉ",
+            ];
+            clientHeaderLabels.forEach((h, i) =>
+              setCell(i, h, styleClientHeader),
+            );
+            R++;
+
+            // ── Lignes par client ───────────────────────────────────────────
+            Object.keys(totauxParClient)
+              .sort()
+              .forEach((client) => {
+                const t = totauxParClient[client];
+                const totalCA = t.tarif + t.supp + t.ic;
+                const totalAff = t.tarifAff + t.suppAff + t.icAff;
+                setCell(0, client, styleClientName);
+                [t.tarif, t.supp, t.ic].forEach((v, i) => {
+                  const ref = XLSX.utils.encode_cell({ r: R, c: 1 + i });
+                  ws[ref] = {
+                    v,
+                    t: "n",
+                    z: '#,##0.00 "€"',
+                    s: styleClientMoney,
+                  };
+                });
+                [t.tarifAff, t.suppAff, t.icAff].forEach((v, i) => {
+                  const ref = XLSX.utils.encode_cell({ r: R, c: 4 + i });
+                  ws[ref] = {
+                    v,
+                    t: "n",
+                    z: '#,##0.00 "€"',
+                    s: {
+                      ...styleClientMoney,
+                      fill: { fgColor: { rgb: "FFF0F0" } },
+                    },
+                  };
+                });
+                const refCA = XLSX.utils.encode_cell({ r: R, c: 7 });
+                const refAff = XLSX.utils.encode_cell({ r: R, c: 8 });
+                ws[refCA] = {
+                  v: totalCA,
+                  t: "n",
+                  z: '#,##0.00 "€"',
+                  s: styleClientTotal,
+                };
+                ws[refAff] = {
+                  v: totalAff,
+                  t: "n",
+                  z: '#,##0.00 "€"',
+                  s: styleClientTotal,
+                };
+                R++;
               });
-            }
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Export Mensuel");
+
+            // ── Finalisation du worksheet ───────────────────────────────────
+            ws["!ref"] = XLSX.utils.encode_range({
+              s: { r: 0, c: 0 },
+              e: { r: R - 1, c: NCOLS - 1 },
+            });
+
+            // Largeurs de colonnes
+            ws["!cols"] = [
+              { wch: 10 }, // Associé
+              { wch: 18 }, // Chantier
+              { wch: 10 }, // Date
+              { wch: 10 }, // Véhicule
+              { wch: 18 }, // Client
+              { wch: 15 }, // Téléphone
+              { wch: 30 }, // Consigne
+              { wch: 14 }, // Chauffeur
+              { wch: 12 }, // N° Chantier
+              { wch: 12 }, // N° Commande
+              { wch: 10 }, // N° Bon
+              { wch: 13 }, // Tarif Client
+              { wch: 13 }, // Suppl. Client
+              { wch: 11 }, // IC Client
+              { wch: 13 }, // Tarif Affrété
+              { wch: 13 }, // Suppl. Affrété
+              { wch: 11 }, // IC Affrété
+              { wch: 20 }, // Commentaire
+            ];
+
+            // Hauteur ligne d'en-tête
+            ws["!rows"] = [{ hpt: 30 }];
+
+            // Figer la première ligne
+            ws["!freeze"] = {
+              xSplit: 0,
+              ySplit: 1,
+              topLeftCell: "A2",
+              activePane: "bottomLeft",
+            };
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, ws, "Export Mensuel");
             XLSX.writeFile(
               workbook,
               `Transport_${datePicker.substring(0, 7)}.xlsx`,
