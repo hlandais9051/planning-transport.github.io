@@ -1453,39 +1453,35 @@
         if (!date) return;
         const saved = localStorage.getItem("planning_" + date);
         if (!saved) return;
+        const hadRedo = redoStack.some((s) => s.date === date);
+        redoStack = redoStack.filter((s) => s.date !== date);
+        if (hadRedo) updateUndoRedoButtons();
         if (lastCapturedData[date] === saved) return;
         undoStack.push({ date, data: saved });
         if (undoStack.length > UNDO_MAX) undoStack.shift();
         lastCapturedData[date] = saved;
-        redoStack = redoStack.filter((s) => s.date !== date);
-        sauvegarderUndoRedoEnLocal();
         updateUndoRedoButtons();
       }
 
       function undoPlanning() {
         const date = document.getElementById("current-date-picker")?.value;
         if (!date || undoStack.length === 0) return;
-        // Chercher le dernier état pour cette date
         let idx = undoStack.length - 1;
         while (idx >= 0 && undoStack[idx].date !== date) idx--;
         if (idx < 0) return;
-        // Sauvegarder l'état actuel dans redo
         const currentSaved = localStorage.getItem("planning_" + date);
         if (currentSaved) {
           redoStack.push({ date, data: currentSaved });
         }
-        // Restaurer l'état précédent
         const stateToRestore = undoStack[idx];
         undoStack.splice(idx, 1);
         isUndoRedoAction = true;
         localStorage.setItem("planning_" + date, stateToRestore.data);
         lastCapturedData[date] = stateToRestore.data;
-        rechargerPlanningDepuisLocalStorage(date);
-        setTimeout(() => {
+        rechargerPlanningDepuisLocalStorage(date, () => {
           isUndoRedoAction = false;
-          sauvegarderUndoRedoEnLocal();
           updateUndoRedoButtons();
-        }, 200);
+        });
         afficherNotification("↩ Annulation", "#546e7a");
       }
 
@@ -1495,7 +1491,6 @@
         let idx = redoStack.length - 1;
         while (idx >= 0 && redoStack[idx].date !== date) idx--;
         if (idx < 0) return;
-        // Sauvegarder l'état actuel dans undo avant de redo
         const currentSaved = localStorage.getItem("planning_" + date);
         if (currentSaved) {
           undoStack.push({ date, data: currentSaved });
@@ -1506,16 +1501,14 @@
         isUndoRedoAction = true;
         localStorage.setItem("planning_" + date, stateToRestore.data);
         lastCapturedData[date] = stateToRestore.data;
-        rechargerPlanningDepuisLocalStorage(date);
-        setTimeout(() => {
+        rechargerPlanningDepuisLocalStorage(date, () => {
           isUndoRedoAction = false;
-          sauvegarderUndoRedoEnLocal();
           updateUndoRedoButtons();
-        }, 200);
+        });
         afficherNotification("↪ Rétablissement", "#546e7a");
       }
 
-      function rechargerPlanningDepuisLocalStorage(date) {
+      function rechargerPlanningDepuisLocalStorage(date, onDone) {
         pendingTimeouts.forEach((t) => clearTimeout(t));
         pendingTimeouts = [];
         const tableBody = document.getElementById("table-body");
@@ -1526,12 +1519,20 @@
             const rows = JSON.parse(saved);
             if (rows.length > 0) {
               rows.forEach(ajouterLigne);
-              setTimeout(forceRecalculTousLesTarifs, 100);
+              setTimeout(() => {
+                forceRecalculTousLesTarifs();
+                lastCapturedData[date] = localStorage.getItem(
+                  "planning_" + date,
+                );
+                if (onDone) onDone();
+              }, 150);
               return;
             }
           } catch (e) {}
         }
         ajouterLigne();
+        lastCapturedData[date] = localStorage.getItem("planning_" + date);
+        if (onDone) onDone();
       }
 
       function updateUndoRedoButtons() {
@@ -2250,6 +2251,7 @@
           );
           return;
         }
+        captureUndoStateBefore();
         rows.forEach((row) => {
           const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
           const cells = row.querySelectorAll("td");
@@ -3849,7 +3851,6 @@
         if (estEnTrainDeColler) return;
         const date = document.getElementById("current-date-picker").value;
         if (!date) return;
-        if (!isUndoRedoAction) captureUndoStateBefore();
         const rows = [];
         document.querySelectorAll("#table-body tr").forEach((tr) => {
           const dateLigne = tr.cells[2]?.innerText || "";
@@ -4183,8 +4184,8 @@
           <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
           <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
           <td class="hide-export" style="text-align:center; white-space:nowrap;">
-            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
-            <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
+            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
+            <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); dupliquerLigne(this)">📑</button>
           </td>
         `;
 
@@ -4244,6 +4245,7 @@
             saveCurrentDay();
           });
           cell.addEventListener("focus", () => {
+            captureUndoStateBefore();
             const placeholders = [
               "Chantier...",
               "Consigne...",
@@ -4273,6 +4275,9 @@
         });
 
         tr.querySelectorAll(".combo-input").forEach((input) => {
+          input.addEventListener("focus", () => {
+            captureUndoStateBefore();
+          });
           input.addEventListener("change", () => {
             const estDerniereLigne = !tr.nextElementSibling;
             if (estDerniereLigne && input.value.trim() !== "") ajouterLigne();
@@ -4504,6 +4509,7 @@
         }
         if (!confirm("Remplacer la journée actuelle par celle copiée ?"))
           return;
+        captureUndoStateBefore();
         const data = JSON.parse(buffer);
         const tableBody = document.getElementById("table-body");
 

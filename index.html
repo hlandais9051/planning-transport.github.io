@@ -1453,39 +1453,35 @@
         if (!date) return;
         const saved = localStorage.getItem("planning_" + date);
         if (!saved) return;
+        const hadRedo = redoStack.some((s) => s.date === date);
+        redoStack = redoStack.filter((s) => s.date !== date);
+        if (hadRedo) updateUndoRedoButtons();
         if (lastCapturedData[date] === saved) return;
         undoStack.push({ date, data: saved });
         if (undoStack.length > UNDO_MAX) undoStack.shift();
         lastCapturedData[date] = saved;
-        redoStack = redoStack.filter((s) => s.date !== date);
-        sauvegarderUndoRedoEnLocal();
         updateUndoRedoButtons();
       }
 
       function undoPlanning() {
         const date = document.getElementById("current-date-picker")?.value;
         if (!date || undoStack.length === 0) return;
-        // Chercher le dernier état pour cette date
         let idx = undoStack.length - 1;
         while (idx >= 0 && undoStack[idx].date !== date) idx--;
         if (idx < 0) return;
-        // Sauvegarder l'état actuel dans redo
         const currentSaved = localStorage.getItem("planning_" + date);
         if (currentSaved) {
           redoStack.push({ date, data: currentSaved });
         }
-        // Restaurer l'état précédent
         const stateToRestore = undoStack[idx];
         undoStack.splice(idx, 1);
         isUndoRedoAction = true;
         localStorage.setItem("planning_" + date, stateToRestore.data);
         lastCapturedData[date] = stateToRestore.data;
-        rechargerPlanningDepuisLocalStorage(date);
-        setTimeout(() => {
+        rechargerPlanningDepuisLocalStorage(date, () => {
           isUndoRedoAction = false;
-          sauvegarderUndoRedoEnLocal();
           updateUndoRedoButtons();
-        }, 200);
+        });
         afficherNotification("↩ Annulation", "#546e7a");
       }
 
@@ -1495,7 +1491,6 @@
         let idx = redoStack.length - 1;
         while (idx >= 0 && redoStack[idx].date !== date) idx--;
         if (idx < 0) return;
-        // Sauvegarder l'état actuel dans undo avant de redo
         const currentSaved = localStorage.getItem("planning_" + date);
         if (currentSaved) {
           undoStack.push({ date, data: currentSaved });
@@ -1506,16 +1501,14 @@
         isUndoRedoAction = true;
         localStorage.setItem("planning_" + date, stateToRestore.data);
         lastCapturedData[date] = stateToRestore.data;
-        rechargerPlanningDepuisLocalStorage(date);
-        setTimeout(() => {
+        rechargerPlanningDepuisLocalStorage(date, () => {
           isUndoRedoAction = false;
-          sauvegarderUndoRedoEnLocal();
           updateUndoRedoButtons();
-        }, 200);
+        });
         afficherNotification("↪ Rétablissement", "#546e7a");
       }
 
-      function rechargerPlanningDepuisLocalStorage(date) {
+      function rechargerPlanningDepuisLocalStorage(date, onDone) {
         pendingTimeouts.forEach((t) => clearTimeout(t));
         pendingTimeouts = [];
         const tableBody = document.getElementById("table-body");
@@ -1526,12 +1519,20 @@
             const rows = JSON.parse(saved);
             if (rows.length > 0) {
               rows.forEach(ajouterLigne);
-              setTimeout(forceRecalculTousLesTarifs, 100);
+              setTimeout(() => {
+                forceRecalculTousLesTarifs();
+                lastCapturedData[date] = localStorage.getItem(
+                  "planning_" + date,
+                );
+                if (onDone) onDone();
+              }, 150);
               return;
             }
           } catch (e) {}
         }
         ajouterLigne();
+        lastCapturedData[date] = localStorage.getItem("planning_" + date);
+        if (onDone) onDone();
       }
 
       function updateUndoRedoButtons() {
@@ -2250,6 +2251,7 @@
           );
           return;
         }
+        captureUndoStateBefore();
         rows.forEach((row) => {
           const rowId = row.innerText.trim().split("\t")[0] + row.rowIndex;
           const cells = row.querySelectorAll("td");
@@ -3849,7 +3851,6 @@
         if (estEnTrainDeColler) return;
         const date = document.getElementById("current-date-picker").value;
         if (!date) return;
-        if (!isUndoRedoAction) captureUndoStateBefore();
         const rows = [];
         document.querySelectorAll("#table-body tr").forEach((tr) => {
           const dateLigne = tr.cells[2]?.innerText || "";
@@ -4183,8 +4184,8 @@
           <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
           <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
           <td class="hide-export" style="text-align:center; white-space:nowrap;">
-            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
-            <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="dupliquerLigne(this)">📑</button>
+            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
+            <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); dupliquerLigne(this)">📑</button>
           </td>
         `;
 
@@ -4244,6 +4245,7 @@
             saveCurrentDay();
           });
           cell.addEventListener("focus", () => {
+            captureUndoStateBefore();
             const placeholders = [
               "Chantier...",
               "Consigne...",
@@ -4273,6 +4275,9 @@
         });
 
         tr.querySelectorAll(".combo-input").forEach((input) => {
+          input.addEventListener("focus", () => {
+            captureUndoStateBefore();
+          });
           input.addEventListener("change", () => {
             const estDerniereLigne = !tr.nextElementSibling;
             if (estDerniereLigne && input.value.trim() !== "") ajouterLigne();
@@ -4504,6 +4509,7 @@
         }
         if (!confirm("Remplacer la journée actuelle par celle copiée ?"))
           return;
+        captureUndoStateBefore();
         const data = JSON.parse(buffer);
         const tableBody = document.getElementById("table-body");
 
@@ -5054,7 +5060,6 @@
             const clean = (val, def) =>
               !val || val === def || val.trim() === "" ? "" : val;
 
-            // ── Styles réutilisables ────────────────────────────────────────
             const borderThin = { style: "thin", color: { rgb: "CCCCCC" } };
             const allBorders = {
               top: borderThin,
@@ -5129,7 +5134,6 @@
             };
             const styleEmpty = { border: allBorders };
 
-            // ── Collecte des données ────────────────────────────────────────
             const monthPrefix = "planning_" + datePicker.substring(0, 7);
             const keys = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -5146,10 +5150,9 @@
               totalSupplement_affrete = 0,
               IC_affrete = 0;
 
-            // worksheet sera construit cellule par cellule
             const ws = {};
-            const NCOLS = 18; // colonnes 0..17 (A..R)
-            let R = 0; // ligne courante (0-based)
+            const NCOLS = 18;
+            let R = 0;
 
             function setCell(c, v, s, numFmt) {
               const ref = XLSX.utils.encode_cell({ r: R, c });
@@ -5163,7 +5166,6 @@
               ws["!ref"] = range;
             }
 
-            // ── Ligne 0 : En-têtes ──────────────────────────────────────────
             const headers = [
               "Associé",
               "Chantier",
@@ -5187,7 +5189,6 @@
             headers.forEach((h, c) => setCell(c, h, styleHeader));
             R++;
 
-            // ── Lignes de données ───────────────────────────────────────────
             let dataRowCount = 0;
             keys.forEach((key) => {
               const dayData = JSON.parse(localStorage.getItem(key) || "[]");
@@ -5292,7 +5293,6 @@
                 totauxParClient[nomClient].suppAff += suppAff;
                 totauxParClient[nomClient].icAff += icAff;
 
-                // Couleur de fond alternée par associé
                 const assVal = (
                   clean(row.associe, "Associé...") || ""
                 ).toUpperCase();
@@ -5348,98 +5348,34 @@
               return;
             }
 
-            // ── Ligne vide de séparation ────────────────────────────────────
+            ws["!autofilter"] = {
+              ref: XLSX.utils.encode_range({
+                s: { r: 0, c: 0 },
+                e: { r: 0, c: NCOLS - 1 },
+              }),
+            };
+
+            const lastDataRowExcel = R;
             R++;
 
-            // ── Ligne TOTAL MOIS ────────────────────────────────────────────
-            for (let c = 0; c < 12; c++) setCell(c, "", styleTotalLabel);
-            setCell(11, "TOTAL MOIS ↓", styleTotalLabel);
-            [totalClient, totalSupplement_client, IC_client].forEach((v, i) => {
-              const ref = XLSX.utils.encode_cell({ r: R, c: 12 + i });
-              ws[ref] = { v, t: "n", z: '#,##0.00 "€"', s: styleTotalValue };
+            setCell(10, "TOTAL", styleTotalLabel);
+            const colLetters = ["L", "M", "N", "O", "P", "Q"];
+            colLetters.forEach((col, i) => {
+              const ref = XLSX.utils.encode_cell({ r: R, c: 11 + i });
+              ws[ref] = {
+                f: `SUBTOTAL(9,${col}2:${col}${lastDataRowExcel})`,
+                t: "n",
+                z: '#,##0.00 "€"',
+                s: styleTotalValue,
+              };
             });
-            [totalAffrete, totalSupplement_affrete, IC_affrete].forEach(
-              (v, i) => {
-                const ref = XLSX.utils.encode_cell({ r: R, c: 15 + i });
-                ws[ref] = { v, t: "n", z: '#,##0.00 "€"', s: styleTotalValue };
-              },
-            );
-            setCell(17, "", styleTotalLabel);
             R++;
 
-            // ── 2 lignes vides ──────────────────────────────────────────────
-            R += 2;
-
-            // ── En-tête section TOTAUX PAR CLIENT ───────────────────────────
-            const clientHeaderLabels = [
-              "CLIENT",
-              "TARIF CLIENT",
-              "SUPPL. CLIENT",
-              "IC CLIENT",
-              "TARIF AFFRÉTÉ",
-              "SUPPL. AFFRÉTÉ",
-              "IC AFFRÉTÉ",
-              "TOTAL CA",
-              "TOTAL AFFRÉTÉ",
-            ];
-            clientHeaderLabels.forEach((h, i) =>
-              setCell(i, h, styleClientHeader),
-            );
-            R++;
-
-            // ── Lignes par client ───────────────────────────────────────────
-            Object.keys(totauxParClient)
-              .sort()
-              .forEach((client) => {
-                const t = totauxParClient[client];
-                const totalCA = t.tarif + t.supp + t.ic;
-                const totalAff = t.tarifAff + t.suppAff + t.icAff;
-                setCell(0, client, styleClientName);
-                [t.tarif, t.supp, t.ic].forEach((v, i) => {
-                  const ref = XLSX.utils.encode_cell({ r: R, c: 1 + i });
-                  ws[ref] = {
-                    v,
-                    t: "n",
-                    z: '#,##0.00 "€"',
-                    s: styleClientMoney,
-                  };
-                });
-                [t.tarifAff, t.suppAff, t.icAff].forEach((v, i) => {
-                  const ref = XLSX.utils.encode_cell({ r: R, c: 4 + i });
-                  ws[ref] = {
-                    v,
-                    t: "n",
-                    z: '#,##0.00 "€"',
-                    s: {
-                      ...styleClientMoney,
-                      fill: { fgColor: { rgb: "FFF0F0" } },
-                    },
-                  };
-                });
-                const refCA = XLSX.utils.encode_cell({ r: R, c: 7 });
-                const refAff = XLSX.utils.encode_cell({ r: R, c: 8 });
-                ws[refCA] = {
-                  v: totalCA,
-                  t: "n",
-                  z: '#,##0.00 "€"',
-                  s: styleClientTotal,
-                };
-                ws[refAff] = {
-                  v: totalAff,
-                  t: "n",
-                  z: '#,##0.00 "€"',
-                  s: styleClientTotal,
-                };
-                R++;
-              });
-
-            // ── Finalisation du worksheet ───────────────────────────────────
             ws["!ref"] = XLSX.utils.encode_range({
               s: { r: 0, c: 0 },
               e: { r: R - 1, c: NCOLS - 1 },
             });
 
-            // Largeurs de colonnes
             ws["!cols"] = [
               { wch: 10 }, // Associé
               { wch: 18 }, // Chantier
@@ -5461,10 +5397,8 @@
               { wch: 20 }, // Commentaire
             ];
 
-            // Hauteur ligne d'en-tête
             ws["!rows"] = [{ hpt: 30 }];
 
-            // Figer la première ligne
             ws["!freeze"] = {
               xSplit: 0,
               ySplit: 1,
