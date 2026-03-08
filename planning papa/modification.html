@@ -5069,7 +5069,7 @@
             };
 
             const styleHeader = {
-              font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+              font: { bold: true, color: { rgb: "FFFFFF" }, sz: 16 },
               fill: { fgColor: { rgb: "1A56A0" } },
               alignment: {
                 horizontal: "center",
@@ -5079,12 +5079,12 @@
               border: allBorders,
             };
             const styleDataText = {
-              font: { sz: 10 },
+              font: { sz: 16 },
               alignment: { vertical: "center", wrapText: false },
               border: allBorders,
             };
             const styleDataMoney = {
-              font: { sz: 10 },
+              font: { sz: 16 },
               numFmt: '#,##0.00 "€"',
               alignment: { horizontal: "right", vertical: "center" },
               border: allBorders,
@@ -5095,39 +5095,39 @@
               fill: { fgColor: { rgb: "FFF0F0" } },
             };
             const styleTotalLabel = {
-              font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+              font: { bold: true, sz: 16, color: { rgb: "FFFFFF" } },
               fill: { fgColor: { rgb: "2E7D32" } },
               alignment: { horizontal: "right", vertical: "center" },
               border: allBorders,
             };
             const styleTotalValue = {
-              font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+              font: { bold: true, sz: 16, color: { rgb: "FFFFFF" } },
               numFmt: '#,##0.00 "€"',
               fill: { fgColor: { rgb: "2E7D32" } },
               alignment: { horizontal: "right", vertical: "center" },
               border: allBorders,
             };
             const styleClientHeader = {
-              font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+              font: { bold: true, sz: 16, color: { rgb: "FFFFFF" } },
               fill: { fgColor: { rgb: "6A1B9A" } },
               alignment: { horizontal: "center", vertical: "center" },
               border: allBorders,
             };
             const styleClientName = {
-              font: { bold: true, sz: 10, color: { rgb: "4A148C" } },
+              font: { bold: true, sz: 16, color: { rgb: "4A148C" } },
               fill: { fgColor: { rgb: "EDE7F6" } },
               alignment: { vertical: "center" },
               border: allBorders,
             };
             const styleClientMoney = {
-              font: { sz: 10 },
+              font: { sz: 16 },
               numFmt: '#,##0.00 "€"',
               fill: { fgColor: { rgb: "F3E5F5" } },
               alignment: { horizontal: "right", vertical: "center" },
               border: allBorders,
             };
             const styleClientTotal = {
-              font: { bold: true, sz: 10, color: { rgb: "FFFFFF" } },
+              font: { bold: true, sz: 16, color: { rgb: "FFFFFF" } },
               fill: { fgColor: { rgb: "AB47BC" } },
               alignment: { horizontal: "center", vertical: "center" },
               border: allBorders,
@@ -5377,27 +5377,29 @@
             });
 
             ws["!cols"] = [
-              { wch: 10 }, // Associé
-              { wch: 18 }, // Chantier
-              { wch: 10 }, // Date
-              { wch: 10 }, // Véhicule
-              { wch: 18 }, // Client
-              { wch: 15 }, // Téléphone
-              { wch: 30 }, // Consigne
-              { wch: 14 }, // Chauffeur
-              { wch: 12 }, // N° Chantier
-              { wch: 12 }, // N° Commande
-              { wch: 10 }, // N° Bon
-              { wch: 13 }, // Tarif Client
-              { wch: 13 }, // Suppl. Client
-              { wch: 11 }, // IC Client
-              { wch: 13 }, // Tarif Affrété
-              { wch: 13 }, // Suppl. Affrété
-              { wch: 11 }, // IC Affrété
-              { wch: 20 }, // Commentaire
+              { wch: 18 }, // Associé
+              { wch: 26 }, // Chantier
+              { wch: 15 }, // Date
+              { wch: 15 }, // Véhicule
+              { wch: 26 }, // Client
+              { wch: 23 }, // Téléphone
+              { wch: 38 }, // Consigne
+              { wch: 22 }, // Chauffeur
+              { wch: 26 }, // N° Chantier
+              { wch: 26 }, // N° Commande
+              { wch: 18 }, // N° Bon
+              { wch: 21 }, // Tarif Client
+              { wch: 21 }, // Suppl. Client
+              { wch: 19 }, // IC Client
+              { wch: 21 }, // Tarif Affrété
+              { wch: 21 }, // Suppl. Affrété
+              { wch: 19 }, // IC Affrété
+              { wch: 28 }, // Commentaire
             ];
 
-            ws["!rows"] = [{ hpt: 30 }];
+            for (i = 0; i < R; i++) {
+              ws["!rows"] = [...(ws["!rows"] || []), { hpt: 50, hpx: 50 }];
+            }
 
             ws["!freeze"] = {
               xSplit: 0,
