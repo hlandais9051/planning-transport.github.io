@@ -6,575 +6,628 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <style>
+      /* =========================================
+         STYLES DE BASE ET GLOBAUX
+         ========================================= */
       * {
-        box-sizing: border-box;
+        box-sizing: border-box; /* Inclut les paddings et bordures dans le calcul de la largeur/hauteur totale */
       }
       body {
-        font-family: sans-serif;
-        padding: 1vw;
-        background-color: #f0f2f5;
-        margin: 0;
-        width: 100%;
-        overflow-x: auto;
-      }
+        font-family: sans-serif; /* Définit une police sans empattement par défaut */
+        padding: 1vw; /* Espacement interne de 1% de la largeur de la fenêtre */
+        background-color: #f0f2f5; /* Couleur de fond grise très claire */
+        margin: 0; /* Supprime les marges extérieures par défaut */
+        width: 100%; /* Définit la largeur à 100% de l'écran */
+        overflow-x: auto; /* Affiche une barre de défilement horizontale si le contenu déborde */
+      } /* Classes utilitaires pour le texte */
       .placeholder-style {
-        color: #a0a0a0 !important;
-        -webkit-text-fill-color: #a0a0a0 !important;
-        font-size: 13px;
+        color: #a0a0a0 !important; /* Force la couleur du texte en gris clair */
+        -webkit-text-fill-color: #a0a0a0 !important; /* Force la couleur pour les navigateurs basés sur Safari/Chrome */
+        font-size: 13px; /* Taille de police fixée à 13 pixels */
       }
       .text-filled {
-        color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important;
-        font-size: 13px;
+        color: #000000 !important; /* Force la couleur du texte en noir */
+        -webkit-text-fill-color: #000000 !important; /* Force le noir pour Safari/Chrome */
+        font-size: 13px; /* Taille de police fixée à 13 pixels */
       }
+
+      /* =========================================
+         EN-TÊTE ET BARRE D'OUTILS (LAYOUT FLEXBOX)
+         ========================================= */
       .sticky-top-wrapper {
-        position: sticky;
-        top: 0;
-        z-index: 600;
-        background: #f0f2f5;
-        padding-bottom: 0;
+        position: sticky; /* Positionne l'élément de façon "collante" au scroll */
+        top: 0; /* Se fixe à 0 pixel du haut de la fenêtre */
+        z-index: 600; /* Assure que cet élément passe par-dessus le contenu du tableau */
+        background: #f0f2f5; /* Fond assorti à la page pour masquer ce qui passe dessous */
+        padding-bottom: 0; /* Pas d'espace en bas de ce conteneur */
       }
       .header-tools {
-        background: white;
-        padding: 10px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        display: flex;
-        gap: 10px;
-        align-items: stretch;
-        flex-wrap: wrap;
-        justify-content: space-between;
+        background: white; /* Couleur de fond blanche */
+        padding: 10px; /* Marge interne de 10 pixels */
+        border-radius: 8px; /* Angles arrondis à 8 pixels */
+        margin-bottom: 10px; /* Espace de 10 pixels sous la barre */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Ombre légère pour le relief */
+        display: flex; /* Utilise le mode Flexbox pour aligner les enfants */
+        gap: 10px; /* Espace de 10 pixels entre chaque enfant */
+        align-items: stretch; /* Étire les enfants pour qu'ils aient la même hauteur */
+        flex-wrap: wrap; /* Autorise le passage à la ligne si l'écran est petit */
+        justify-content: space-between; /* Répartit l'espace entre les groupes d'éléments */
       }
       .button-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 10px;
-        background: #f8f9fa;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        flex: 1 0 180px;
-        max-width: 100%;
+        display: flex; /* Active Flexbox */
+        flex-direction: column; /* Aligne les éléments en colonne (les uns sous les autres) */
+        gap: 8px; /* Espace de 8 pixels entre les boutons */
+        padding: 10px; /* Marge interne */
+        background: #f8f9fa; /* Fond gris très clair pour délimiter le groupe */
+        border: 1px solid #e0e0e0; /* Bordure grise fine */
+        border-radius: 6px; /* Angles arrondis */
+        flex: 1 0 180px; /* Flex-grow: 1, Flex-shrink: 0, Base: 180px */
+        max-width: 100%; /* Largeur maximale limitée à 100% du parent */
+        position: relative; /* Référentiel pour les menus déroulants enfants */
       }
       .button-group .btn {
-        width: 100%;
-        white-space: nowrap;
-        font-size: 13px;
-        text-align: center;
+        width: 100%; /* Le bouton prend toute la largeur disponible */
+        white-space: nowrap; /* Empêche le texte du bouton de revenir à la ligne */
+        font-size: 13px; /* Taille de police */
+        text-align: center; /* Centre le texte du bouton */
       }
       .group-title {
-        font-size: 0.75rem;
-        font-weight: bold;
-        color: #666;
-        text-transform: uppercase;
-        margin-bottom: 5px;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 3px;
+        font-size: 0.75rem; /* Taille de police petite */
+        font-weight: bold; /* Texte en gras */
+        color: #666; /* Couleur grise */
+        text-transform: uppercase; /* Met le texte en majuscules */
+        margin-bottom: 5px; /* Espace sous le titre */
+        border-bottom: 1px solid #ddd; /* Ligne de séparation sous le titre */
+        padding-bottom: 3px; /* Espace entre le texte et sa ligne de séparation */
       }
+
+      /* =========================================
+         RESPONSIVE DESIGN (ADAPTATION TABLETTE)
+         ========================================= */
       @media (max-width: 768px) {
         .header-tools {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          justify-content: center;
+          display: flex; /* Maintient flexbox */
+          flex-wrap: wrap; /* Maintient le passage à la ligne */
+          gap: 10px; /* Maintient l'écart */
+          justify-content: center; /* Centre les groupes sur l'écran */
         }
         .button-group {
-          flex: 1 1 calc(50% - 10px);
-          display: flex;
+          flex: 1 1 calc(50% - 10px); /* Les groupes prennent 50% de la largeur (2 par ligne) */
+          display: flex; /* Maintient flex */
         }
         .button-group button {
-          width: 100%;
+          width: 100%; /* Largeur totale */
         }
       }
+
+      /* =========================================
+         RESPONSIVE DESIGN (ADAPTATION MOBILE)
+         ========================================= */
       @media (max-width: 480px) {
         .header-tools {
-          flex-direction: column;
-          align-items: stretch;
+          flex-direction: column; /* Aligne tout verticalement */
+          align-items: stretch; /* Étire les éléments sur toute la largeur */
         }
         .button-group {
-          flex: 1 1 100%;
+          flex: 1 1 100%; /* Prend 100% de la largeur */
         }
         .button-group button {
-          width: 100%;
-          padding: 12px;
-          font-size: 16px;
+          width: 100%; /* Largeur totale */
+          padding: 12px; /* Plus d'espace pour cliquer */
+          font-size: 16px; /* Texte plus grand pour la lisibilité */
         }
         .header-tools > div:first-child {
-          text-align: center;
-          margin-bottom: 15px;
-          width: 100%;
+          text-align: center; /* Centre le texte */
+          margin-bottom: 15px; /* Espace en bas */
+          width: 100%; /* Largeur totale */
         }
       }
+
+      /* =========================================
+         ANIMATIONS ET NOTIFICATIONS
+         ========================================= */
       @keyframes clignoter-orange {
         0% {
           background-color: #ffc107;
-        }
+        } /* État initial : orange */
         50% {
           background-color: #ffe082;
-        }
+        } /* Milieu : jaune clair */
         100% {
           background-color: #ffc107;
-        }
+        } /* État final : retour au orange */
       }
       #notification-doublon {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background-color: #ff9800;
-        color: white;
-        padding: 15px 25px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        z-index: 10000;
-        display: none;
-        font-weight: bold;
-        animation: slideIn 0.5s ease-out;
+        position: fixed; /* Fixe la position par rapport à l'écran */
+        top: 20px; /* À 20px du haut */
+        right: 20px; /* À 20px de la droite */
+        background-color: #ff9800; /* Fond orange */
+        color: white; /* Texte blanc */
+        padding: 15px 25px; /* Marges internes */
+        border-radius: 8px; /* Angles arrondis */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Ombre portée */
+        z-index: 10000; /* Très haut niveau pour être au-dessus de tout */
+        display: none; /* Masqué par défaut (activé en JS) */
+        font-weight: bold; /* Texte gras */
+        animation: slideIn 0.5s ease-out; /* Animation d'entrée lors de l'apparition */
       }
       @keyframes slideIn {
         from {
-          transform: translateX(100%);
-          opacity: 0;
+          transform: translateX(100%); /* Commence hors de l'écran à droite */
+          opacity: 0; /* Commence invisible */
         }
         to {
-          transform: translateX(0);
-          opacity: 1;
+          transform: translateX(0); /* Finit à sa position normale */
+          opacity: 1; /* Finit totalement visible */
         }
       }
+
+      /* =========================================
+         STRUCTURE DU TABLEAU PRINCIPAL
+         ========================================= */
       .search-filters {
-        position: sticky;
-        z-index: 500;
-        background: #f0f2f5;
-        padding: 10px 0;
+        position: sticky; /* Reste visible au défilement */
+        z-index: 500; /* Sous la barre d'outils mais sur le tableau */
+        background: #f0f2f5; /* Couleur de fond */
+        padding: 10px 0; /* Espacement haut et bas */
       }
       #my-table thead th {
-        position: sticky;
-        top: 0;
-        background-color: #007bff;
-        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+        position: sticky; /* Reste visible quand on descend dans le tableau */
+        top: 0; /* Collé au haut de la zone de défilement */
+        background-color: #007bff; /* Fond bleu */
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1); /* Petite ombre en bas */
       }
       #capture-area {
-        background: white;
-        padding: 1.5vw;
-        border-radius: 8px;
-        width: 100%;
+        background: white; /* Fond blanc obligatoire pour l'image finale */
+        padding: 1.5vw; /* Marge interne proportionnelle */
+        border-radius: 8px; /* Angles arrondis */
+        width: 100%; /* Largeur totale */
       }
       .table-container {
-        width: 100%;
-        max-height: 75vh;
-        overflow: auto;
-        position: relative;
-        background: white;
-        border: 1px solid #ddd;
+        width: 100%; /* Largeur totale */
+        max-height: 75vh; /* Hauteur max de 75% de la hauteur écran */
+        overflow: auto; /* Active les barres de défilement si besoin */
+        position: relative; /* Référentiel pour les éléments sticky enfants */
+        background: white; /* Fond blanc */
+        border: 1px solid #ddd; /* Bordure grise autour */
       }
       table {
-        border-collapse: collapse;
-        width: 2900px;
-        table-layout: fixed;
+        border-collapse: collapse; /* Fusionne les bordures des cellules */
+        width: 2900px; /* Largeur très importante pour contenir toutes les colonnes */
+        table-layout: fixed; /* Force le respect strict des largeurs de colonnes */
       }
       th,
       td {
-        border: 1px solid #ddd;
-        text-align: left;
-        vertical-align: top;
-        height: 3vw;
-        font-size: 13px;
-        padding: 0.2vw;
+        border: 1px solid #ddd; /* Bordure grise fine */
+        text-align: left; /* Texte aligné à gauche */
+        vertical-align: top; /* Contenu aligné en haut de la cellule */
+        height: 3vw; /* Hauteur dynamique */
+        font-size: 13px; /* Taille de police */
+        padding: 0.2vw; /* Petit espacement interne */
       }
       th {
-        background-color: #007bff;
-        color: white;
+        background-color: #007bff; /* Fond bleu */
+        color: white; /* Texte blanc */
       }
       #display-date {
-        margin-top: 0;
-        color: #333;
-        font-size: 18px;
-        margin-bottom: 10px;
+        margin-top: 0; /* Pas de marge en haut */
+        color: #333; /* Gris foncé */
+        font-size: 18px; /* Taille de police */
+        margin-bottom: 10px; /* Espace en bas */
       }
+
+      /* Largeurs spécifiques de chaque colonne */
       .col-associe {
         width: 5%;
-      }
+      } /* Colonne Associé */
       .col-chantier {
         width: 10%;
-      }
+      } /* Colonne Chantier */
       .col-date {
         width: 4%;
-      }
+      } /* Colonne Date */
       .col-matos {
         width: 10%;
-      }
+      } /* Colonne Matériel */
       .col-client {
         width: 11%;
-      }
+      } /* Colonne Client */
       .col-telephone {
-        width: 6%;
-        white-space: normal;
-        line-height: 1.5;
+        width: 6%; /* Largeur 6% */
+        white-space: normal; /* Autorise le retour à la ligne */
+        line-height: 1.5; /* Espacement entre les lignes */
       }
       .telephone-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
+        display: flex; /* Flexbox */
+        flex-direction: column; /* Nom en haut, numéro en bas */
+        gap: 2px; /* Petit écart */
       }
       .telephone-name {
-        font-weight: bold;
-        font-size: 12px;
-        color: #000;
+        font-weight: bold; /* Gras */
+        font-size: 12px; /* Petit */
+        color: #000; /* Noir */
       }
       .telephone-number {
-        font-size: 15px;
-        color: #666;
-        font-style: italic;
+        font-size: 15px; /* Un peu plus grand */
+        color: #666; /* Gris */
+        font-style: italic; /* Italique */
       }
       .col-consigne {
         width: 20%;
-      }
+      } /* Colonne Consigne (la plus large) */
       .col-chauffeur {
         width: 7%;
-      }
+      } /* Colonne Chauffeur */
       .col-ncommande {
         width: 5%;
-      }
+      } /* Colonne N° Commande */
       .col-nchantier {
         width: 5%;
-      }
+      } /* Colonne N° Chantier */
       .col-nbon {
         width: 5%;
-      }
+      } /* Colonne N° Bon */
       .col-tarif,
       .col-tarif-affrete {
         width: 4%;
-      }
+      } /* Colonnes Tarifs */
       .col-supplement-client,
       .col-supplement-affrete {
         width: 4%;
-      }
+      } /* Colonnes Suppléments */
       .col-IC-client,
       .col-IC-affrete {
         width: 3%;
-      }
+      } /* Colonnes Indices Carburant */
       .col-commentaire {
         width: 5%;
-      }
+      } /* Colonne Commentaire */
       .col-actions {
         width: 3%;
-      }
+      } /* Colonne Boutons d'action */
+
+      /* =========================================
+         INTERACTIVITÉ ET INPUTS DES CELLULES
+         ========================================= */
       .matos-cell {
-        padding: 0 !important;
-        vertical-align: middle;
+        padding: 0 !important; /* Supprime le padding pour que l'input remplisse tout */
+        vertical-align: middle; /* Centrage vertical */
       }
       .combo-input {
-        width: 100%;
-        height: 100%;
-        border: none;
-        background: transparent;
-        padding: 0.2vw;
-        font-size: inherit;
-        outline: none;
-        vertical-align: middle;
+        width: 100%; /* Largeur totale de la cellule */
+        height: 100%; /* Hauteur totale de la cellule */
+        border: none; /* Supprime les bordures de l'input */
+        background: transparent; /* Fond transparent pour voir la couleur de la cellule */
+        padding: 0.2vw; /* Espace interne */
+        font-size: inherit; /* Utilise la même taille de police que le parent */
+        outline: none; /* Supprime le cadre bleu au clic */
+        vertical-align: middle; /* Centrage vertical */
       }
       [contenteditable="true"] {
-        width: 100%;
-        height: 100%;
-        padding: 0.5vw 0.2vw;
-        outline: none;
+        width: 100%; /* Largeur totale */
+        height: 100%; /* Hauteur totale */
+        padding: 0.5vw 0.2vw; /* Espacement interne */
+        outline: none; /* Supprime le cadre bleu au clic */
       }
+
+      /* =========================================
+         BOUTONS SPÉCIFIQUES ET LEURS COULEURS
+         ========================================= */
       .btn {
-        padding: 8px 12px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-        color: white;
+        padding: 8px 12px; /* Marges internes */
+        border: none; /* Pas de bordure */
+        border-radius: 4px; /* Angles arrondis */
+        cursor: pointer; /* Curseur en forme de main */
+        font-weight: bold; /* Texte en gras */
+        color: white; /* Texte blanc */
       }
+
+      /* Couleurs par fonction */
       .btn-add {
         background-color: #28a745;
-      }
+      } /* Vert : Ajouter */
       .btn-reset {
         background-color: #dc3545;
-      }
+      } /* Rouge : Réinitialiser */
       .btn-copy-img {
         background-color: #6610f2;
-      }
+      } /* Violet : Image */
       .btn-export {
         background-color: #ff9500;
-      }
+      } /* Orange : Excel */
       .btn-config-client {
         background-color: #6c757d;
-      }
+      } /* Gris : Clients */
       .btn-config-associe {
         background-color: #17a2b8;
-      }
+      } /* Cyan : Associés */
       .btn-config-chauffeur {
         background-color: #9b1594;
-      }
+      } /* Mauve : Chauffeurs */
       .btn-config-telephone {
         background-color: #ff5722;
-      }
+      } /* Vermillon : Tels */
       .btn-copy-day {
         background-color: #ff00b7;
-      }
+      } /* Rose : Copier jour */
       .btn-paste-day {
         background-color: #00d69a;
-      }
+      } /* Menthe : Coller jour */
+
+      /* Couleurs d'affectation (associés) */
       .color-landais {
         background-color: #00eeff !important;
-      }
+      } /* Bleu cyan */
       .color-allard {
         background-color: #fffb00 !important;
-      }
+      } /* Jaune */
       .color-std {
         background-color: #e27aff !important;
-      }
+      } /* Lilas */
+
+      /* =========================================
+         MODALES DE CONFIGURATION & MENUS DÉROULANTS
+         ========================================= */
       .save-notif {
-        color: #28a745;
-        font-weight: bold;
-        display: none;
-        margin-left: auto;
-        font-size: 1vw;
+        color: #28a745; /* Vert */
+        font-weight: bold; /* Gras */
+        display: none; /* Masqué */
+        margin-left: auto; /* Aligné à droite dans un flexbox */
+        font-size: 1vw; /* Taille dynamique */
       }
       #config-section-client,
       #config-section-associe,
       #config-section-chauffeur,
       #config-section-telephone {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: white;
-        z-index: 1000;
-        padding: 0 2vw 2vw 2vw;
-        overflow-y: auto;
+        display: none; /* Masqué par défaut */
+        position: fixed; /* Fixé sur l'écran */
+        top: 0; /* En haut */
+        left: 0; /* À gauche */
+        width: 100vw; /* 100% de la largeur écran */
+        height: 100vh; /* 100% de la hauteur écran */
+        background: white; /* Fond blanc opaque */
+        z-index: 1000; /* Très haut niveau */
+        padding: 0 2vw 2vw 2vw; /* Marges internes */
+        overflow-y: auto; /* Défilement vertical interne si nécessaire */
       }
       .config-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-        background: white;
+        width: 100%; /* Largeur totale */
+        border-collapse: collapse; /* Fusion bordures */
+        margin-bottom: 20px; /* Espace en bas */
+        background: white; /* Fond blanc */
       }
       .config-table th,
       .config-table td {
-        border: 1px solid #ccc;
-        padding: 8px;
-        text-align: center;
-        font-size: 0.9rem;
+        border: 1px solid #ccc; /* Bordure grise */
+        padding: 8px; /* Espacement interne */
+        text-align: center; /* Centrage texte */
+        font-size: 0.9rem; /* Taille de police */
       }
       .config-table th {
-        background: #f2f2f2;
-        color: #333;
-        position: sticky;
-        top: 0;
-        z-index: 10;
+        background: #f2f2f2; /* Fond gris clair */
+        color: #333; /* Texte gris foncé */
+        position: sticky; /* Reste en haut au scroll interne */
+        top: 0; /* Collé au haut */
+        z-index: 10; /* Priorité d'affichage */
       }
       .client-header,
       .group-header {
-        background: #e9ecef;
-        vertical-align: middle;
+        background: #e9ecef; /* Fond gris bleu */
+        vertical-align: middle; /* Centrage vertical */
       }
       .del-matos-btn {
-        color: #dc3545;
-        background: none;
-        border: none;
-        font-weight: bold;
-        cursor: pointer;
-        font-size: 1.2em;
+        color: #dc3545; /* Rouge */
+        background: none; /* Pas de fond */
+        border: none; /* Pas de bordure */
+        font-weight: bold; /* Gras */
+        cursor: pointer; /* Main */
+        font-size: 1.2em; /* Un peu plus grand */
       }
       .cell-selected {
-        background-color: rgba(0, 123, 255, 0.2) !important;
-        border: 2px solid #007bff !important;
-      }
-      .btn-delete {
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        padding: 2px 5px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 10px;
-        transition: background 0.3s;
-        margin-top: 5px;
+        background-color: rgba(
+          0,
+          123,
+          255,
+          0.2
+        ) !important; /* Fond bleu translucide */
+        border: 2px solid #007bff !important; /* Bordure bleue épaisse */
       }
       .dropdown-content {
-        position: absolute;
-        z-index: 1000;
-        margin-top: 5px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: max-content;
-        border: 1px solid #ccc;
-        padding: 10px;
-        border-radius: 5px;
-        background: #f9f9f9;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-        min-width: 160px;
-        max-width: 260px;
+        position: absolute; /* Positionné par rapport au bouton parent */
+        z-index: 1000; /* Passe devant tout */
+        margin-top: 5px; /* Petit décalage */
+        left: 50%; /* Centre par rapport au parent */
+        transform: translateX(-50%); /* Ajustement parfait du centrage */
+        width: max-content; /* S'adapte au texte contenu */
+        border: 1px solid #ccc; /* Bordure */
+        padding: 10px; /* Marges internes */
+        border-radius: 5px; /* Angles arrondis */
+        background: #f9f9f9; /* Gris très clair */
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Ombre */
+        min-width: 160px; /* Largeur mini */
+        max-width: 260px; /* Largeur maxi */
       }
-      .button-group {
-        position: relative;
-        display: inline-block;
-      }
+
+      /* =========================================
+         POPUPS / NOTIFICATIONS CENTRALES (ALERTES)
+         ========================================= */
       .save-notif2 {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0);
-        background-color: #07cc00;
-        color: white;
-        padding: 15px 30px;
-        border-radius: 30px;
-        font-weight: bold;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        z-index: 10000;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        opacity: 0;
-        text-align: center;
-        white-space: pre-line;
-        min-width: fit-content;
-        display: block;
-        pointer-events: none;
+        position: fixed; /* Fixé à l'écran */
+        top: 50%; /* Milieu hauteur */
+        left: 50%; /* Milieu largeur */
+        transform: translate(-50%, -50%) scale(0); /* Centré et caché (taille 0) */
+        background-color: #07cc00; /* Fond vert */
+        color: white; /* Texte blanc */
+        padding: 15px 30px; /* Marges internes */
+        border-radius: 30px; /* Forme de pillule */
+        font-weight: bold; /* Gras */
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Grosse ombre */
+        z-index: 10000; /* Niveau maximum */
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animation avec rebond */
+        opacity: 0; /* Invisible */
+        text-align: center; /* Texte centré */
+        white-space: pre-line; /* Gère les sauts de ligne */
+        min-width: fit-content; /* Largeur selon contenu */
+        display: block; /* Mode bloc */
+        pointer-events: none; /* Ne bloque pas les clics si invisible */
       }
       .notif-visible {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-        pointer-events: auto;
+        opacity: 1; /* Devient visible */
+        transform: translate(-50%, -50%) scale(1); /* Prend sa taille normale */
+        pointer-events: auto; /* Autorise les clics */
       }
       .alerte-flash {
-        animation: blink-red 0.5s infinite;
-        box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+        animation: blink-red 0.5s infinite; /* Clignote en boucle */
+        box-shadow: 0 0 20px rgba(255, 0, 0, 0.6); /* Halo rouge */
       }
       @keyframes blink-red {
         0% {
           background-color: #ff0000;
           transform: translate(-50%, -50%) scale(1);
-        }
+        } /* Rouge et taille 1 */
         50% {
           background-color: #b30000;
           transform: translate(-50%, -50%) scale(1.1);
-        }
+        } /* Sombre et plus grand */
         100% {
           background-color: #ff0000;
           transform: translate(-50%, -50%) scale(1);
-        }
+        } /* Retour */
       }
+
+      /* =========================================
+         FOOTER ADMIN (Maintenance et aide)
+         ========================================= */
       .admin-footer-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 50px;
-        padding: 20px;
-        border-top: 1px solid #ddd;
-        background-color: #f8f9fa;
+        display: flex; /* Flexbox */
+        justify-content: space-between; /* Éléments aux extrémités */
+        align-items: center; /* Alignement vertical */
+        margin-top: 50px; /* Espace avec le tableau */
+        padding: 20px; /* Marges internes */
+        border-top: 1px solid #ddd; /* Ligne de séparation */
+        background-color: #f8f9fa; /* Fond gris clair */
       }
       .btn-maintenance {
-        background: #eee;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        padding: 8px 12px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.3s;
-        opacity: 0.6;
+        background: #eee; /* Gris */
+        border: 1px solid #ccc; /* Bordure */
+        border-radius: 4px; /* Arrondi */
+        padding: 8px 12px; /* Espacement */
+        cursor: pointer; /* Main */
+        font-size: 14px; /* Taille texte */
+        transition: all 0.3s; /* Transition fluide */
+        opacity: 0.6; /* Semi-transparent */
       }
       .btn-maintenance:hover {
         opacity: 1;
-      }
+      } /* Devient opaque au survol */
+
       .btn-help-circle {
-        background: none;
-        border: none;
-        color: #a5a5a5;
-        font-size: 30px;
-        font-weight: bold;
-        padding: 0;
-        cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.3s;
+        background: none; /* Pas de fond */
+        border: none; /* Pas de bordure */
+        color: #a5a5a5; /* Gris clair */
+        font-size: 30px; /* Très grand */
+        font-weight: bold; /* Gras */
+        padding: 0; /* Pas de marge */
+        cursor: pointer; /* Main */
+        opacity: 0.6; /* Transparent */
+        transition: opacity 0.3s; /* Transition */
       }
       .btn-help-circle:hover {
         opacity: 1;
-      }
+      } /* Vif au survol */
+
+      /* Variants maintenance */
       .btn-repair {
         background-color: #17a2b8;
         color: white;
         border: none;
-      }
+      } /* Bleu */
       .btn-save {
         background-color: #28a745;
         color: white;
         border: none;
-      }
+      } /* Vert */
       .btn-restaur {
         background-color: #ffc107;
         color: black;
         border: none;
-      }
+      } /* Jaune */
+
       .footer-left-group {
-        display: flex;
-        gap: 15px;
+        display: flex; /* Flexbox */
+        gap: 15px; /* Espace entre boutons */
       }
+
+      /* =========================================
+         SECTION PILIERS COMMUNS (Module métier)
+         ========================================= */
       .piliers-communs-header {
         background: linear-gradient(
           135deg,
           #1a1a2e 0%,
           #16213e 50%,
           #0f3460 100%
-        );
-        color: white;
-        padding: 12px 15px;
-        border-radius: 6px 6px 0 0;
-        margin-bottom: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        ); /* Dégradé bleu nuit */
+        color: white; /* Blanc */
+        padding: 12px 15px; /* Espacement */
+        border-radius: 6px 6px 0 0; /* Arrondi haut seulement */
+        margin-bottom: 0; /* Pas d'espace bas */
+        display: flex; /* Flexbox */
+        align-items: center; /* Centré verticalement */
+        gap: 10px; /* Espace interne */
       }
       .piliers-communs-section {
-        border: 2px solid #0f3460;
-        border-radius: 6px;
-        margin-bottom: 30px;
-        overflow: hidden;
+        border: 2px solid #0f3460; /* Bordure bleu foncé */
+        border-radius: 6px; /* Angles arrondis */
+        margin-bottom: 30px; /* Espace en dessous */
+        overflow: hidden; /* Coupe ce qui dépasse */
       }
       .piliers-communs-body {
-        background: #f0f4ff;
-        padding: 10px;
+        background: #f0f4ff; /* Bleu très clair */
+        padding: 10px; /* Marges internes */
       }
+
+      /* Badges d'état */
       .badge-sync {
-        display: inline-block;
-        padding: 2px 7px;
-        border-radius: 10px;
-        font-size: 10px;
-        font-weight: bold;
-        margin-left: 5px;
-        vertical-align: middle;
+        display: inline-block; /* Aligné avec le texte */
+        padding: 2px 7px; /* Petit espacement */
+        border-radius: 10px; /* Forme arrondie */
+        font-size: 10px; /* Très petit */
+        font-weight: bold; /* Gras */
+        margin-left: 5px; /* Espace à gauche */
+        vertical-align: middle; /* Alignement texte */
       }
       .badge-commun {
         background: #007bff;
         color: white;
-      }
+      } /* Bleu (Synchronisé) */
       .badge-custom {
         background: #ff6b35;
         color: white;
-      }
+      } /* Orange (Modifié) */
+
       .btn-reset-to-common {
-        background: none;
-        border: 1px solid #007bff;
-        color: #007bff;
-        border-radius: 3px;
-        padding: 2px 5px;
-        font-size: 10px;
-        cursor: pointer;
-        margin-left: 5px;
+        background: none; /* Transparent */
+        border: 1px solid #007bff; /* Bordure bleue */
+        color: #007bff; /* Texte bleu */
+        border-radius: 3px; /* Petit arrondi */
+        padding: 2px 5px; /* Très serré */
+        font-size: 10px; /* Très petit */
+        cursor: pointer; /* Main */
+        margin-left: 5px; /* Écart */
       }
       .btn-reset-to-common:hover {
         background: #007bff;
         color: white;
-      }
+      } /* Inverse les couleurs au survol */
+
+      /* Liserets de couleur indicateurs sur les lignes */
       .pilier-row-synced td {
         border-left: 3px solid #007bff !important;
-      }
+      } /* Liseret bleu à gauche */
       .pilier-row-custom td {
         border-left: 3px solid #ff6b35 !important;
-      }
+      } /* Liseret orange à gauche */
     </style>
   </head>
   <body>
@@ -691,14 +744,14 @@
               class="btn btn-copy-img"
               style="width: 100%; margin-bottom: 5px"
             >
-              Copier Planning (suppl client)
+              Copier Planning (N°Bon)
             </button>
             <button
               id="copy-image-client"
               class="btn"
               style="background-color: #07cc00; width: 100%; margin-bottom: 5px"
             >
-              Planning (tarif affrété)
+              Copier Planning (Supp. Client)
             </button>
             <button
               id="export-excel"
@@ -4902,7 +4955,7 @@
             const marquerBlock =
               document.querySelector(".marquer-container") ||
               document.getElementById("color-picker-tools");
-            const endCol = 14;
+            const endCol = 12;
             const allRows = table.querySelectorAll("tr");
             const originalTableStyleWidth = table.style.width;
             const originalContainerMaxHeight = tableContainer.style.maxHeight;
@@ -4979,7 +5032,7 @@
             const area = document.getElementById("capture-area");
             const tableContainer = document.querySelector(".table-container");
             const allRows = table.querySelectorAll("tr");
-            const endCol = 12;
+            const endCol = 10;
             const marquerBlock =
               document.querySelector(".marquer-container") ||
               document.getElementById("color-picker-tools");
