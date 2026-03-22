@@ -1078,18 +1078,13 @@
           gap: 10px;
         "
       >
-        <strong style="margin-right: 10px">Filtres :</strong>
+        <strong>Filtres :</strong>
         <input
           type="text"
           id="filter-associe"
           placeholder="Filtrer par Associé..."
           oninput="filterTable()"
-          style="
-            padding: 5px;
-            margin-right: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-          "
+          style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
         />
         <input
           type="text"
@@ -1115,7 +1110,6 @@
         <button
           onclick="resetFilters()"
           style="
-            margin-left: 10px;
             padding: 5px 10px;
             cursor: pointer;
             border-radius: 4px;
@@ -1248,6 +1242,17 @@
             "
             title="Rose"
           ></div>
+          <button
+            onclick="resetAllColors()"
+            style="
+              padding: 5px 10px;
+              cursor: pointer;
+              border-radius: 4px;
+              border: 1px solid #ccc;
+            "
+          >
+            Effacer les marquages
+          </button>
         </div>
         <div>
           Le :
@@ -3083,6 +3088,15 @@
             return;
           td.style.backgroundColor = "#d4edda";
         });
+      }
+
+      function resetAllColors() {
+        captureUndoStateBefore();
+        const cells = document.querySelectorAll("#table-body td");
+        cells.forEach((td) => {
+          td.style.backgroundColor = "";
+        });
+        saveCurrentDay();
       }
 
       function refreshAllPlanningTarifs() {
