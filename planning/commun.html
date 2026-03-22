@@ -691,7 +691,7 @@
               class="btn btn-copy-img"
               style="width: 100%; margin-bottom: 5px"
             >
-              Copier Planning (N°Bon)
+              Copier Planning (N°Commande)
             </button>
             <button
               id="copy-image-client"
@@ -3063,10 +3063,21 @@
         if (!bonCell) return;
         const texte = bonCell.textContent.trim();
         const hasBon = texte !== "" && texte !== "N° Bon...";
-        if (!hasBon) return;
         const cells = tr.querySelectorAll("td");
+        if (!hasBon) {
+          cells.forEach((td, index) => {
+            if (index === 0) return;
+            if (
+              td.style.backgroundColor === "rgb(212, 237, 218)" ||
+              td.style.backgroundColor === "#d4edda"
+            ) {
+              td.style.backgroundColor = "";
+            }
+          });
+          return;
+        }
         cells.forEach((td, index) => {
-          if (index === 0) return; // jamais toucher la couleur associé
+          if (index === 0) return;
           const currentBg = td.style.backgroundColor;
           if (currentBg && currentBg !== "" && currentBg !== "transparent")
             return;
@@ -4979,7 +4990,7 @@
             const area = document.getElementById("capture-area");
             const tableContainer = document.querySelector(".table-container");
             const allRows = table.querySelectorAll("tr");
-            const endCol = 10;
+            const endCol = 9;
             const marquerBlock =
               document.querySelector(".marquer-container") ||
               document.getElementById("color-picker-tools");
