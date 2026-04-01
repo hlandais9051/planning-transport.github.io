@@ -1986,13 +1986,13 @@
           ];
           const cp = (v) => (PH.includes((v || "").trim()) ? "" : v || "");
           const associeVal = cp(tr.querySelector(".select-associe")?.value);
-          const chantierVal = cp(tr.cells[3]?.innerText);
+          const chantierVal = cp(tr.cells[2]?.innerText);
           const vehiculeVal = cp(tr.querySelector(".select-vehicule")?.value);
           const clientVal = cp(tr.querySelector(".select-client")?.value);
-          const consigneVal = cp(tr.cells[8]?.innerText);
+          const consigneVal = cp(tr.cells[7]?.innerText);
           const chauffeurVal = cp(tr.querySelector(".select-chauffeur")?.value);
-          const NchantierVal = cp(tr.cells[10]?.innerText);
-          const NcommandeVal = cp(tr.cells[11]?.innerText);
+          const NchantierVal = cp(tr.cells[9]?.innerText);
+          const NcommandeVal = cp(tr.cells[10]?.innerText);
           if (
             !associeVal &&
             !chantierVal &&
@@ -4081,7 +4081,7 @@
           cellTarifClient.textContent = tarifC.toFixed(2) + " €";
           cellICClient.textContent = icC.toFixed(2) + " €";
           cellICClient.style.color =
-            icC > 0 ? "#28a745" : icC < 0 ? "#dc3545" : "#95a5a6";
+            icC > 0 ? "#28a745" : icC < 0 ? "#dc3545" : "#000000";
           cellICClient.style.fontWeight = icC !== 0 ? "bold" : "normal";
         }
         if (snapshot.tarif_affrete_snapshot !== undefined) {
@@ -4091,7 +4091,7 @@
           cellTarifAffrete.textContent = tarifA.toFixed(2) + " €";
           cellICAffrete.textContent = icA.toFixed(2) + " €";
           cellICAffrete.style.color =
-            icA > 0 ? "#28a745" : icA < 0 ? "#dc3545" : "#95a5a6";
+            icA > 0 ? "#28a745" : icA < 0 ? "#dc3545" : "#000000";
           cellICAffrete.style.fontWeight = icA !== 0 ? "bold" : "normal";
         }
       }
