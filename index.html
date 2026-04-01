@@ -191,6 +191,9 @@
         font-size: 18px;
         margin-bottom: 10px;
       }
+      .col-actions {
+        width: 3%;
+      }
       .col-associe {
         width: 5%;
       }
@@ -255,9 +258,6 @@
       }
       .col-commentaire {
         width: 5%;
-      }
-      .col-actions {
-        width: 3%;
       }
       .matos-cell {
         padding: 0 !important;
@@ -1283,6 +1283,7 @@
         <table id="my-table">
           <thead>
             <tr>
+              <th class="col-actions hide-export">Actions</th>
               <th class="col-associe">Associé</th>
               <th class="col-chantier">Chantier</th>
               <th class="col-date">Date</th>
@@ -1305,7 +1306,6 @@
               </th>
               <th class="col-IC-affrete hide-export">IC-affrété</th>
               <th class="col-commentaire hide-export">Commentaire</th>
-              <th class="col-actions hide-export">Actions</th>
             </tr>
           </thead>
           <tbody id="table-body"></tbody>
@@ -1986,13 +1986,13 @@
           ];
           const cp = (v) => (PH.includes((v || "").trim()) ? "" : v || "");
           const associeVal = cp(tr.querySelector(".select-associe")?.value);
-          const chantierVal = cp(tr.cells[1]?.innerText);
+          const chantierVal = cp(tr.cells[3]?.innerText);
           const vehiculeVal = cp(tr.querySelector(".select-vehicule")?.value);
           const clientVal = cp(tr.querySelector(".select-client")?.value);
-          const consigneVal = cp(tr.cells[6]?.innerText);
+          const consigneVal = cp(tr.cells[8]?.innerText);
           const chauffeurVal = cp(tr.querySelector(".select-chauffeur")?.value);
-          const NchantierVal = cp(tr.cells[8]?.innerText);
-          const NcommandeVal = cp(tr.cells[9]?.innerText);
+          const NchantierVal = cp(tr.cells[10]?.innerText);
+          const NcommandeVal = cp(tr.cells[11]?.innerText);
           if (
             !associeVal &&
             !chantierVal &&
@@ -2007,7 +2007,7 @@
           lignes.push({
             associe: associeVal,
             chantier: chantierVal,
-            date: tr.cells[2]?.innerText || "",
+            date: tr.cells[3]?.innerText || "",
             vehicule: vehiculeVal,
             client: clientVal,
             telephoneNom: contactName,
@@ -2199,9 +2199,9 @@
               const cellIndex = td.cellIndex;
               if (td.classList.contains("col-consigne"))
                 val = "Consigne : " + val;
-              else if (cellIndex === 8) val = "N° Chantier : " + val;
-              else if (cellIndex === 9) val = "N° Commande : " + val;
-              else if (cellIndex === 10) val = "N° Bon : " + val;
+              else if (cellIndex === 9) val = "N° Chantier : " + val;
+              else if (cellIndex === 10) val = "N° Commande : " + val;
+              else if (cellIndex === 11) val = "N° Bon : " + val;
             }
           }
           rows[rowIndex].push(val);
@@ -2332,7 +2332,7 @@
           const materielVal = tr.querySelector(".select-vehicule")
             ? tr.querySelector(".select-vehicule").value.toUpperCase()
             : "";
-          const chantierCell = tr.cells[3];
+          const chantierCell = tr.cells[4];
           let chantierVal = chantierCell
             ? chantierCell.textContent.toUpperCase()
             : "";
@@ -2989,7 +2989,7 @@
       }
 
       function updateRowTarif(tr) {
-        const dateLigne = tr.cells[2]?.innerText || "";
+        const dateLigne = tr.cells[3]?.innerText || "";
         const partiesDate = dateLigne.split("/");
         const anneeLigne =
           partiesDate.length === 3 ? "20" + partiesDate[2] : "";
@@ -3122,7 +3122,7 @@
 
         const rows = document.querySelectorAll("#table-body tr");
         rows.forEach((tr) => {
-          const dateLigne = tr.cells[2]?.innerText || ""; // format DD/MM/YY
+          const dateLigne = tr.cells[3]?.innerText || ""; // format DD/MM/YY
           const partiesDate = dateLigne.split("/");
           const anneeLigne =
             partiesDate.length === 3 ? "20" + partiesDate[2] : "";
@@ -3763,7 +3763,7 @@
       function calculerTotal() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[11].textContent
+          const content = tr.cells[12].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3776,7 +3776,7 @@
       function calculerTotalSupplement_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[12].textContent
+          const content = tr.cells[13].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3789,7 +3789,7 @@
       function calculerTotalIC_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[13].textContent
+          const content = tr.cells[14].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3821,7 +3821,7 @@
       function calculerTotalAffrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[14].textContent
+          const content = tr.cells[15].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3834,7 +3834,7 @@
       function calculerTotalSupplement_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[15].textContent
+          const content = tr.cells[16].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3847,7 +3847,7 @@
       function calculerTotalIC_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[16].textContent
+          const content = tr.cells[17].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3896,7 +3896,7 @@
         if (!date) return;
         const rows = [];
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const dateLigne = tr.cells[2]?.innerText || "";
+          const dateLigne = tr.cells[3]?.innerText || "";
           const estMemeMois = estMemeMoisQueSelection(dateLigne);
           let snapshot = null;
           if (tr.dataset.snapshot) snapshot = JSON.parse(tr.dataset.snapshot);
@@ -3921,8 +3921,8 @@
           });
           rows.push({
             associe: tr.querySelector(".select-associe").value,
-            chantier: tr.cells[1].innerText,
-            date: tr.cells[2].innerText,
+            chantier: tr.cells[2].innerText,
+            date: tr.cells[3].innerText,
             vehicule: tr.querySelector(".select-vehicule").value,
             client: tr.querySelector(".select-client").value,
             telephone:
@@ -3931,18 +3931,18 @@
                 ?.getAttribute("data-telephone-full") ||
               tr.querySelector(".select-telephone")?.value ||
               "",
-            consigne: tr.cells[6].innerText,
+            consigne: tr.cells[7].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_chantier: tr.cells[8].innerText,
-            n_commande: tr.cells[9].innerText,
-            n_bon: tr.cells[10].innerText,
-            tarif: tr.cells[11].innerText,
-            supplement_client: tr.cells[12].innerText,
-            IC_client: tr.cells[13].innerText,
-            tarif_affrete: tr.cells[14].innerText,
-            supplement_affrete: tr.cells[15].innerText,
-            IC_affrete: tr.cells[16].innerText,
-            commentaire: tr.cells[17].innerText,
+            n_chantier: tr.cells[9].innerText,
+            n_commande: tr.cells[10].innerText,
+            n_bon: tr.cells[11].innerText,
+            tarif: tr.cells[12].innerText,
+            supplement_client: tr.cells[13].innerText,
+            IC_client: tr.cells[14].innerText,
+            tarif_affrete: tr.cells[15].innerText,
+            supplement_affrete: tr.cells[16].innerText,
+            IC_affrete: tr.cells[17].innerText,
+            commentaire: tr.cells[18].innerText,
             snapshot: snapshot,
             couleurs_cellules:
               Object.keys(couleursParCellule).length > 0
@@ -4208,6 +4208,10 @@
         const valComm = data ? data.commentaire : "Commentaire...";
 
         tr.innerHTML = `
+          <td class="hide-export" style="text-align:center; white-space:nowrap;">
+            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
+            <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); dupliquerLigne(this)">📑</button>
+          </td>
           <td class="matos-cell"><input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé..."></td>
           <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
           <td contenteditable="true">${data && data.date && data.date.includes("/20") ? data.date.replace("/20", "/") : data ? data.date : dateFormatee}</td>
@@ -4226,10 +4230,6 @@
           <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
           <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
           <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
-          <td class="hide-export" style="text-align:center; white-space:nowrap;">
-            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
-            <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); dupliquerLigne(this)">📑</button>
-          </td>
         `;
 
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
@@ -4291,12 +4291,12 @@
             } else if (contenuSaisi === "") {
               const index = cell.cellIndex;
               const map = {
-                1: "Chantier...",
-                6: "Consigne...",
-                8: "N° Chantier...",
-                9: "N° Commande...",
-                10: "N° Bon...",
-                17: "Commentaire...",
+                2: "Chantier...",
+                7: "Consigne...",
+                9: "N° Chantier...",
+                10: "N° Commande...",
+                11: "N° Bon...",
+                18: "Commentaire...",
               };
               if (map[index]) {
                 cell.textContent = map[index];
@@ -4507,23 +4507,23 @@
         const ligne = bouton.closest("tr");
         const data = {
           associe: ligne.querySelector(".select-associe").value,
-          chantier: ligne.cells[1].innerText,
-          date: ligne.cells[2].innerText,
+          chantier: ligne.cells[2].innerText,
+          date: ligne.cells[3].innerText,
           vehicule: ligne.querySelector(".select-vehicule").value,
           client: ligne.querySelector(".select-client").value,
           telephone: ligne.querySelector(".select-telephone").value,
-          consigne: ligne.cells[6].innerText,
+          consigne: ligne.cells[7].innerText,
           chauffeur: ligne.querySelector(".select-chauffeur").value,
-          n_chantier: ligne.cells[8].innerText,
-          n_commande: ligne.cells[9].innerText,
-          n_bon: ligne.cells[10].innerText,
-          tarif: ligne.cells[11].innerText,
-          supplement_client: ligne.cells[12].innerText,
-          IC_client: ligne.cells[13].innerText,
-          tarif_affrete: ligne.cells[14].innerText,
-          supplement_affrete: ligne.cells[15].innerText,
-          IC_affrete: ligne.cells[16].innerText,
-          commentaire: ligne.cells[17].innerText,
+          n_chantier: ligne.cells[9].innerText,
+          n_commande: ligne.cells[10].innerText,
+          n_bon: ligne.cells[11].innerText,
+          tarif: ligne.cells[12].innerText,
+          supplement_client: ligne.cells[13].innerText,
+          IC_client: ligne.cells[14].innerText,
+          tarif_affrete: ligne.cells[15].innerText,
+          supplement_affrete: ligne.cells[16].innerText,
+          IC_affrete: ligne.cells[17].innerText,
+          commentaire: ligne.cells[18].innerText,
         };
         ajouterLigne(data);
         const tableBody = document.getElementById("table-body");
@@ -4538,23 +4538,23 @@
         document.querySelectorAll("#table-body tr").forEach((tr) => {
           rows.push({
             associe: tr.querySelector(".select-associe").value,
-            chantier: tr.cells[1].innerText,
-            date: tr.cells[2].innerText,
+            chantier: tr.cells[2].innerText,
+            date: tr.cells[3].innerText,
             vehicule: tr.querySelector(".select-vehicule").value,
             client: tr.querySelector(".select-client").value,
             telephone: tr.querySelector(".select-telephone").value,
-            consigne: tr.cells[6].innerText,
+            consigne: tr.cells[7].innerText,
             chauffeur: tr.querySelector(".select-chauffeur").value,
-            n_chantier: tr.cells[8].innerText,
-            n_commande: tr.cells[9].innerText,
-            n_bon: tr.cells[10].innerText,
-            tarif: tr.cells[11].innerText,
-            supplement_client: tr.cells[12].innerText,
-            IC_client: tr.cells[13].innerText,
-            tarif_affrete: tr.cells[14].innerText,
-            supplement_affrete: tr.cells[15].innerText,
-            IC_affrete: tr.cells[16].innerText,
-            commentaire: tr.cells[17].innerText,
+            n_chantier: tr.cells[9].innerText,
+            n_commande: tr.cells[10].innerText,
+            n_bon: tr.cells[11].innerText,
+            tarif: tr.cells[12].innerText,
+            supplement_client: tr.cells[13].innerText,
+            IC_client: tr.cells[14].innerText,
+            tarif_affrete: tr.cells[15].innerText,
+            supplement_affrete: tr.cells[16].innerText,
+            IC_affrete: tr.cells[17].innerText,
+            commentaire: tr.cells[18].innerText,
           });
         });
         if (rows.length === 0) return;
