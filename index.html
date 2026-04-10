@@ -2397,12 +2397,15 @@
         return 0;
       }
 
-      function getICClient(clientNom, matosNom) {
+      function getICClient(clientNom, matosNom, tarifManuel = null) {
         const groupeNom = transportConfigClient[clientNom];
         if (!groupeNom) return 0;
         const groupeData = transportConfigGroup[groupeNom];
         if (groupeData && groupeData[matosNom]) {
-          const tarif = getTarifClient(clientNom, matosNom);
+          const tarif =
+            tarifManuel !== null
+              ? tarifManuel
+              : getTarifClient(clientNom, matosNom);
           let indice = 0;
           const indiceData = groupeData[matosNom].indice;
           const moisAnnee = getSelectedMonth();
@@ -3135,10 +3138,16 @@
           const associe = tr.querySelector(".select-associe")?.value;
 
           if (client && matos) {
-            const tarifC = getTarifClient(client, matos);
-            const icC = getICClient(client, matos);
-            tr.querySelector(".cell-tarif").textContent =
-              tarifC.toFixed(2) + " €";
+            const cellTarif = tr.querySelector(".cell-tarif");
+            const tarifActuel =
+              parseFloat(
+                cellTarif.textContent.replace(/[€\s]/g, "").replace(",", "."),
+              ) || 0;
+            const icC = getICClient(client, matos, tarifActuel);
+            if (tr.dataset.isManualTarif !== "true") {
+              const tarifC = getTarifClient(client, matos);
+              cellTarif.textContent = tarifC.toFixed(2) + " €";
+            }
             tr.querySelector(".cell-IC-client").textContent =
               icC.toFixed(2) + " €";
           }
