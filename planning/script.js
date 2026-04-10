@@ -3422,7 +3422,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const marquerBlock =
         document.querySelector(".marquer-container") ||
         document.getElementById("color-picker-tools");
-      const endCol = 12;
+      const startCol = 1;
+      const endCol = 13;
       const allRows = table.querySelectorAll("tr");
       const originalTableStyleWidth = table.style.width;
       const originalContainerMaxHeight = tableContainer.style.maxHeight;
@@ -3452,7 +3453,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
       allRows.forEach((row) => {
         Array.from(row.cells).forEach((cell, index) => {
-          if (index > endCol) cell.style.display = "none";
+          if (index < startCol || index > endCol) cell.style.display = "none";
         });
       });
       html2canvas(area, {
@@ -3494,7 +3495,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const area = document.getElementById("capture-area");
     const tableContainer = document.querySelector(".table-container");
     const allRows = table.querySelectorAll("tr");
-    const endCol = 9;
+    const startCol = 1;
+    const endCol = 10;
     const marquerBlock =
       document.querySelector(".marquer-container") ||
       document.getElementById("color-picker-tools");
@@ -3525,7 +3527,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     allRows.forEach((row) => {
       Array.from(row.cells).forEach((cell, index) => {
-        if (index > endCol) cell.style.display = "none";
+        if (index < startCol || index > endCol) cell.style.display = "none";
       });
     });
     html2canvas(area, {

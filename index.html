@@ -2332,7 +2332,7 @@
           const materielVal = tr.querySelector(".select-vehicule")
             ? tr.querySelector(".select-vehicule").value.toUpperCase()
             : "";
-          const chantierCell = tr.cells[4];
+          const chantierCell = tr.cells[2];
           let chantierVal = chantierCell
             ? chantierCell.textContent.toUpperCase()
             : "";
@@ -2995,85 +2995,86 @@
           partiesDate.length === 3 ? "20" + partiesDate[2] : "";
         const anneeEnCours = getSelectedYear();
 
-        if (anneeLigne && anneeEnCours && anneeLigne !== anneeEnCours) {
-          return;
-        }
+        if (anneeLigne && anneeEnCours && anneeLigne !== anneeEnCours) return;
 
+        // On détecte si c'est une action utilisateur (clic menu) ou un calcul automatique (rafraîchissement)
         const eventTrigger = window.event ? window.event.target : null;
         const isComboChange =
           eventTrigger && eventTrigger.classList.contains("combo-input");
+
         const client = tr.querySelector(".select-client").value;
         const associe = tr.querySelector(".select-associe").value;
         const matos = tr.querySelector(".select-vehicule").value;
+
         const cellTarifClient = tr.querySelector(".cell-tarif");
         const cellTarifAffrete = tr.querySelector(".cell-tarif-affrete");
-        const cellICClient = tr.querySelector(".cell-IC-client");
-        const cellICAffrete = tr.querySelector(".cell-IC-affrete");
 
+        // --- SÉCURITÉ ANTI-EFFACEMENT AU RAFRAICHISSEMENT ---
+        // Si au chargement la cellule contient déjà un montant (ex: 388.80),
+        // on lui remet sa protection "is-manual" pour ne pas qu'elle soit écrasée.
+        [cellTarifClient, cellTarifAffrete].forEach((cell) => {
+          const val =
+            parseFloat(
+              cell.textContent.replace(/[€\s]/g, "").replace(",", "."),
+            ) || 0;
+          if (val !== 0 && !isComboChange) {
+            cell.classList.add("is-manual");
+          }
+        });
+
+        // --- LOGIQUE CLIENT ---
         if (client && matos) {
-          let tarifC =
+          if (
+            !cellTarifClient.classList.contains("is-manual") ||
+            isComboChange
+          ) {
+            const tarifC = getTarifClient(client, matos);
+            if (document.activeElement !== cellTarifClient) {
+              cellTarifClient.textContent = tarifC.toFixed(2) + " €";
+            }
+          }
+          const tarifAfficheC =
             parseFloat(
               cellTarifClient.textContent
                 .replace(/[€\s]/g, "")
                 .replace(",", "."),
             ) || 0;
-          if (isComboChange || tarifC === 0)
-            tarifC = getTarifClient(client, matos);
-          if (document.activeElement !== cellTarifClient)
-            cellTarifClient.textContent = tarifC.toFixed(2) + " €";
-          const icC = getICClient(client, matos);
+          const icC = getICClient(client, matos, tarifAfficheC);
+          const cellICClient = tr.querySelector(".cell-IC-client");
           cellICClient.textContent = icC.toFixed(2) + " €";
           cellICClient.style.color =
             icC > 0 ? "#28a745" : icC < 0 ? "#dc3545" : "#000000";
           cellICClient.style.fontWeight = icC !== 0 ? "bold" : "normal";
-        } else {
-          if (document.activeElement !== cellTarifClient) {
-            const valActuelleC =
-              parseFloat(
-                cellTarifClient.textContent
-                  .replace(/[€\s]/g, "")
-                  .replace(",", "."),
-              ) || 0;
-            if (valActuelleC === 0) {
-              cellTarifClient.textContent = "0.00 €";
-              cellICClient.textContent = "0.00 €";
-            }
-          }
         }
 
-        if (associe && matos && client) {
-          let tarifA =
+        // --- LOGIQUE AFFRETE ---
+        if (associe && matos) {
+          if (
+            !cellTarifAffrete.classList.contains("is-manual") ||
+            isComboChange
+          ) {
+            let tarifA = getTarifAffrete(associe, matos);
+            if (document.activeElement !== cellTarifAffrete) {
+              cellTarifAffrete.textContent = tarifA.toFixed(2) + " €";
+            }
+          }
+          const tarifAfficheA =
             parseFloat(
               cellTarifAffrete.textContent
                 .replace(/[€\s]/g, "")
                 .replace(",", "."),
             ) || 0;
-          if (isComboChange || tarifA === 0) {
-            tarifA = getTarifAffrete(associe, matos);
-          }
-          if (document.activeElement !== cellTarifAffrete)
-            cellTarifAffrete.textContent = tarifA.toFixed(2) + " €";
-          const icA = getICAffrete(associe, matos);
+          const icA = getICAffrete(associe, matos, tarifAfficheA);
+          const cellICAffrete = tr.querySelector(".cell-IC-affrete");
           cellICAffrete.textContent = icA.toFixed(2) + " €";
           cellICAffrete.style.color =
             icA > 0 ? "#28a745" : icA < 0 ? "#dc3545" : "#000000";
           cellICAffrete.style.fontWeight = icA !== 0 ? "bold" : "normal";
-        } else {
-          if (document.activeElement !== cellTarifAffrete) {
-            const valActuelleA =
-              parseFloat(
-                cellTarifAffrete.textContent
-                  .replace(/[€\s]/g, "")
-                  .replace(",", "."),
-              ) || 0;
-            if (valActuelleA === 0) {
-              cellTarifAffrete.textContent = "0.00 €";
-              cellICAffrete.textContent = "0.00 €";
-            }
-          }
         }
 
+        // On sauvegarde l'état (avec les classes is-manual toutes neuves)
         saveCurrentDay();
+
         if ((client && matos) || (associe && matos)) {
           const snapshot = captureSnapshot(client, matos, associe);
           tr.dataset.snapshot = JSON.stringify(snapshot);
@@ -3177,6 +3178,8 @@
             let modifie = false;
 
             dayData.forEach((row) => {
+              if (row.isManualTarif) return;
+              if (row.isManualTarifAffrete) return;
               const client =
                 row.client && row.client !== "Client..." ? row.client : "";
               const matos =
@@ -3937,9 +3940,11 @@
             n_commande: tr.cells[10].innerText,
             n_bon: tr.cells[11].innerText,
             tarif: tr.cells[12].innerText,
+            isManualTarif: tr.cells[12].classList.contains("is-manual"), // AJOUT
             supplement_client: tr.cells[13].innerText,
             IC_client: tr.cells[14].innerText,
             tarif_affrete: tr.cells[15].innerText,
+            isManualTarifAffrete: tr.cells[15].classList.contains("is-manual"), // AJOUT
             supplement_affrete: tr.cells[16].innerText,
             IC_affrete: tr.cells[17].innerText,
             commentaire: tr.cells[18].innerText,
@@ -4075,6 +4080,7 @@
         const cellICClient = tr.querySelector(".cell-IC-client");
         const cellICAffrete = tr.querySelector(".cell-IC-affrete");
         if (snapshot.tarif_client_snapshot !== undefined) {
+          cellTarifClient.classList.add("is-manual");
           const tarifC = snapshot.tarif_client_snapshot;
           const indiceC = snapshot.indice_client_snapshot || 0;
           const icC = tarifC * (indiceC / 100);
@@ -4085,6 +4091,7 @@
           cellICClient.style.fontWeight = icC !== 0 ? "bold" : "normal";
         }
         if (snapshot.tarif_affrete_snapshot !== undefined) {
+          cellTarifAffrete.classList.add("is-manual");
           const tarifA = snapshot.tarif_affrete_snapshot;
           const indiceA = snapshot.indice_affrete_snapshot || 0;
           const icA = tarifA * (indiceA / 100);
@@ -4237,8 +4244,10 @@
             if (
               cell.classList.contains("cell-tarif") ||
               cell.classList.contains("cell-tarif-affrete")
-            )
+            ) {
+              cell.classList.add("is-manual");
               updateRowTarif(tr);
+            }
             if (cell.classList.contains("cell-bon")) updateRowHighlight(tr);
             saveCurrentDay();
           });
@@ -4280,13 +4289,16 @@
                 if (valAffrete === 0) {
                   const tarifAffrete96 = Math.round(val * 0.96 * 100) / 100;
                   cellAffrete.textContent = tarifAffrete96.toFixed(2) + " €";
+                  cellAffrete.classList.add("is-manual");
                 }
               }
               if (
                 cell.classList.contains("cell-tarif") ||
                 cell.classList.contains("cell-tarif-affrete")
-              )
+              ) {
+                if (val > 0) cell.classList.add("is-manual");
                 updateRowTarif(tr);
+              }
               calculerTousLesTotaux();
             } else if (contenuSaisi === "") {
               const index = cell.cellIndex;
@@ -4416,6 +4428,9 @@
         const inputAssocie = tr.querySelector(".select-associe");
         const cells = tr.querySelectorAll("td");
 
+        const cellC = tr.querySelector(".cell-tarif");
+        const cellA = tr.querySelector(".cell-tarif-affrete");
+
         if (data) {
           appliquerCouleurAssocie(inputAssocie);
           if (data.couleurs_cellules) {
@@ -4453,6 +4468,8 @@
               }
             }
           }
+          if (data.isManualTarif) cellC.classList.add("is-manual");
+          if (data.isManualTarifAffrete) cellA.classList.add("is-manual");
         } else {
           tr.style.backgroundColor = "";
           tr.removeAttribute("style");
@@ -4963,7 +4980,8 @@
             const marquerBlock =
               document.querySelector(".marquer-container") ||
               document.getElementById("color-picker-tools");
-            const endCol = 12;
+            const startCol = 1;
+            const endCol = 13;
             const allRows = table.querySelectorAll("tr");
             const originalTableStyleWidth = table.style.width;
             const originalContainerMaxHeight = tableContainer.style.maxHeight;
@@ -4993,7 +5011,8 @@
             });
             allRows.forEach((row) => {
               Array.from(row.cells).forEach((cell, index) => {
-                if (index > endCol) cell.style.display = "none";
+                if (index < startCol || index > endCol)
+                  cell.style.display = "none";
               });
             });
             html2canvas(area, {
@@ -5040,7 +5059,8 @@
             const area = document.getElementById("capture-area");
             const tableContainer = document.querySelector(".table-container");
             const allRows = table.querySelectorAll("tr");
-            const endCol = 9;
+            const startCol = 1;
+            const endCol = 10;
             const marquerBlock =
               document.querySelector(".marquer-container") ||
               document.getElementById("color-picker-tools");
@@ -5071,7 +5091,8 @@
             });
             allRows.forEach((row) => {
               Array.from(row.cells).forEach((cell, index) => {
-                if (index > endCol) cell.style.display = "none";
+                if (index < startCol || index > endCol)
+                  cell.style.display = "none";
               });
             });
             html2canvas(area, {
