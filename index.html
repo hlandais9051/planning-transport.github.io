@@ -1118,6 +1118,17 @@
         >
           Réinitialiser
         </button>
+        <button
+          onclick="N_Bon()"
+          style="
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+          "
+        >
+          Effacer les N°Bon
+        </button>
         <div style="display: flex; align-items: center; gap: 6px">
           <button
             id="btn-undo"
@@ -2346,6 +2357,30 @@
             tr.style.display = "";
           } else {
             tr.style.display = "none";
+          }
+        });
+      }
+
+      let filtreNBonActif = false;
+
+      function N_Bon() {
+        filtreNBonActif = !filtreNBonActif;
+
+        const btn = document.querySelector('[onclick="N_Bon()"]');
+        if (btn) {
+          btn.textContent = filtreNBonActif
+            ? "Afficher les N°Bon"
+            : "Effacer les N°Bon";
+        }
+
+        document.querySelectorAll("#table-body tr").forEach((tr) => {
+          const valBon = tr.cells[11]?.textContent.trim();
+          const sansBon = !valBon || valBon === "" || valBon === "N° Bon...";
+
+          if (filtreNBonActif) {
+            tr.style.display = sansBon ? "" : "none";
+          } else {
+            tr.style.display = "";
           }
         });
       }
