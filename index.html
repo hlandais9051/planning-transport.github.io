@@ -3163,7 +3163,7 @@
         const hDecimale = parseHeuresSaisies(texteHeures);
 
         // 1. GESTION DU TARIF CLIENT
-        if (client && matos) {
+        if (associe && matos && client) {
           let tarifC =
             parseFloat(
               cellTarifClient.textContent
@@ -3244,7 +3244,7 @@
         }
 
         saveCurrentDay();
-        if ((client && matos) || (associe && matos)) {
+        if (associe && matos && client) {
           const snapshot = captureSnapshot(client, matos, associe);
           tr.dataset.snapshot = JSON.stringify(snapshot);
         }
@@ -3303,7 +3303,7 @@
           const matos = tr.querySelector(".select-vehicule")?.value;
           const associe = tr.querySelector(".select-associe")?.value;
 
-          if (client && matos) {
+          if (associe && matos && client) {
             const tarifC = getTarifClient(client, matos);
             const icC = getICClient(client, matos);
             tr.querySelector(".cell-tarif").textContent =
@@ -3321,7 +3321,7 @@
               icA.toFixed(2) + " €";
           }
 
-          if ((client && matos) || (associe && matos)) {
+          if (associe && matos && client) {
             const snapshot = captureSnapshot(client, matos, associe);
             tr.dataset.snapshot = JSON.stringify(snapshot);
           }
@@ -3358,7 +3358,7 @@
 
               if (!matos) return;
 
-              if (client && matos) {
+              if (associe && matos && client) {
                 const nouveauTarifC = getTarifClient(client, matos);
                 const nouveauICClient = getICClient(client, matos);
                 const ancienTarifC =
@@ -3408,7 +3408,7 @@
                 }
               }
 
-              if ((client && matos) || (associe && matos)) {
+              if (associe && matos && client) {
                 row.snapshot = captureSnapshot(client, matos, associe);
                 modifie = true;
               }

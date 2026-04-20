@@ -191,9 +191,6 @@
         font-size: 18px;
         margin-bottom: 10px;
       }
-      .col-actions {
-        width: 3%;
-      }
       .col-associe {
         width: 5%;
       }
@@ -244,6 +241,9 @@
       .col-nbon {
         width: 5%;
       }
+      .col-heures {
+        width: 3%;
+      }
       .col-tarif,
       .col-tarif-affrete {
         width: 4%;
@@ -258,6 +258,9 @@
       }
       .col-commentaire {
         width: 5%;
+      }
+      .col-actions {
+        width: 3%;
       }
       .matos-cell {
         padding: 0 !important;
@@ -1265,14 +1268,40 @@
             Effacer les marquages
           </button>
         </div>
-        <div>
+        <div style="display: flex; align-items: center; gap: 5px">
           Le :
+          <button
+            onclick="changerJour(-1)"
+            style="
+              padding: 3px 8px;
+              border-radius: 4px;
+              border: 1px solid #ccc;
+              cursor: pointer;
+              font-size: 16px;
+              background: #fff;
+            "
+          >
+            ◀
+          </button>
           <input
             type="date"
             id="current-date-picker"
             onchange="updateAllAfterDateChange()"
             style="padding: 3px; border-radius: 4px; border: 1px solid #ccc"
           />
+          <button
+            onclick="changerJour(+1)"
+            style="
+              padding: 3px 8px;
+              border-radius: 4px;
+              border: 1px solid #ccc;
+              cursor: pointer;
+              font-size: 16px;
+              background: #fff;
+            "
+          >
+            ▶
+          </button>
         </div>
       </div>
     </div>
@@ -1306,6 +1335,7 @@
               <th class="col-nchantier">N° Chantier</th>
               <th class="col-ncommande">N° Commande</th>
               <th class="col-nbon">N° Bon</th>
+              <th class="col-heures hide-export">Heures</th>
               <th class="col-tarif hide-export">Tarif-client</th>
               <th class="col-supplement-client hide-export">
                 Supplément-client
@@ -1451,6 +1481,19 @@
         localStorage.getItem("lastCapturedData") || "{}",
       );
       let isInitialLoading = true;
+
+      let transportConfigHoraireGlobal =
+        JSON.parse(localStorage.getItem("transportConfigHoraireGlobal")) || {};
+
+      function changerJour(delta) {
+        const picker = document.getElementById("current-date-picker");
+        if (!picker.value) return;
+        const date = new Date(picker.value);
+        date.setDate(date.getDate() + delta);
+        const nouvelleDate = date.toISOString().split("T")[0];
+        picker.value = nouvelleDate;
+        picker.dispatchEvent(new Event("change"));
+      }
 
       function sauvegarderUndoRedoEnLocal() {
         try {
@@ -1988,6 +2031,7 @@
             "N° Chantier...",
             "N° Commande...",
             "N° Bon...",
+            "Heures...",
             "Commentaire...",
             "Véhicule...",
             "Client...",
@@ -2186,6 +2230,7 @@
             "N° Chantier...",
             "N° Commande...",
             "N° Bon...",
+            "Heures...",
             "Commentaire...",
           ];
           if (placeholders.includes(val)) val = "";
@@ -2358,13 +2403,15 @@
           } else {
             tr.style.display = "none";
           }
-          const valBon = tr.cells[11]?.textContent.trim();
-          const sansBon = !valBon || valBon === "" || valBon === "N° Bon...";
-          if (filtreNBonActif && !sansBon) {
-            tr.style.display = "none";
-            return;
-          }
         });
+      }
+
+      function resetFilters() {
+        document.getElementById("filter-associe").value = "";
+        document.getElementById("filter-client").value = "";
+        document.getElementById("filter-chantier").value = "";
+        document.getElementById("filter-materiel").value = "";
+        filterTable();
       }
 
       let filtreNBonActif = false;
@@ -2389,14 +2436,6 @@
             tr.style.display = "";
           }
         });
-      }
-
-      function resetFilters() {
-        document.getElementById("filter-associe").value = "";
-        document.getElementById("filter-client").value = "";
-        document.getElementById("filter-chantier").value = "";
-        document.getElementById("filter-materiel").value = "";
-        filterTable();
       }
 
       function trierDatalist(id) {
@@ -2438,15 +2477,12 @@
         return 0;
       }
 
-      function getICClient(clientNom, matosNom, tarifManuel = null) {
+      function getICClient(clientNom, matosNom) {
         const groupeNom = transportConfigClient[clientNom];
         if (!groupeNom) return 0;
         const groupeData = transportConfigGroup[groupeNom];
         if (groupeData && groupeData[matosNom]) {
-          const tarif =
-            tarifManuel !== null
-              ? tarifManuel
-              : getTarifClient(clientNom, matosNom);
+          const tarif = getTarifClient(clientNom, matosNom);
           let indice = 0;
           const indiceData = groupeData[matosNom].indice;
           const moisAnnee = getSelectedMonth();
@@ -2656,79 +2692,89 @@
         const cmBorder = usesCM ? "#7b2d8b" : "#e67e00";
         if (isPilierCommun) {
           return `
-            <div style="margin-bottom:12px;text-align:left;border-bottom:1px solid #ddd;padding-bottom:8px;background:#f0f4ff;padding:8px;border-radius:4px;border-left:3px solid #0f3460;">
+              <div style="margin-bottom:12px;text-align:left;border-bottom:1px solid #ddd;padding-bottom:8px;background:#f0f4ff;padding:8px;border-radius:4px;border-left:3px solid #0f3460;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <label style="font-size:0.85em;color:#0f3460;font-weight:bold;">${cat}</label>
+                  <button onclick="deleteCategorie('${cat}')" style="background:none;border:none;color:red;cursor:pointer;font-size:12px;">✕</button>
+                </div>
+                <div style="background:#e8efff;border-radius:4px;padding:6px;margin-bottom:6px;">
+                  <div style="font-size:10px;color:#555;font-weight:bold;margin-bottom:4px;">📅 Valeurs annuelles (${annee})</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">K</label><input type="number" step="0.001" value="${catInfo.k !== 0 ? catInfo.k : ""}" onchange="updatePilierCommunCatValue('${cat}','k',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
+                    <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">C0</label><input type="number" step="0.01" value="${catInfo.c0 !== 0 ? catInfo.c0 : ""}" onchange="updatePilierCommunCatValue('${cat}','c0',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
+                  </div>
+                </div>
+                <div style="background:${cmBg};border-radius:4px;padding:6px;margin-bottom:6px;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <div style="font-size:10px;color:#555;font-weight:bold;">📆 Valeur mensuelle (${moisAnnee})</div>
+                    <label style="font-size:10px;cursor:pointer;display:flex;align-items:center;gap:4px;color:${cmColor};font-weight:bold;" title="Cochez si ce groupe utilise le CM du mois actuel">
+                      <input type="checkbox" ${usesCM ? "checked" : ""} onchange="togglePilierCommunUseCM('${cat}',this.checked)" style="cursor:pointer;">
+                      ${cmText}
+                    </label>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div><label style="font-size:11px;color:${cmColor};display:block;margin-bottom:3px;font-weight:bold;">${cmLabel}</label><input type="number" step="0.01" value="${catInfo.cm1 !== 0 ? catInfo.cm1 : ""}" onchange="updatePilierCommunCatValue('${cat}','cm1',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:2px solid ${cmBorder};border-radius:3px;background:${cmBg};"></div>
+                    <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">📊 Indice (%)</label><input type="text" value="${calculatedIndice !== 0 ? calculatedIndice.toFixed(2) + " %" : ""}" readonly style="width:100%;padding:5px;font-size:1em;text-align:center;background:#e8f5e9;font-weight:bold;color:#27ae60;border:2px solid #27ae60;border-radius:3px;"></div>
+                  </div>
+                </div>
+              </div>`;
+        }
+
+        return `
+            <div style="margin-bottom:12px;text-align:left;border-bottom:1px solid #ddd;padding-bottom:8px;background:#f9f9f9;padding:8px;border-radius:4px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <label style="font-size:0.85em;color:#0f3460;font-weight:bold;">${cat}</label>
+                <label style="font-size:0.85em;color:#333;font-weight:bold;">${cat}</label>
                 <button onclick="deleteCategorie('${cat}')" style="background:none;border:none;color:red;cursor:pointer;font-size:12px;">✕</button>
               </div>
-              <div style="background:#e8efff;border-radius:4px;padding:6px;margin-bottom:6px;">
+              <div style="background:#eef6ff;border-radius:4px;padding:6px;margin-bottom:6px;">
                 <div style="font-size:10px;color:#555;font-weight:bold;margin-bottom:4px;">📅 Valeurs annuelles (${annee})</div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                  <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">K</label><input type="number" step="0.001" value="${catInfo.k !== 0 ? catInfo.k : ""}" onchange="updatePilierCommunCatValue('${cat}','k',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
-                  <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">C0</label><input type="number" step="0.01" value="${catInfo.c0 !== 0 ? catInfo.c0 : ""}" onchange="updatePilierCommunCatValue('${cat}','c0',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
+                  <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">K</label><input type="number" step="0.001" value="${catInfo.k !== 0 ? catInfo.k : ""}" onchange="updateCategoryValue('${groupOrAssocie}','${cat}','k',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
+                  <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">C0</label><input type="number" step="0.01" value="${catInfo.c0 !== 0 ? catInfo.c0 : ""}" onchange="updateCategoryValue('${groupOrAssocie}','${cat}','c0',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
                 </div>
               </div>
               <div style="background:${cmBg};border-radius:4px;padding:6px;margin-bottom:6px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                   <div style="font-size:10px;color:#555;font-weight:bold;">📆 Valeur mensuelle (${moisAnnee})</div>
                   <label style="font-size:10px;cursor:pointer;display:flex;align-items:center;gap:4px;color:${cmColor};font-weight:bold;" title="Cochez si ce groupe utilise le CM du mois actuel">
-                    <input type="checkbox" ${usesCM ? "checked" : ""} onchange="togglePilierCommunUseCM('${cat}',this.checked)" style="cursor:pointer;">
+                    <input type="checkbox" ${usesCM ? "checked" : ""} onchange="toggleUseCM('${groupOrAssocie}','${cat}',this.checked)" style="cursor:pointer;">
                     ${cmText}
                   </label>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                  <div><label style="font-size:11px;color:${cmColor};display:block;margin-bottom:3px;font-weight:bold;">${cmLabel}</label><input type="number" step="0.01" value="${catInfo.cm1 !== 0 ? catInfo.cm1 : ""}" onchange="updatePilierCommunCatValue('${cat}','cm1',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:2px solid ${cmBorder};border-radius:3px;background:${cmBg};"></div>
+                  <div><label style="font-size:11px;color:${cmColor};display:block;margin-bottom:3px;font-weight:bold;">${cmLabel}</label><input type="number" step="0.01" value="${catInfo.cm1 !== 0 ? catInfo.cm1 : ""}" onchange="updateCategoryValue('${groupOrAssocie}','${cat}','cm1',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:2px solid ${cmBorder};border-radius:3px;background:${cmBg};"></div>
                   <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">📊 Indice (%)</label><input type="text" value="${calculatedIndice !== 0 ? calculatedIndice.toFixed(2) + " %" : ""}" readonly style="width:100%;padding:5px;font-size:1em;text-align:center;background:#e8f5e9;font-weight:bold;color:#27ae60;border:2px solid #27ae60;border-radius:3px;"></div>
                 </div>
               </div>
             </div>`;
-        }
-
-        return `
-          <div style="margin-bottom:12px;text-align:left;border-bottom:1px solid #ddd;padding-bottom:8px;background:#f9f9f9;padding:8px;border-radius:4px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-              <label style="font-size:0.85em;color:#333;font-weight:bold;">${cat}</label>
-              <button onclick="deleteCategorie('${cat}')" style="background:none;border:none;color:red;cursor:pointer;font-size:12px;">✕</button>
-            </div>
-            <div style="background:#eef6ff;border-radius:4px;padding:6px;margin-bottom:6px;">
-              <div style="font-size:10px;color:#555;font-weight:bold;margin-bottom:4px;">📅 Valeurs annuelles (${annee})</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">K</label><input type="number" step="0.001" value="${catInfo.k !== 0 ? catInfo.k : ""}" onchange="updateCategoryValue('${groupOrAssocie}','${cat}','k',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
-                <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">C0</label><input type="number" step="0.01" value="${catInfo.c0 !== 0 ? catInfo.c0 : ""}" onchange="updateCategoryValue('${groupOrAssocie}','${cat}','c0',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:1px solid #ddd;border-radius:3px;"></div>
-              </div>
-            </div>
-            <div style="background:${cmBg};border-radius:4px;padding:6px;margin-bottom:6px;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                <div style="font-size:10px;color:#555;font-weight:bold;">📆 Valeur mensuelle (${moisAnnee})</div>
-                <label style="font-size:10px;cursor:pointer;display:flex;align-items:center;gap:4px;color:${cmColor};font-weight:bold;" title="Cochez si ce groupe utilise le CM du mois actuel">
-                  <input type="checkbox" ${usesCM ? "checked" : ""} onchange="toggleUseCM('${groupOrAssocie}','${cat}',this.checked)" style="cursor:pointer;">
-                  ${cmText}
-                </label>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                <div><label style="font-size:11px;color:${cmColor};display:block;margin-bottom:3px;font-weight:bold;">${cmLabel}</label><input type="number" step="0.01" value="${catInfo.cm1 !== 0 ? catInfo.cm1 : ""}" onchange="updateCategoryValue('${groupOrAssocie}','${cat}','cm1',this.value)" style="width:100%;padding:5px;font-size:0.9em;text-align:center;border:2px solid ${cmBorder};border-radius:3px;background:${cmBg};"></div>
-                <div><label style="font-size:11px;color:#666;display:block;margin-bottom:3px;">📊 Indice (%)</label><input type="text" value="${calculatedIndice !== 0 ? calculatedIndice.toFixed(2) + " %" : ""}" readonly style="width:100%;padding:5px;font-size:1em;text-align:center;background:#e8f5e9;font-weight:bold;color:#27ae60;border:2px solid #27ae60;border-radius:3px;"></div>
-              </div>
-            </div>
-          </div>`;
       }
 
       function renderConfigUI() {
         const container = document.getElementById("config-container");
         const moisAnnee = getSelectedMonth();
         const annee = getSelectedYear();
-        let html = `<h3>Tarifs par Groupe</h3><table class="config-table"><thead><tr><th>Groupe</th><th style="width: 20%;">Catégorie</th><th style="width: 25%;">Matériel</th><th style="width: 13%;">Tarif (€)</th><th style="width: 10%;">Indice (%)</th><th>Action</th></tr></thead><tbody>`;
+        let html = `<h3>Tarifs par Groupe</h3><table class="config-table"><thead><tr>
+              <th>Groupe</th>
+              <th style="width: 20%;">Catégorie</th>
+              <th style="width: 20%;">Matériel</th>
+              <th style="width: 5%;">H</th>
+              <th style="width: 13%;">Tarif (€)</th>
+              <th style="width: 10%;">Indice (%)</th>
+              <th>Action</th></tr></thead><tbody>`;
         const groups = Object.keys(transportConfigGroup).sort();
         const categorie = Object.keys(transportConfigCategorie).sort();
+
         if (groups.length === 0) {
-          html += `<tr><td colspan="6"><i>Aucun groupe configuré...</i></td></tr>`;
+          html += `<tr><td colspan="7"><i>Aucun groupe configuré...</i></td></tr>`;
         } else {
           groups.forEach((group, index) => {
             if (index > 0)
-              html += `<tr style="background-color: white;"><td colspan="6" style="height: 25px; border: none;"></td></tr>`;
+              html += `<tr style="background-color: white;"><td colspan="7" style="height: 25px; border: none;"></td></tr>`;
+
             let matosKeys = Object.keys(transportConfigGroup[group]).sort();
+
             if (matosKeys.length === 0) {
-              html += `<tr><td class="group-header"><strong>${group}</strong></td><td colspan="5">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td></tr>`;
+              html += `<tr><td class="group-header"><strong>${group}</strong></td><td colspan="6">Aucun matériel - <button onclick="deleteGroup('${group}')" class="btn-delete">Supprimer</button></td></tr>`;
             } else {
               matosKeys.forEach((matos, matosIdx) => {
                 const val = transportConfigGroup[group][matos];
@@ -2736,27 +2782,44 @@
                 let indiceAafficher = 0;
                 let isUsingCategory = false;
                 const indiceData = val.indice;
+
                 if (typeof indiceData === "object")
                   indiceAafficher = indiceData[moisAnnee] || 0;
                 else indiceAafficher = indiceData || 0;
+
                 if (indiceAafficher === 0 && currentCat) {
                   const { k, cm1, c0 } = getCatValues(group, currentCat);
                   indiceAafficher = calculateIndice(k, cm1, c0);
                   isUsingCategory = true;
                 }
+
+                const isHoraire =
+                  typeof transportConfigHoraireGlobal !== "undefined" &&
+                  transportConfigHoraireGlobal[matos] === true;
+
                 html += `<tr>
-                  ${matosIdx === 0 ? `<td rowspan="${matosKeys.length}" class="group-header" style="vertical-align: top;"><strong>${group}</strong><br><button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button><div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;"><p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>${categorie.map((cat) => buildCatBlock(group, cat, moisAnnee, annee)).join("")}</div></td>` : ""}
-                  <td style="text-align:left; padding-left:10px;"><select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;"><option value="">-- Sans --</option>${categorie.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
-                  <td>${matos}</td>
-                  <td><input type="number" step="0.01" value="${typeof val.tarif === "object" && val.tarif !== null ? val.tarif[annee] || 0 : val.tarif || 0}" onchange="updateGroupPrice('${group}', '${matos}', this.value)" style="width:100%;"></td>
-                  <td><input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory}" onchange="updateGroupIndice('${group}', '${matos}', this.value)" style="width:100%;"></td>
-                  <td><button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button></td>
-                </tr>`;
+                        ${matosIdx === 0 ? `<td rowspan="${matosKeys.length}" class="group-header" style="vertical-align: top;"><strong>${group}</strong><br><button onclick="deleteGroup('${group}')" class="btn-delete" style="margin-top:5px;">Supprimer</button><div style="margin-top:15px; border-top: 1px solid #ccc; padding-top:10px;"><p style="font-weight:bold; font-size:0.85em; margin-bottom:10px; color:#555;">Indices Carburant par Catégorie :</p>${categorie.map((cat) => buildCatBlock(group, cat, moisAnnee, annee)).join("")}</div></td>` : ""}
+                        <td style="text-align:left; padding-left:10px;"><select onchange="setMaterielCategorie('${matos}', this.value)" style="width:100%; padding: 4px;"><option value="">-- Sans --</option>${categorie.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
+                        <td>${matos}</td>
+                        <td style="text-align:center;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                            <input type="checkbox" ${isHoraire ? "checked" : ""} 
+                                onchange="updateGroupHoraire('${group}', '${matos}', this.checked); updateHoraireLabel(this)">
+                            <span class="horaire-label" style="font-size: 9px; font-weight: bold; color: ${isHoraire ? "#007bff" : "#28a745"};">
+                            ${isHoraire ? "Tarif à l'heure" : ""}
+                            </span>
+                        </div>
+                        </td>                        
+                        <td><input type="number" step="0.01" value="${typeof val.tarif === "object" && val.tarif !== null ? val.tarif[annee] || 0 : val.tarif || 0}" onchange="updateGroupPrice('${group}', '${matos}', this.value)" style="width:100%;"></td>
+                        <td><input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="updateGroupIndice('${group}', '${matos}', this.value)" style="width:100%;"></td>
+                        <td><button class="del-matos-btn" onclick="deleteGlobalMatos('client', '${matos}')" style="color:red; cursor:pointer;">x</button></td>
+                      </tr>`;
               });
             }
           });
         }
         html += `</tbody></table>`;
+
         html += `<h3 style="margin-top:30px;">Assignation des Clients</h3><table class="config-table"><thead><tr><th style="width: 40%;">Client</th><th style="width: 40%;">Groupe assigné</th><th style="width: 20%;">Action</th></tr></thead><tbody>`;
         const clients = Object.keys(transportConfigClient).sort();
         if (clients.length === 0) {
@@ -2768,6 +2831,21 @@
           });
         }
         container.innerHTML = html + `</tbody></table>`;
+      }
+
+      function updateGroupHoraire(source, matos, isChecked) {
+        if (typeof transportConfigHoraireGlobal === "undefined") {
+          transportConfigHoraireGlobal = {};
+        }
+        transportConfigHoraireGlobal[matos] = isChecked;
+
+        localStorage.setItem(
+          "transportConfigHoraireGlobal",
+          JSON.stringify(transportConfigHoraireGlobal),
+        );
+
+        renderConfigUI(); // Interface Client
+        renderConfigUI2(); // Interface Affrété
       }
 
       function updateGroupCatIndice(associe, categorie, valeur) {
@@ -3032,6 +3110,10 @@
         }
       }
 
+      let transportConfigMaterielHoraire =
+        JSON.parse(localStorage.getItem("transportConfigMaterielHoraire")) ||
+        {};
+
       function updateRowTarif(tr) {
         const dateLigne = tr.cells[3]?.innerText || "";
         const partiesDate = dateLigne.split("/");
@@ -3041,7 +3123,6 @@
 
         if (anneeLigne && anneeEnCours && anneeLigne !== anneeEnCours) return;
 
-        // On détecte si c'est une action utilisateur (clic menu) ou un calcul automatique (rafraîchissement)
         const eventTrigger = window.event ? window.event.target : null;
         const isComboChange =
           eventTrigger && eventTrigger.classList.contains("combo-input");
@@ -3050,76 +3131,120 @@
         const associe = tr.querySelector(".select-associe").value;
         const matos = tr.querySelector(".select-vehicule").value;
 
+        const cellHeures = tr.querySelector(".cell-heures");
+        const texteHeures = cellHeures.textContent.trim();
+        const heureEstSaisie =
+          texteHeures !== "" && texteHeures !== "Heures...";
+
+        if (!heureEstSaisie) {
+          cellHeures.classList.add("placeholder-style");
+        } else {
+          cellHeures.classList.remove("placeholder-style");
+        }
+
+        const estCalculHoraire =
+          typeof transportConfigHoraireGlobal !== "undefined" &&
+          transportConfigHoraireGlobal[matos] === true;
+
         const cellTarifClient = tr.querySelector(".cell-tarif");
         const cellTarifAffrete = tr.querySelector(".cell-tarif-affrete");
+        const cellICClient = tr.querySelector(".cell-IC-client");
+        const cellICAffrete = tr.querySelector(".cell-IC-affrete");
 
-        // --- SÉCURITÉ ANTI-EFFACEMENT AU RAFRAICHISSEMENT ---
-        // Si au chargement la cellule contient déjà un montant (ex: 388.80),
-        // on lui remet sa protection "is-manual" pour ne pas qu'elle soit écrasée.
-        [cellTarifClient, cellTarifAffrete].forEach((cell) => {
-          const val =
-            parseFloat(
-              cell.textContent.replace(/[€\s]/g, "").replace(",", "."),
-            ) || 0;
-          if (val !== 0 && !isComboChange) {
-            cell.classList.add("is-manual");
+        const parseHeuresSaisies = (texte) => {
+          const t = texte.trim();
+          if (t.includes(":")) {
+            const [h, m] = t.split(":").map(Number);
+            return h + m / 60;
           }
-        });
+          return parseFloat(t.replace(",", ".")) || 0;
+        };
 
-        // --- LOGIQUE CLIENT ---
-        if (client && matos) {
-          if (
-            !cellTarifClient.classList.contains("is-manual") ||
-            isComboChange
-          ) {
-            const tarifC = getTarifClient(client, matos);
-            if (document.activeElement !== cellTarifClient) {
-              cellTarifClient.textContent = tarifC.toFixed(2) + " €";
-            }
-          }
-          const tarifAfficheC =
+        const hDecimale = parseHeuresSaisies(texteHeures);
+
+        // 1. GESTION DU TARIF CLIENT
+        if (associe && matos && client) {
+          let tarifC =
             parseFloat(
               cellTarifClient.textContent
                 .replace(/[€\s]/g, "")
                 .replace(",", "."),
             ) || 0;
-          const icC = getICClient(client, matos, tarifAfficheC);
-          const cellICClient = tr.querySelector(".cell-IC-client");
+
+          if (estCalculHoraire && !heureEstSaisie) {
+            tarifC = 0;
+          } else if (isComboChange || tarifC === 0 || estCalculHoraire) {
+            const tarifConfig = getTarifClient(client, matos);
+            if (estCalculHoraire) {
+              tarifC = hDecimale * tarifConfig;
+            } else {
+              tarifC = tarifConfig;
+            }
+          }
+
+          if (document.activeElement !== cellTarifClient) {
+            cellTarifClient.textContent = tarifC.toFixed(2) + " €";
+          }
+
+          let icC = getICClient(client, matos);
+          if (estCalculHoraire) {
+            icC = icC * hDecimale; // Applique le prorata horaire
+          }
           cellICClient.textContent = icC.toFixed(2) + " €";
           cellICClient.style.color =
             icC > 0 ? "#28a745" : icC < 0 ? "#dc3545" : "#000000";
           cellICClient.style.fontWeight = icC !== 0 ? "bold" : "normal";
+        } else {
+          if (document.activeElement !== cellTarifClient)
+            cellTarifClient.textContent = "0.00 €";
+          cellICClient.textContent = "0.00 €";
         }
 
-        // --- LOGIQUE AFFRETE ---
-        if (associe && matos) {
-          if (
-            !cellTarifAffrete.classList.contains("is-manual") ||
-            isComboChange
-          ) {
-            let tarifA = getTarifAffrete(associe, matos);
-            if (document.activeElement !== cellTarifAffrete) {
-              cellTarifAffrete.textContent = tarifA.toFixed(2) + " €";
-            }
-          }
-          const tarifAfficheA =
+        // 2. GESTION DU TARIF AFFRÉTÉ
+        if (associe && matos && client) {
+          let tarifA =
             parseFloat(
               cellTarifAffrete.textContent
                 .replace(/[€\s]/g, "")
                 .replace(",", "."),
             ) || 0;
-          const icA = getICAffrete(associe, matos, tarifAfficheA);
-          const cellICAffrete = tr.querySelector(".cell-IC-affrete");
+
+          if (estCalculHoraire && !heureEstSaisie) {
+            tarifA = 0;
+          } else if (isComboChange || tarifA === 0 || estCalculHoraire) {
+            if (estCalculHoraire) {
+              const actuelTarifClient =
+                parseFloat(
+                  cellTarifClient.textContent
+                    .replace(/[€\s]/g, "")
+                    .replace(",", "."),
+                ) || 0;
+              tarifA = actuelTarifClient * 0.96;
+            } else {
+              tarifA = getTarifAffrete(associe, matos);
+            }
+          }
+
+          if (document.activeElement !== cellTarifAffrete) {
+            cellTarifAffrete.textContent = tarifA.toFixed(2) + " €";
+          }
+
+          let icA = getICAffrete(associe, matos);
+          if (estCalculHoraire) {
+            icA = icA * hDecimale; // Applique le prorata horaire
+          }
           cellICAffrete.textContent = icA.toFixed(2) + " €";
           cellICAffrete.style.color =
             icA > 0 ? "#28a745" : icA < 0 ? "#dc3545" : "#000000";
           cellICAffrete.style.fontWeight = icA !== 0 ? "bold" : "normal";
+        } else {
+          if (document.activeElement !== cellTarifAffrete)
+            cellTarifAffrete.textContent = "0.00 €";
+          cellICAffrete.textContent = "0.00 €";
         }
 
-        // On sauvegarde l'état (avec les classes is-manual toutes neuves)
         saveCurrentDay();
-
-        if ((client && matos) || (associe && matos)) {
+        if (associe && matos && client) {
           const snapshot = captureSnapshot(client, matos, associe);
           tr.dataset.snapshot = JSON.stringify(snapshot);
         }
@@ -3178,17 +3303,11 @@
           const matos = tr.querySelector(".select-vehicule")?.value;
           const associe = tr.querySelector(".select-associe")?.value;
 
-          if (client && matos) {
-            const cellTarif = tr.querySelector(".cell-tarif");
-            const tarifActuel =
-              parseFloat(
-                cellTarif.textContent.replace(/[€\s]/g, "").replace(",", "."),
-              ) || 0;
-            const icC = getICClient(client, matos, tarifActuel);
-            if (tr.dataset.isManualTarif !== "true") {
-              const tarifC = getTarifClient(client, matos);
-              cellTarif.textContent = tarifC.toFixed(2) + " €";
-            }
+          if (associe && matos && client) {
+            const tarifC = getTarifClient(client, matos);
+            const icC = getICClient(client, matos);
+            tr.querySelector(".cell-tarif").textContent =
+              tarifC.toFixed(2) + " €";
             tr.querySelector(".cell-IC-client").textContent =
               icC.toFixed(2) + " €";
           }
@@ -3202,7 +3321,7 @@
               icA.toFixed(2) + " €";
           }
 
-          if ((client && matos) || (associe && matos)) {
+          if (associe && matos && client) {
             const snapshot = captureSnapshot(client, matos, associe);
             tr.dataset.snapshot = JSON.stringify(snapshot);
           }
@@ -3228,8 +3347,6 @@
             let modifie = false;
 
             dayData.forEach((row) => {
-              if (row.isManualTarif) return;
-              if (row.isManualTarifAffrete) return;
               const client =
                 row.client && row.client !== "Client..." ? row.client : "";
               const matos =
@@ -3241,7 +3358,7 @@
 
               if (!matos) return;
 
-              if (client && matos) {
+              if (associe && matos && client) {
                 const nouveauTarifC = getTarifClient(client, matos);
                 const nouveauICClient = getICClient(client, matos);
                 const ancienTarifC =
@@ -3291,7 +3408,7 @@
                 }
               }
 
-              if ((client && matos) || (associe && matos)) {
+              if (associe && matos && client) {
                 row.snapshot = captureSnapshot(client, matos, associe);
                 modifie = true;
               }
@@ -3317,6 +3434,7 @@
 
         ensurePiliersCommunsExists();
 
+        // --- PRÉPARATION DES DONNÉES ---
         associeListDatalist.innerHTML = "";
         const allAssociesSet = new Set([
           ...Object.keys(transportConfigAssocie),
@@ -3335,6 +3453,7 @@
         const groupeAffretes = Array.from(allAssociesSet)
           .filter((name) => !baseAssocies.includes(name.toUpperCase()))
           .sort((a, b) => a.localeCompare(b));
+
         const sortedEntries = [...groupePiliers, ...groupeAffretes];
         const categories = Object.keys(transportConfigCategorie).sort();
         const allGlobalMaterials = Object.keys(transportConfigMateriel).sort();
@@ -3346,22 +3465,36 @@
           ]),
         ).sort();
 
-        let htmlCommun = `<div class="piliers-communs-section">
-          <div class="piliers-communs-header">
-            <div style="flex:1;">
-              <strong style="font-size:1.1em;">PILIERS COMMUNS</strong>
-              <div style="font-size:0.8em;opacity:0.85;margin-top:2px;">Tarifs et indices partagés entre
-                <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#fffb00;color:#333;margin:0 2px">ALLARD</span>
-                <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#00eeff;color:#333;margin:0 2px">LANDAIS</span>
-                <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#e27aff;color:#333;margin:0 2px">STD</span>
-              </div>
-            </div>
+        // --- BLOC 1 : PILIERS COMMUNS ---
+        let htmlCommun = `
+    <div class="piliers-communs-section">
+      <div class="piliers-communs-header">
+        <div style="flex:1;">
+          <strong style="font-size:1.1em;">PILIERS COMMUNS</strong>
+          <div style="font-size:0.8em;opacity:0.85;margin-top:2px;">Tarifs et indices partagés entre
+            <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#fffb00;color:#333;margin:0 2px">ALLARD</span>
+            <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#00eeff;color:#333;margin:0 2px">LANDAIS</span>
+            <span style="display:inline-block;padding:1px 6px;border-radius:10px;font-size:11px;background:#e27aff;color:#333;margin:0 2px">STD</span>
           </div>
-          <div class="piliers-communs-body">
-            <table class="config-table"><thead><tr><th>Indices Carburant / Cat.</th><th style="width:20%;">Catégorie</th><th style="width:25%;">Matériel</th><th style="width:13%;">Tarif Commun (€)</th><th style="width:10%;">Indice Commun (%)</th><th>Action</th></tr></thead><tbody>`;
+        </div>
+      </div>
+      <div class="piliers-communs-body">
+        <table class="config-table">
+          <thead>
+            <tr>
+              <th>Indices Carburant / Cat.</th>
+              <th style="width:20%;">Catégorie</th>
+              <th style="width:25%;">Matériel</th>
+              <th style="width:5%;">H</th>
+              <th style="width:13%;">Tarif Commun (€)</th>
+              <th style="width:10%;">Indice Commun (%)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>`;
 
         if (communMatos.length === 0) {
-          htmlCommun += `<tr><td colspan="6"><i>Aucun matériel. Ajoutez du matériel ci-dessus.</i></td></tr>`;
+          htmlCommun += `<tr><td colspan="7"><i>Aucun matériel. Ajoutez du matériel ci-dessus.</i></td></tr>`;
         } else {
           const communRowSpan = communMatos.length;
           communMatos.forEach((matos, matosIdx) => {
@@ -3370,80 +3503,103 @@
                 tarif: {},
                 indice: {},
               };
+
             const val = transportConfigAssocie[pilierCommunKey][matos];
             const currentCat = transportConfigMateriel[matos] || "";
             const tarifVal =
-              typeof val.tarif === "object" && val.tarif !== null
+              typeof val.tarif === "object"
                 ? val.tarif[annee] || 0
                 : val.tarif || 0;
-            let indiceAafficher = 0;
+
+            let indiceAafficher =
+              typeof val.indice === "object"
+                ? val.indice[moisAnnee] || 0
+                : val.indice || 0;
             let isUsingCategory = false;
-            const indiceData = val.indice;
-            if (typeof indiceData === "object")
-              indiceAafficher = indiceData[moisAnnee] || 0;
-            else indiceAafficher = indiceData || 0;
             if (indiceAafficher === 0 && currentCat) {
               const { k, cm1, c0 } = getCatValues(pilierCommunKey, currentCat);
               indiceAafficher = calculateIndice(k, cm1, c0);
               isUsingCategory = true;
             }
-            htmlCommun += `<tr style="background:#f0f4ff;">
-              ${
-                matosIdx === 0
-                  ? `<td rowspan="${communRowSpan}" class="group-header" style="vertical-align:top;background:#e8efff;">
-                <div style="padding:5px;">
-                  <p style="font-weight:bold;font-size:0.85em;margin-bottom:10px;color:#0f3460;">Indices Carburant Communs :</p>
-                  ${categories.map((cat) => buildCatBlock(pilierCommunKey, cat, moisAnnee, annee, true)).join("")}
-                  ${categories.length === 0 ? '<i style="font-size:11px;color:#888;">Aucune catégorie créée</i>' : ""}
-                </div>
-              </td>`
-                  : ""
-              }
-              <td style="text-align:left;padding-left:10px;"><select onchange="setMaterielCategorie('${matos}',this.value)" style="width:100%;padding:4px;"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
-              <td>${matos}</td>
-              <td><input type="number" step="0.01" value="${tarifVal || 0}" onchange="updatePilierCommunTarif('${matos}',this.value)" style="width:100%;background:#e8efff;border:1px solid #7a9fd4;border-radius:3px;padding:4px;"></td>
-              <td><input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="updatePilierCommunIndice('${matos}',this.value)" style="width:100%;background:#e8efff;border:1px solid #7a9fd4;border-radius:3px;padding:4px;"></td>
-              <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${matos}')" style="color:red;cursor:pointer;">x</button></td>
-            </tr>`;
+
+            const isHoraire =
+              typeof transportConfigHoraireGlobal !== "undefined" &&
+              transportConfigHoraireGlobal[matos] === true;
+
+            htmlCommun += `
+        <tr style="background:#f0f4ff;">
+          ${matosIdx === 0 ? `<td rowspan="${communRowSpan}" class="group-header" style="vertical-align:top;background:#e8efff;"><div style="padding:5px;"><p style="font-weight:bold;font-size:0.85em;margin-bottom:10px;color:#0f3460;">Indices Carburant Communs :</p>${categories.map((cat) => buildCatBlock(pilierCommunKey, cat, moisAnnee, annee, true)).join("")}</div></td>` : ""}
+          <td style="text-align:left;padding-left:10px;"><select onchange="setMaterielCategorie('${matos}',this.value)" style="width:100%;padding:4px;"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
+          <td>${matos}</td>
+          <td style="text-align:center;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                  <input type="checkbox" ${isHoraire ? "checked" : ""} onchange="updateGroupHoraire('commun', '${matos}', this.checked); updateHoraireLabel(this)">
+                  <span class="horaire-label" style="font-size: 9px; font-weight: bold; color: ${isHoraire ? "#007bff" : "#28a745"}; display: block; max-width: 45px; line-height: 1; text-align: center;">
+                      ${isHoraire ? "Tarif à l'heure" : ""}
+                  </span>
+              </div>
+          </td>
+          <td><input type="number" step="0.01" value="${tarifVal || 0}" onchange="updatePilierCommunTarif('${matos}',this.value)" style="width:100%;background:#e8efff;border:1px solid #7a9fd4;border-radius:3px;padding:4px;"></td>
+          <td><input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="updatePilierCommunIndice('${matos}',this.value)" style="width:100%;background:#e8efff;border:1px solid #7a9fd4;border-radius:3px;padding:4px;"></td>
+          <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${matos}')" style="color:red;cursor:pointer;">x</button></td>
+        </tr>`;
           });
         }
         htmlCommun += `</tbody></table></div></div>`;
 
-        let html = `<table class="config-table"><thead><tr><th>Associé</th><th style="width:20%;">Catégorie</th><th style="width:25%;">Matériel</th><th style="width:13%;">Tarif (€)</th><th style="width:10%;">Indice (%)</th><th>Actions</th></tr></thead><tbody>`;
-
-        html += `<tr>
-          <td colspan="6" style="text-align:center;color:#000;padding:15px;background-color:#f2f2f2;border:1px solid #ccc;font-size:0.95em">
+        // --- BLOC 2 : TARIFS INDIVIDUELS (ALLARD, LANDAIS, STD + AUTRES) ---
+        let html = `
+    <div class="piliers-communs-section" style="margin-top:30px;">
+      <div class="piliers-communs-header">
+        <div style="flex:1;">
             TARIFS INDIVIDUELS PILIERS —
             <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:#fffb00;color:#333;border:1px solid #ccc;margin:0 3px">ALLARD</span>
             <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:#00eeff;color:#333;border:1px solid #ccc;margin:0 3px">LANDAIS</span>
             <span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:#e27aff;color:#333;border:1px solid #ccc;margin:0 3px">STD</span>
             <div>
-              <span style="font-size:11px;color:#666;margin-left:10px;">
+              <span style="font-size:11px;color:#fff;margin-left:10px;">
                 <span class="badge-sync badge-commun"></span> synchronisé avec Piliers Communs &nbsp;|&nbsp;
                 <span class="badge-sync badge-custom"></span> valeur individuelle
               </span>
             </div>
-          </td>
-        </tr>`;
+        </div>
+      </div>
+      <div class="piliers-communs-body">
+        <table class="config-table">
+          <thead>
+            <tr>
+              <th>Associé</th>
+              <th style="width:20%;">Catégorie</th>
+              <th style="width:25%;">Matériel</th>
+              <th style="width:5%;">H</th>
+              <th style="width:13%;">Tarif (€)</th>
+              <th style="width:10%;">Indice (%)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>`;
 
         if (sortedEntries.length === 0) {
-          html += `<tr><td colspan="6"><i>Aucun associé configuré.</i></td></tr>`;
+          html += `<tr><td colspan="7"><i>Aucun associé configuré.</i></td></tr>`;
         } else {
           sortedEntries.forEach((entry, index) => {
-            if (index > 0)
-              html += `<tr style="background-color:white;"><td colspan="6" style="height:25px;border:none;"></td></tr>`;
+            if (index > 0) {
+              html += `<tr style="background-color:white;"><td colspan="7" style="height:25px;border:none;"></td></tr>`;
+            }
             const estPilier = baseAssocies.includes(entry.toUpperCase());
             const precedentEtaitPilier =
               index > 0 &&
               baseAssocies.includes(sortedEntries[index - 1].toUpperCase());
-            if (index > 0 && !estPilier && precedentEtaitPilier)
-              html += `<tr style="background-color:#f1f3f4;"><td colspan="6" style="text-align:center;font-weight:bold;color:#5f6368;padding:10px;border:1px solid #dee2e6;">AUTRES AFFRÉTÉS</td></tr>`;
-            if (!transportConfigAssocie[entry])
-              transportConfigAssocie[entry] = {};
+
+            // Séparation visuelle entre les 3 Piliers et les Autres Affrétés
+            if (index > 0 && !estPilier && precedentEtaitPilier) {
+              html += `<tr style="background-color:#f1f3f4;"><td colspan="7" style="text-align:center;font-weight:bold;color:#5f6368;padding:10px;border:1px solid #dee2e6;">AUTRES AFFRÉTÉS</td></tr>`;
+            }
+
             const keys = Array.from(
               new Set([
                 ...allGlobalMaterials,
-                ...Object.keys(transportConfigAssocie[entry]),
+                ...Object.keys(transportConfigAssocie[entry] || {}),
               ]),
             ).sort();
             const rowSpanCount = Math.max(1, keys.length);
@@ -3456,87 +3612,80 @@
               else if (entry.toUpperCase() === "STD") leftBlockBg = "#f8e8ff";
             }
 
-            const leftBlockHTML = `<td rowspan="${rowSpanCount}" class="group-header" style="vertical-align:top;background-color:${leftBlockBg};">
-              <strong>${entry}</strong><br>
-              <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
-              <div style="margin-top:15px;border-top:1px solid #ccc;padding-top:10px;">
-                <p style="font-weight:bold;font-size:0.85em;margin-bottom:10px;color:#555;">Indices Carburant / Cat :</p>
-                ${categories.map((cat) => buildCatBlock(entry, cat, moisAnnee, annee)).join("")}
-              </div>
-            </td>`;
+            const leftBlockHTML = `
+        <td rowspan="${rowSpanCount}" class="group-header" style="vertical-align:top;background-color:${leftBlockBg};">
+          <strong>${entry}</strong><br>
+          <button class="btn-delete" style="margin-top:5px;" onclick="deleteEntry2('${entry}')">Supprimer</button>
+          <div style="margin-top:15px;border-top:1px solid #ccc;padding-top:10px;">
+            <p style="font-weight:bold;font-size:0.85em;margin-bottom:10px;color:#555;">Indices Carburant / Cat :</p>
+            ${categories.map((cat) => buildCatBlock(entry, cat, moisAnnee, annee)).join("")}
+          </div>
+        </td>`;
 
             keys.forEach((k, idx) => {
               if (!transportConfigAssocie[entry][k])
                 transportConfigAssocie[entry][k] = { tarif: {}, indice: {} };
               const val = transportConfigAssocie[entry][k];
               const currentCat = transportConfigMateriel[k] || "";
-              let indiceAafficher = 0;
+
+              let indiceAafficher =
+                typeof val.indice === "object"
+                  ? parseFloat(val.indice[moisAnnee]) || 0
+                  : parseFloat(val.indice) || 0;
               let isUsingCategory = false;
-              const indiceDataPilier = val.indice;
-              if (
-                typeof indiceDataPilier === "object" &&
-                indiceDataPilier !== null
-              ) {
-                indiceAafficher = parseFloat(indiceDataPilier[moisAnnee]) || 0;
-              } else {
-                indiceAafficher = parseFloat(indiceDataPilier) || 0;
-              }
               if (indiceAafficher === 0 && currentCat) {
                 const { k: kVal, cm1, c0 } = getCatValues(entry, currentCat);
                 indiceAafficher = calculateIndice(kVal, cm1, c0);
                 isUsingCategory = true;
               }
+
               const tarifVal =
-                typeof val.tarif === "object" && val.tarif !== null
+                typeof val.tarif === "object"
                   ? val.tarif[annee] || 0
                   : val.tarif || 0;
-
-              let syncBadgeHTML = "";
-              let rowStyleClass = "";
-              if (estPilier) {
-                const isOverridden = isPilierOverridden(entry, k);
-                if (isOverridden) {
-                  syncBadgeHTML = `<button class="btn-reset-to-common" onclick="resetPilierToCommon('${entry}','${k}')">↩</button>`;
-                  rowStyleClass = `class="pilier-row-custom"`;
-                } else {
-                  syncBadgeHTML = "";
-                  rowStyleClass = `class="pilier-row-synced"`;
-                }
-              }
-
-              const onChangeTarif = estPilier
-                ? `updatePilierIndividuelTarif('${entry}','${k}',this.value);renderConfigUI2();`
-                : `updateAssocieTarif('${entry}','${k}',this.value)`;
-              const onChangeIndice = estPilier
-                ? `updatePilierIndividuelIndice('${entry}','${k}',this.value);renderConfigUI2();`
-                : `updateAssocieIndice('${entry}','${k}',this.value)`;
-
-              const inputBg =
-                estPilier && !isPilierOverridden(entry, k)
-                  ? "#f0f7ff"
-                  : "white";
+              const isOverridden = estPilier && isPilierOverridden(entry, k);
+              const rowStyleClass = isOverridden
+                ? `class="pilier-row-custom"`
+                : estPilier
+                  ? `class="pilier-row-synced"`
+                  : "";
+              const inputBg = estPilier && !isOverridden ? "#f0f7ff" : "white";
               const inputBorder =
-                estPilier && !isPilierOverridden(entry, k) ? "#7a9fd4" : "#ddd";
+                estPilier && !isOverridden ? "#7a9fd4" : "#ddd";
+              const isHoraire =
+                typeof transportConfigHoraireGlobal !== "undefined" &&
+                transportConfigHoraireGlobal[k] === true;
 
-              html += `<tr ${rowStyleClass}>
-                ${idx === 0 ? leftBlockHTML : ""}
-                <td style="text-align:left;padding-left:10px;"><select onchange="setMaterielCategorie('${k}',this.value)" style="width:100%;padding:4px;"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
-                <td>${k}</td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:4px;">
-                    <input type="number" step="0.01" value="${tarifVal}" onchange="${onChangeTarif}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
-                    ${syncBadgeHTML ? syncBadgeHTML : ""}
-                  </div>
-                </td>
-                <td>
-                  <input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="${onChangeIndice}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
-                </td>
-                <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${k}')" style="color:red;cursor:pointer;">x</button></td>
-              </tr>`;
+              html += `
+          <tr ${rowStyleClass}>
+            ${idx === 0 ? leftBlockHTML : ""}
+            <td style="text-align:left;padding-left:10px;"><select onchange="setMaterielCategorie('${k}',this.value)" style="width:100%;padding:4px;"><option value="">-- Sans --</option>${categories.map((c) => `<option value="${c}" ${currentCat === c ? "selected" : ""}>${c}</option>`).join("")}</select></td>
+            <td>${k}</td>
+            <td style="text-align:center;">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                    <input type="checkbox" ${isHoraire ? "checked" : ""} onchange="updateGroupHoraire('${entry}', '${k}', this.checked); updateHoraireLabel(this)">
+                    <span class="horaire-label" style="font-size: 9px; font-weight: bold; color: ${isHoraire ? "#007bff" : "#28a745"}; display: block; max-width: 45px; line-height: 1; text-align: center;">
+                        ${isHoraire ? "Tarif à l'heure" : ""}
+                    </span>
+                </div>
+            </td>
+            <td>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <input type="number" step="0.01" value="${tarifVal}" onchange="${estPilier ? `updatePilierIndividuelTarif('${entry}','${k}',this.value);renderConfigUI2();` : `updateAssocieTarif('${entry}','${k}',this.value)`}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
+                ${isOverridden ? `<button class="btn-reset-to-common" onclick="resetPilierToCommon('${entry}','${k}')">↩</button>` : ""}
+              </div>
+            </td>
+            <td>
+              <input type="number" step="0.01" value="${indiceAafficher !== 0 ? indiceAafficher : "0"}" placeholder="${isUsingCategory ? "auto" : ""}" onchange="${estPilier ? `updatePilierIndividuelIndice('${entry}','${k}',this.value);renderConfigUI2();` : `updateAssocieIndice('${entry}','${k}',this.value)`}" style="width:100%;background:${inputBg};border:1px solid ${inputBorder};border-radius:3px;padding:4px;">
+            </td>
+            <td><button class="del-matos-btn" onclick="deleteGlobalMatos('associe','${k}')" style="color:red;cursor:pointer;">x</button></td>
+          </tr>`;
             });
           });
         }
-        container.innerHTML = htmlCommun + html + `</tbody></table>`;
+
+        html += `</tbody></table></div></div>`;
+        container.innerHTML = htmlCommun + html;
         trierDatalist("list-associe");
       }
 
@@ -3816,7 +3965,7 @@
       function calculerTotal() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[12].textContent
+          const content = tr.cells[13].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3829,7 +3978,7 @@
       function calculerTotalSupplement_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[13].textContent
+          const content = tr.cells[14].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3842,7 +3991,7 @@
       function calculerTotalIC_client() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[14].textContent
+          const content = tr.cells[15].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3874,7 +4023,7 @@
       function calculerTotalAffrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[15].textContent
+          const content = tr.cells[16].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3887,7 +4036,7 @@
       function calculerTotalSupplement_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[16].textContent
+          const content = tr.cells[17].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3900,7 +4049,7 @@
       function calculerTotalIC_affrete() {
         let total = 0;
         document.querySelectorAll("#table-body tr").forEach((tr) => {
-          const content = tr.cells[17].textContent
+          const content = tr.cells[18].textContent
             .replace(/[€\s]/g, "")
             .replace(",", ".");
           const val = parseFloat(content);
@@ -3989,15 +4138,14 @@
             n_chantier: tr.cells[9].innerText,
             n_commande: tr.cells[10].innerText,
             n_bon: tr.cells[11].innerText,
-            tarif: tr.cells[12].innerText,
-            isManualTarif: tr.cells[12].classList.contains("is-manual"), // AJOUT
-            supplement_client: tr.cells[13].innerText,
-            IC_client: tr.cells[14].innerText,
-            tarif_affrete: tr.cells[15].innerText,
-            isManualTarifAffrete: tr.cells[15].classList.contains("is-manual"), // AJOUT
-            supplement_affrete: tr.cells[16].innerText,
-            IC_affrete: tr.cells[17].innerText,
-            commentaire: tr.cells[18].innerText,
+            heures: tr.cells[12].innerText,
+            tarif: tr.cells[13].innerText,
+            supplement_client: tr.cells[14].innerText,
+            IC_client: tr.cells[15].innerText,
+            tarif_affrete: tr.cells[16].innerText,
+            supplement_affrete: tr.cells[17].innerText,
+            IC_affrete: tr.cells[18].innerText,
+            commentaire: tr.cells[19].innerText,
             snapshot: snapshot,
             couleurs_cellules:
               Object.keys(couleursParCellule).length > 0
@@ -4130,7 +4278,6 @@
         const cellICClient = tr.querySelector(".cell-IC-client");
         const cellICAffrete = tr.querySelector(".cell-IC-affrete");
         if (snapshot.tarif_client_snapshot !== undefined) {
-          cellTarifClient.classList.add("is-manual");
           const tarifC = snapshot.tarif_client_snapshot;
           const indiceC = snapshot.indice_client_snapshot || 0;
           const icC = tarifC * (indiceC / 100);
@@ -4141,7 +4288,6 @@
           cellICClient.style.fontWeight = icC !== 0 ? "bold" : "normal";
         }
         if (snapshot.tarif_affrete_snapshot !== undefined) {
-          cellTarifAffrete.classList.add("is-manual");
           const tarifA = snapshot.tarif_affrete_snapshot;
           const indiceA = snapshot.indice_affrete_snapshot || 0;
           const icA = tarifA * (indiceA / 100);
@@ -4243,6 +4389,12 @@
         }
       }
 
+      function timeToDecimal(t) {
+        if (!t || !t.includes(":")) return parseFloat(t.replace(",", ".")) || 0;
+        const [h, m] = t.split(":").map(Number);
+        return h + m / 60;
+      }
+
       function ajouterLigne(data = null) {
         const tableBody = document.getElementById("table-body");
         const datePicker = document.getElementById("current-date-picker");
@@ -4262,42 +4414,46 @@
         const valChantierNum = data ? data.n_chantier : "N° Chantier...";
         const valCommande = data ? data.n_commande : "N° Commande...";
         const valBon = data ? data.n_bon : "N° Bon...";
+        const valHeures = data ? data.heures : "Heures...";
         const valComm = data ? data.commentaire : "Commentaire...";
 
         tr.innerHTML = `
-          <td class="hide-export" style="text-align:center; white-space:nowrap;">
-            <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
-            <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); dupliquerLigne(this)">📑</button>
-          </td>
-          <td class="matos-cell"><input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé..."></td>
-          <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
-          <td contenteditable="true">${data && data.date && data.date.includes("/20") ? data.date.replace("/20", "/") : data ? data.date : dateFormatee}</td>
-          <td class="matos-cell"><input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" placeholder="Véhicule..."></td>
-          <td class="matos-cell"><input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" placeholder="Client..."></td>
-          <td class="matos-cell col-telephone" data-telephone-full="${data ? data.telephone : ""}"><input class="combo-input select-telephone" list="list-telephone" value="${data ? extractContactName(data.telephone) : ""}" placeholder="Contact..."></td>
-          <td contenteditable="true" class="col-consigne ${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
-          <td class="matos-cell"><input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur..."></td>
-          <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
-          <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
-          <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
-          <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
-          <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
-          <td class="cell-IC-client" contenteditable="true" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
-          <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"}</td>
-          <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
-          <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
-          <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
-        `;
+              <td class="hide-export" style="text-align:center; white-space:nowrap;">
+                  <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
+                  <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); dupliquerLigne(this)">📑</button>
+              </td>
+              <td class="matos-cell"><input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé..."></td>
+              <td contenteditable="true" class="${getPlaceholderClass(valChantier, "Chantier...")}">${valChantier}</td>
+              <td contenteditable="true">${data && data.date && data.date.includes("/20") ? data.date.replace("/20", "/") : data ? data.date : dateFormatee}</td>
+              <td class="matos-cell"><input class="combo-input select-vehicule" list="list-vehicule" value="${data ? data.vehicule : ""}" placeholder="Véhicule..."></td>
+              <td class="matos-cell"><input class="combo-input select-client" list="list-client" value="${data ? data.client : ""}" placeholder="Client..."></td>
+              <td class="matos-cell col-telephone" data-telephone-full="${data ? data.telephone : ""}"><input class="combo-input select-telephone" list="list-telephone" value="${data ? extractContactName(data.telephone) : ""}" placeholder="Contact..."></td>
+              <td contenteditable="true" class="col-consigne ${getPlaceholderClass(valConsigne, "Consigne...")}">${valConsigne}</td>
+              <td class="matos-cell"><input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur..."></td>
+              <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
+              <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
+              <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
+              <td class="cell-heures ${!data || !data.heures || data.heures === "Heures..." ? "placeholder-style" : ""}"
+                  contenteditable="true">
+                  ${valHeures}
+              </td>
+              <td class="cell-tarif" contenteditable="true" style="padding:4px">${data && data.tarif ? data.tarif : "0.00 €"}</td>
+              <td class="cell-supplement-client" contenteditable="true" style="padding:4px">${data && data.supplement_client ? data.supplement_client : "0.00 €"}</td>
+              <td class="cell-IC-client" contenteditable="true" style="padding:4px">${data && data.IC_client ? data.IC_client : "0.00 €"}</td>
+              <td class="cell-tarif-affrete" contenteditable="true" style="padding:4px">${data && data.tarif_affrete ? data.tarif_affrete : "0.00 €"}</td>
+              <td class="cell-supplement-affrete" contenteditable="true" style="padding:4px">${data && data.supplement_affrete ? data.supplement_affrete : "0.00 €"}</td>
+              <td class="cell-IC-affrete" contenteditable="true" style="padding:4px">${data && data.IC_affrete ? data.IC_affrete : "0.00 €"}</td>
+              <td contenteditable="true" class="${getPlaceholderClass(valComm, "Commentaire...")}">${valComm}</td>
+          `;
 
         tr.querySelectorAll('[contenteditable="true"]').forEach((cell) => {
           cell.addEventListener("input", () => {
             if (
               cell.classList.contains("cell-tarif") ||
-              cell.classList.contains("cell-tarif-affrete")
-            ) {
-              cell.classList.add("is-manual");
+              cell.classList.contains("cell-tarif-affrete") ||
+              cell.classList.contains("cell-heures")
+            )
               updateRowTarif(tr);
-            }
             if (cell.classList.contains("cell-bon")) updateRowHighlight(tr);
             saveCurrentDay();
           });
@@ -4309,6 +4465,7 @@
               "N° Chantier...",
               "N° Commande...",
               "N° Bon...",
+              "Heures...",
               "Commentaire...",
             ];
             const estDerniereLigne = !tr.nextElementSibling;
@@ -4328,27 +4485,6 @@
             if (isNumericCell) {
               let val = parseFloat(contenuSaisi.replace(",", ".")) || 0;
               cell.textContent = val.toFixed(2) + " €";
-              if (cell.classList.contains("cell-tarif") && val > 0) {
-                const cellAffrete = tr.querySelector(".cell-tarif-affrete");
-                const valAffrete =
-                  parseFloat(
-                    cellAffrete.textContent
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
-                if (valAffrete === 0) {
-                  const tarifAffrete96 = Math.round(val * 0.96 * 100) / 100;
-                  cellAffrete.textContent = tarifAffrete96.toFixed(2) + " €";
-                  cellAffrete.classList.add("is-manual");
-                }
-              }
-              if (
-                cell.classList.contains("cell-tarif") ||
-                cell.classList.contains("cell-tarif-affrete")
-              ) {
-                if (val > 0) cell.classList.add("is-manual");
-                updateRowTarif(tr);
-              }
               calculerTousLesTotaux();
             } else if (contenuSaisi === "") {
               const index = cell.cellIndex;
@@ -4358,6 +4494,7 @@
                 9: "N° Chantier...",
                 10: "N° Commande...",
                 11: "N° Bon...",
+                12: "Heures...",
                 18: "Commentaire...",
               };
               if (map[index]) {
@@ -4375,6 +4512,7 @@
               "N° Chantier...",
               "N° Commande...",
               "N° Bon...",
+              "Heures...",
               "Commentaire...",
             ];
             const isNumericCell =
@@ -4461,6 +4599,7 @@
                 const snapshot = captureSnapshot(client, vehicule, associe);
                 tr.dataset.snapshot = JSON.stringify(snapshot);
                 applySnapshotToRow(tr, snapshot);
+                updateRowTarif(tr); // On force la correction juste après l'injection
               }
             }
             saveCurrentDay();
@@ -4477,9 +4616,6 @@
         tableBody.appendChild(tr);
         const inputAssocie = tr.querySelector(".select-associe");
         const cells = tr.querySelectorAll("td");
-
-        const cellC = tr.querySelector(".cell-tarif");
-        const cellA = tr.querySelector(".cell-tarif-affrete");
 
         if (data) {
           appliquerCouleurAssocie(inputAssocie);
@@ -4518,8 +4654,6 @@
               }
             }
           }
-          if (data.isManualTarif) cellC.classList.add("is-manual");
-          if (data.isManualTarifAffrete) cellA.classList.add("is-manual");
         } else {
           tr.style.backgroundColor = "";
           tr.removeAttribute("style");
@@ -4584,13 +4718,14 @@
           n_chantier: ligne.cells[9].innerText,
           n_commande: ligne.cells[10].innerText,
           n_bon: ligne.cells[11].innerText,
-          tarif: ligne.cells[12].innerText,
-          supplement_client: ligne.cells[13].innerText,
-          IC_client: ligne.cells[14].innerText,
-          tarif_affrete: ligne.cells[15].innerText,
-          supplement_affrete: ligne.cells[16].innerText,
-          IC_affrete: ligne.cells[17].innerText,
-          commentaire: ligne.cells[18].innerText,
+          heures: ligne.cells[12].innerText,
+          tarif: ligne.cells[13].innerText,
+          supplement_client: ligne.cells[14].innerText,
+          IC_client: ligne.cells[15].innerText,
+          tarif_affrete: ligne.cells[16].innerText,
+          supplement_affrete: ligne.cells[17].innerText,
+          IC_affrete: ligne.cells[18].innerText,
+          commentaire: ligne.cells[19].innerText,
         };
         ajouterLigne(data);
         const tableBody = document.getElementById("table-body");
@@ -4615,13 +4750,14 @@
             n_chantier: tr.cells[9].innerText,
             n_commande: tr.cells[10].innerText,
             n_bon: tr.cells[11].innerText,
-            tarif: tr.cells[12].innerText,
-            supplement_client: tr.cells[13].innerText,
-            IC_client: tr.cells[14].innerText,
-            tarif_affrete: tr.cells[15].innerText,
-            supplement_affrete: tr.cells[16].innerText,
-            IC_affrete: tr.cells[17].innerText,
-            commentaire: tr.cells[18].innerText,
+            heures: tr.cells[12].innerText,
+            tarif: tr.cells[13].innerText,
+            supplement_client: tr.cells[14].innerText,
+            IC_client: tr.cells[15].innerText,
+            tarif_affrete: tr.cells[16].innerText,
+            supplement_affrete: tr.cells[17].innerText,
+            IC_affrete: tr.cells[18].innerText,
+            commentaire: tr.cells[19].innerText,
           });
         });
         if (rows.length === 0) return;
@@ -5031,7 +5167,7 @@
               document.querySelector(".marquer-container") ||
               document.getElementById("color-picker-tools");
             const startCol = 1;
-            const endCol = 13;
+            const endCol = 14;
             const allRows = table.querySelectorAll("tr");
             const originalTableStyleWidth = table.style.width;
             const originalContainerMaxHeight = tableContainer.style.maxHeight;
@@ -5110,7 +5246,7 @@
             const tableContainer = document.querySelector(".table-container");
             const allRows = table.querySelectorAll("tr");
             const startCol = 1;
-            const endCol = 10;
+            const endCol = 11;
             const marquerBlock =
               document.querySelector(".marquer-container") ||
               document.getElementById("color-picker-tools");
@@ -5283,7 +5419,7 @@
               IC_affrete = 0;
 
             const ws = {};
-            const NCOLS = 18;
+            const NCOLS = 19;
             let R = 0;
 
             function setCell(c, v, s, numFmt) {
@@ -5310,6 +5446,7 @@
               "N° Chantier",
               "N° Commande",
               "N° Bon",
+              "Heures",
               "Tarif Client",
               "Suppl. Client",
               "IC Client",
@@ -5347,6 +5484,8 @@
                   row.n_commande !== "";
                 const aUnBon =
                   row.n_bon && row.n_bon !== "N° Bon..." && row.n_bon !== "";
+                const aHeures =
+                  row.heures && row.heures !== "Heures..." && row.heures !== "";
                 const aUnCommentaire =
                   row.commentaire &&
                   row.commentaire !== "Commentaire..." &&
@@ -5361,6 +5500,7 @@
                   !aUnChantierNum &&
                   !aUnCommande &&
                   !aUnBon &&
+                  !aHeures &&
                   !aUnCommentaire
                 )
                   return;
@@ -5457,16 +5597,17 @@
                   clean(row.n_chantier, "N° Chantier..."),
                   clean(row.n_commande, "N° Commande..."),
                   clean(row.n_bon, "N° Bon..."),
+                  clean(row.heures, "Heures..."),
                 ];
                 textCols.forEach((v, c) => setCell(c, v, styleRowText));
                 [tarif, suppC, icC].forEach((v, i) =>
-                  setCell(11 + i, v, styleRowMoney, '#,##0.00 "€"'),
+                  setCell(12 + i, v, styleRowMoney, '#,##0.00 "€"'),
                 );
                 [tarifAff, suppAff, icAff].forEach((v, i) =>
-                  setCell(14 + i, v, styleRowMoneyAff, '#,##0.00 "€"'),
+                  setCell(15 + i, v, styleRowMoneyAff, '#,##0.00 "€"'),
                 );
                 setCell(
-                  17,
+                  18,
                   clean(row.commentaire, "Commentaire..."),
                   styleRowText,
                 );
@@ -5490,10 +5631,10 @@
             const lastDataRowExcel = R;
             R++;
 
-            setCell(10, "TOTAL", styleTotalLabel);
-            const colLetters = ["L", "M", "N", "O", "P", "Q"];
+            setCell(11, "TOTAL", styleTotalLabel);
+            const colLetters = ["M", "N", "O", "P", "Q", "R"];
             colLetters.forEach((col, i) => {
-              const ref = XLSX.utils.encode_cell({ r: R, c: 11 + i });
+              const ref = XLSX.utils.encode_cell({ r: R, c: 12 + i });
               ws[ref] = {
                 f: `SUBTOTAL(9,${col}2:${col}${lastDataRowExcel})`,
                 t: "n",
@@ -5520,6 +5661,7 @@
               { wch: 26 }, // N° Chantier
               { wch: 26 }, // N° Commande
               { wch: 18 }, // N° Bon
+              { wch: 15 }, // Heures
               { wch: 21 }, // Tarif Client
               { wch: 21 }, // Suppl. Client
               { wch: 19 }, // IC Client
