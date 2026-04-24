@@ -1476,7 +1476,7 @@
       let undoStack = JSON.parse(localStorage.getItem("undoStack") || "[]");
       let redoStack = JSON.parse(localStorage.getItem("redoStack") || "[]");
       let undoDebounceTimer = null;
-      let isUndoRedoAction = false; // évite de capturer pendant undo/redo
+      let isUndoRedoAction = false;
       let lastCapturedData = JSON.parse(
         localStorage.getItem("lastCapturedData") || "{}",
       );
@@ -1503,7 +1503,7 @@
             "lastCapturedData",
             JSON.stringify(lastCapturedData),
           );
-        } catch (e) {} // si localStorage plein, on ignore silencieusement
+        } catch (e) {}
       }
 
       function captureUndoStateBefore() {
@@ -1759,7 +1759,7 @@
             : communData.indice || 0;
 
         baseAssocies.forEach((pilier) => {
-          if (!forceAll && isPilierOverridden(pilier, matos)) return; // skip if custom override
+          if (!forceAll && isPilierOverridden(pilier, matos)) return;
           if (!transportConfigAssocie[pilier])
             transportConfigAssocie[pilier] = {};
           if (!transportConfigAssocie[pilier][matos])
@@ -2844,8 +2844,8 @@
           JSON.stringify(transportConfigHoraireGlobal),
         );
 
-        renderConfigUI(); // Interface Client
-        renderConfigUI2(); // Interface Affrété
+        renderConfigUI();
+        renderConfigUI2();
       }
 
       function updateGroupCatIndice(associe, categorie, valeur) {
@@ -3162,7 +3162,6 @@
 
         const hDecimale = parseHeuresSaisies(texteHeures);
 
-        // 1. GESTION DU TARIF CLIENT
         if (associe && matos && client) {
           let tarifC =
             parseFloat(
@@ -3188,7 +3187,7 @@
 
           let icC = getICClient(client, matos);
           if (estCalculHoraire) {
-            icC = icC * hDecimale; // Applique le prorata horaire
+            icC = icC * hDecimale;
           }
           cellICClient.textContent = icC.toFixed(2) + " €";
           cellICClient.style.color =
@@ -3200,7 +3199,6 @@
           cellICClient.textContent = "0.00 €";
         }
 
-        // 2. GESTION DU TARIF AFFRÉTÉ
         if (associe && matos && client) {
           let tarifA =
             parseFloat(
@@ -3231,7 +3229,7 @@
 
           let icA = getICAffrete(associe, matos);
           if (estCalculHoraire) {
-            icA = icA * hDecimale; // Applique le prorata horaire
+            icA = icA * hDecimale;
           }
           cellICAffrete.textContent = icA.toFixed(2) + " €";
           cellICAffrete.style.color =
@@ -3292,7 +3290,7 @@
 
         const rows = document.querySelectorAll("#table-body tr");
         rows.forEach((tr) => {
-          const dateLigne = tr.cells[3]?.innerText || ""; // format DD/MM/YY
+          const dateLigne = tr.cells[3]?.innerText || "";
           const partiesDate = dateLigne.split("/");
           const anneeLigne =
             partiesDate.length === 3 ? "20" + partiesDate[2] : "";
@@ -3434,7 +3432,6 @@
 
         ensurePiliersCommunsExists();
 
-        // --- PRÉPARATION DES DONNÉES ---
         associeListDatalist.innerHTML = "";
         const allAssociesSet = new Set([
           ...Object.keys(transportConfigAssocie),
@@ -3465,7 +3462,6 @@
           ]),
         ).sort();
 
-        // --- BLOC 1 : PILIERS COMMUNS ---
         let htmlCommun = `
     <div class="piliers-communs-section">
       <div class="piliers-communs-header">
@@ -3547,7 +3543,6 @@
         }
         htmlCommun += `</tbody></table></div></div>`;
 
-        // --- BLOC 2 : TARIFS INDIVIDUELS (ALLARD, LANDAIS, STD + AUTRES) ---
         let html = `
     <div class="piliers-communs-section" style="margin-top:30px;">
       <div class="piliers-communs-header">
@@ -3591,7 +3586,6 @@
               index > 0 &&
               baseAssocies.includes(sortedEntries[index - 1].toUpperCase());
 
-            // Séparation visuelle entre les 3 Piliers et les Autres Affrétés
             if (index > 0 && !estPilier && precedentEtaitPilier) {
               html += `<tr style="background-color:#f1f3f4;"><td colspan="7" style="text-align:center;font-weight:bold;color:#5f6368;padding:10px;border:1px solid #dee2e6;">AUTRES AFFRÉTÉS</td></tr>`;
             }
@@ -4121,6 +4115,11 @@
               if (hexColor) couleursParCellule[index] = hexColor;
             }
           });
+
+          const cellBon = tr.cells[11];
+          const imgBon = cellBon.querySelector("img");
+          const valNBon = imgBon ? imgBon.src : cellBon.innerText.trim();
+
           rows.push({
             associe: tr.querySelector(".select-associe").value,
             chantier: tr.cells[2].innerText,
@@ -4137,7 +4136,7 @@
             chauffeur: tr.querySelector(".select-chauffeur").value,
             n_chantier: tr.cells[9].innerText,
             n_commande: tr.cells[10].innerText,
-            n_bon: tr.cells[11].innerText,
+            n_bon: valNBon,
             heures: tr.cells[12].innerText,
             tarif: tr.cells[13].innerText,
             supplement_client: tr.cells[14].innerText,
@@ -4395,6 +4394,60 @@
         return h + m / 60;
       }
 
+      function traiterUploadBon(input, row) {
+        const file = input.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+              const canvas = document.createElement("canvas");
+              const MAX_WIDTH = 200;
+              const scaleSize = MAX_WIDTH / img.width;
+              canvas.width = MAX_WIDTH;
+              canvas.height = img.height * scaleSize;
+
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              const base64Image = canvas.toDataURL("image/jpeg", 0.7);
+
+              const cell = input.parentElement;
+              const tr = input.closest("tr");
+
+              cell.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; gap:5px;">
+                                    <img src="${base64Image}" style="width:60px; height:40px; cursor:pointer; border:1px solid #ccc;" 
+                                         onclick="agrandirImage('${base64Image}')">
+                                    <button onclick="supprimerPhoto(this)" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold;">×</button>
+                                  </div>`;
+
+              saveCurrentDay();
+              updateRowHighlight(tr);
+              calculerTousLesTotaux();
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function agrandirImage(src) {
+        const overlay = document.createElement("div");
+        overlay.style =
+          "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; z-index:9999;";
+        overlay.innerHTML = `<img src="${src}" style="max-width:90%; max-height:90%; border:2px solid white;">`;
+        overlay.onclick = () => overlay.remove();
+        document.body.appendChild(overlay);
+      }
+
+      function supprimerPhoto(btn) {
+        if (confirm("Supprimer cette photo ?")) {
+          const td = btn.closest("td");
+          td.innerHTML = `<input type="file" accept="image/*" onchange="traiterUploadBon(this, this.closest('tr'))" style="width:90px;">`;
+          saveCurrentDay();
+          calculerTousLesTotaux();
+        }
+      }
+
       function ajouterLigne(data = null) {
         const tableBody = document.getElementById("table-body");
         const datePicker = document.getElementById("current-date-picker");
@@ -4432,7 +4485,22 @@
               <td class="matos-cell"><input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur..."></td>
               <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
               <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
-              <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
+              <td class="cell-bon" style="text-align:center;">
+                  ${
+                    valBon && valBon.startsWith("data:image")
+                      ? `<div style="display:flex; align-items:center; justify-content:center; gap:5px;">
+                            <img src="${valBon}" 
+                                  style="width:60px; height:40px; cursor:pointer; border:1px solid #ccc;" 
+                                  onclick="agrandirImage('${valBon}')" 
+                                  title="Cliquer pour agrandir">
+                            <button onclick="supprimerPhoto(this)" 
+                                    style="color:red; background:none; border:none; cursor:pointer; font-weight:bold;">
+                                ×
+                            </button>
+                          </div>`
+                      : `<input type="file" accept="image/*" onchange="traiterUploadBon(this, this.closest('tr'))" style="width:90px;">`
+                  }
+              </td>
               <td class="cell-heures ${!data || !data.heures || data.heures === "Heures..." ? "placeholder-style" : ""}"
                   contenteditable="true">
                   ${valHeures}
@@ -4599,7 +4667,7 @@
                 const snapshot = captureSnapshot(client, vehicule, associe);
                 tr.dataset.snapshot = JSON.stringify(snapshot);
                 applySnapshotToRow(tr, snapshot);
-                updateRowTarif(tr); // On force la correction juste après l'injection
+                updateRowTarif(tr);
               }
             }
             saveCurrentDay();
@@ -5712,7 +5780,7 @@
         downloadAnchorNode.setAttribute("href", dataStr);
         downloadAnchorNode.setAttribute(
           "download",
-          "SAUVEGARDE_TOTALE_" + date + ".json",
+          "SAUVEGARDE_" + date + ".json",
         );
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
@@ -5744,6 +5812,49 @@
         };
         reader.readAsText(file);
         input.value = "";
+      }
+
+      function archiverEtNettoyer() {
+        const backupData = {};
+        let count = 0;
+
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith("planning_")) {
+            backupData[key] = localStorage.getItem(key);
+            count++;
+          }
+        }
+
+        if (count === 0) {
+          alert("Aucune donnée de planning trouvée à archiver.");
+          return;
+        }
+
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Planning_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        const confirmDelete = confirm(
+          `Vous avez téléchargé un fichier avec ${count} jours de planning. Voulez-vous supprimer ces données du navigateur pour libérer de l'espace ?`,
+        );
+
+        if (confirmDelete) {
+          for (const key in backupData) {
+            localStorage.removeItem(key);
+          }
+          alert(
+            "Archivage réussi : les données ont été téléchargées et supprimées du navigateur.",
+          );
+          location.reload();
+        }
       }
     </script>
 
@@ -5929,6 +6040,18 @@
           style="display: none"
           onchange="restaurerConfigComplete(this)"
         />
+        <button
+          onclick="archiverEtNettoyer()"
+          style="
+            background-color: #ff9800;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+          "
+        >
+          Archiver et vider les anciennes données
+        </button>
       </div>
       <button
         onclick="toggleHelp()"
@@ -5938,6 +6061,33 @@
       >
         ?
       </button>
+    </div>
+    <div
+      id="img-viewer"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+      "
+      onclick="this.style.display = 'none'"
+    >
+      <img
+        id="full-size-img"
+        src=""
+        style="
+          max-width: 90%;
+          max-height: 90%;
+          border: 2px solid white;
+          box-shadow: 0 0 20px black;
+        "
+      />
     </div>
   </body>
 </html>
