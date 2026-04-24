@@ -3258,24 +3258,22 @@
         const hasBon = texte !== "" && texte !== "N° Bon...";
         const cells = tr.querySelectorAll("td");
         if (!hasBon) {
+          // Si PAS de bon : on enlève la couleur sur TOUTES les cellules
+          cells.forEach((td, index) => {
+            if (index === 0) return; // On ignore la première colonne (boutons)
+            td.style.backgroundColor = ""; // Nettoyage propre
+          });
+        } else {
+          // Si OUI un bon : on applique le vert seulement si pas déjà défini
           cells.forEach((td, index) => {
             if (index === 0) return;
-            if (
-              td.style.backgroundColor === "rgb(212, 237, 218)" ||
-              td.style.backgroundColor === "#d4edda"
-            ) {
-              td.style.backgroundColor = "";
+            const currentBg = td.style.backgroundColor;
+            // On ne remet pas la couleur si elle est déjà là (pour ne pas écraser d'autres styles)
+            if (!currentBg || currentBg === "transparent") {
+              td.style.backgroundColor = "#d4edda";
             }
           });
-          return;
         }
-        cells.forEach((td, index) => {
-          if (index === 0) return;
-          const currentBg = td.style.backgroundColor;
-          if (currentBg && currentBg !== "" && currentBg !== "transparent")
-            return;
-          td.style.backgroundColor = "#d4edda";
-        });
       }
 
       function resetAllColors() {
@@ -4197,10 +4195,59 @@
       }
 
       function supprimerLigne(btn) {
-        const tableBody = document.getElementById("table-body");
-        if (confirm("Voulez-vous vraiment supprimer cette ligne ?")) {
-          btn.closest("tr").remove();
-          if (tableBody.querySelectorAll("tr").length === 0) ajouterLigne();
+        if (
+          confirm(
+            "Voulez-vous vraiment effacer les informations de cette ligne ?",
+          )
+        ) {
+          const row = btn.closest("tr");
+
+          // 1. NETTOYAGE CSS AGRESSIF (TR)
+          row.style.removeProperty("background-color");
+          row.removeAttribute("style");
+          row.classList.remove("row-green", "success"); // Ajoutez ici les classes qui rendent vert
+
+          // 2. RÉINITIALISER LES CELLULES TEXTE
+          const cellules = [
+            { index: 2, text: "Chantier..." },
+            { index: 7, text: "Consigne...", class: "col-consigne" },
+            { index: 9, text: "N° Chantier..." },
+            { index: 10, text: "N° Commande..." },
+            { index: 11, text: "N° Bon...", class: "cell-bon" },
+            { index: 19, text: "Commentaire..." },
+          ];
+
+          cellules.forEach((item) => {
+            const cell = row.cells[item.index];
+            if (cell) {
+              cell.innerText = item.text;
+
+              // On nettoie le style backgroundColor (priorité haute)
+              cell.style.removeProperty("background-color");
+
+              // On gère les classes proprement :
+              // on ajoute 'placeholder-style' et on supprime le reste si nécessaire
+              cell.classList.add("placeholder-style");
+            }
+          });
+
+          // 3. NETTOYAGE DES SÉLECTEURS ET INPUTS
+          const inputs = row.querySelectorAll("input, select");
+          inputs.forEach((input) => (input.value = ""));
+
+          const telCell = row.querySelector(".col-telephone");
+          if (telCell) {
+            telCell.dataset.telephoneFull = ""; // Vide la donnée cachée
+          }
+
+          // 4. NETTOYAGE DES DONNÉES CACHÉES
+          row.dataset.couleurs = "";
+
+          // 5. MISE À JOUR VISUELLE FORCÉE
+          // On force le rafraichissement de la couleur via la fonction existante
+          updateRowHighlight(row);
+
+          // 6. Sauvegarde et recalcule final
           saveCurrentDay();
           calculerTousLesTotaux();
         }
@@ -4419,7 +4466,7 @@
 
         tr.innerHTML = `
               <td class="hide-export" style="text-align:center; white-space:nowrap;">
-                  <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
+                  <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); supprimerLigne(this)">×</button>
                   <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); dupliquerLigne(this)">📑</button>
               </td>
               <td class="matos-cell"><input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé..."></td>
