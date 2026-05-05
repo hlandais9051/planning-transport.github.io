@@ -578,6 +578,69 @@
       .pilier-row-custom td {
         border-left: 3px solid #ff6b35 !important;
       }
+      #dialog-suppr-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 9998;
+      }
+      #dialog-suppr {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        z-index: 9999;
+        padding: 28px 32px;
+        min-width: 340px;
+        text-align: center;
+      }
+      #dialog-suppr h3 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        color: #333;
+      }
+      #dialog-suppr p {
+        margin: 0 0 22px 0;
+        font-size: 13px;
+        color: #666;
+      }
+      .dialog-btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .dialog-btn-group button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .dialog-btn-group button:hover {
+        opacity: 0.85;
+      }
+      .btn-suppr-total {
+        background: #dc3545;
+        color: white;
+      }
+      .btn-suppr-partiel {
+        background: #ff9800;
+        color: white;
+      }
+      .btn-suppr-annuler {
+        background: #e0e0e0;
+        color: #333;
+      }
     </style>
   </head>
   <body>
@@ -4196,14 +4259,82 @@
         }
       }
 
+      let _ligneASupprimer = null;
+
       function supprimerLigne(btn) {
+        _ligneASupprimer = btn.closest("tr");
+        document.getElementById("dialog-suppr-overlay").style.display = "block";
+        document.getElementById("dialog-suppr").style.display = "block";
+      }
+
+      function fermerDialogSuppr() {
+        _ligneASupprimer = null;
+        document.getElementById("dialog-suppr-overlay").style.display = "none";
+        document.getElementById("dialog-suppr").style.display = "none";
+      }
+
+      function confirmerSupprTotal() {
+        if (!_ligneASupprimer) return;
+        captureUndoStateBefore();
         const tableBody = document.getElementById("table-body");
-        if (confirm("Voulez-vous vraiment supprimer cette ligne ?")) {
-          btn.closest("tr").remove();
-          if (tableBody.querySelectorAll("tr").length === 0) ajouterLigne();
-          saveCurrentDay();
-          calculerTousLesTotaux();
+        _ligneASupprimer.remove();
+        if (tableBody.querySelectorAll("tr").length === 0) ajouterLigne();
+        saveCurrentDay();
+        calculerTousLesTotaux();
+        fermerDialogSuppr();
+      }
+
+      function confirmerSupprPartiel() {
+        if (!_ligneASupprimer) return;
+        captureUndoStateBefore();
+        const row = _ligneASupprimer;
+
+        // Cellules texte à effacer
+        const cellules = [
+          { index: 2, text: "Chantier..." },
+          { index: 7, text: "Consigne..." },
+          { index: 9, text: "N° Chantier..." },
+          { index: 10, text: "N° Commande..." },
+          { index: 11, text: "N° Bon..." },
+          { index: 19, text: "Commentaire..." },
+        ];
+        cellules.forEach((item) => {
+          const cell = row.cells[item.index];
+          if (cell) {
+            cell.innerText = item.text;
+            cell.classList.add("placeholder-style");
+            cell.style.removeProperty("background-color");
+          }
+        });
+
+        // Effacer client et contact uniquement
+        const inputClient = row.querySelector(".select-client");
+        if (inputClient) inputClient.value = "";
+
+        const telCell = row.querySelector(".col-telephone");
+        if (telCell) {
+          telCell.setAttribute("data-telephone-full", "");
+          displayTelephoneInCell(telCell, "");
         }
+
+        // Remettre les tarifs à zéro
+        [
+          "cell-tarif",
+          "cell-IC-client",
+          "cell-tarif-affrete",
+          "cell-IC-affrete",
+          "cell-supplement-client",
+          "cell-supplement-affrete",
+        ].forEach((cls) => {
+          const el = row.querySelector("." + cls);
+          if (el) el.textContent = "0.00 €";
+        });
+
+        delete row.dataset.snapshot;
+        updateRowHighlight(row);
+        saveCurrentDay();
+        calculerTousLesTotaux();
+        fermerDialogSuppr();
       }
 
       function estMemeMoisQueSelection(dateStr) {
@@ -4419,7 +4550,7 @@
 
         tr.innerHTML = `
               <td class="hide-export" style="text-align:center; white-space:nowrap;">
-                  <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
+                  <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="supprimerLigne(this)">×</button>
                   <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); dupliquerLigne(this)">📑</button>
               </td>
               <td class="matos-cell"><input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé..."></td>
@@ -5005,6 +5136,10 @@
       function chargerCouleursDate(date) {}
 
       document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("dialog-suppr-overlay")
+          .addEventListener("click", fermerDialogSuppr);
+
         verifierEtReparerSiNecessaire();
         ensurePiliersCommunsExists();
 
@@ -5938,6 +6073,23 @@
       >
         ?
       </button>
+    </div>
+    <div id="dialog-suppr-overlay"></div>
+    <div id="dialog-suppr">
+      <h3>🗑️ Supprimer la ligne</h3>
+      <p>Que voulez-vous faire avec cette ligne ?</p>
+      <div class="dialog-btn-group">
+        <button class="btn-suppr-total" onclick="confirmerSupprTotal()">
+          ❌ Supprimer toute la ligne
+        </button>
+        <button class="btn-suppr-partiel" onclick="confirmerSupprPartiel()">
+          🧹 Effacer seulement Chantier, Client,<br />N°Chantier, N°Commande,
+          N°Bon, Consigne
+        </button>
+        <button class="btn-suppr-annuler" onclick="fermerDialogSuppr()">
+          Annuler
+        </button>
+      </div>
     </div>
   </body>
 </html>
