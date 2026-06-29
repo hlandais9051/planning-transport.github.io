@@ -5593,6 +5593,93 @@
             headers.forEach((h, c) => setCell(c, h, styleHeader));
             R++;
 
+            const parseHeuresExport = (texte) => {
+              const t = (texte || "").trim();
+              if (!t || t === "Heures...") return 0;
+              if (t.includes(":")) {
+                const [h, m] = t.split(":").map(Number);
+                return h + (m || 0) / 60;
+              }
+              return parseFloat(t.replace(",", ".")) || 0;
+            };
+
+            function getValeursLigneExport(row) {
+              const client =
+                row.client && row.client !== "Client..." ? row.client : "";
+              const matos =
+                row.vehicule && row.vehicule !== "Véhicule..."
+                  ? row.vehicule
+                  : "";
+              const associe =
+                row.associe && row.associe !== "Associé..." ? row.associe : "";
+              const heuresTexte =
+                row.heures && row.heures !== "Heures..." ? row.heures : "";
+              const hDecimale = parseHeuresExport(heuresTexte);
+              const estCalculHoraire =
+                typeof transportConfigHoraireGlobal !== "undefined" &&
+                transportConfigHoraireGlobal[matos] === true;
+
+              let tarif, icC, tarifAff, icAff;
+
+              if (estCalculHoraire && matos) {
+                // Matériel "à l'heure" : on ignore la chaîne stockée et on recalcule
+                // toujours à partir du tarif de config × le nombre d'heures saisi.
+                if (hDecimale > 0 && client) {
+                  tarif = hDecimale * getTarifClient(client, matos);
+                  icC = getICClient(client, matos) * hDecimale;
+                } else {
+                  tarif = 0;
+                  icC = 0;
+                }
+                if (hDecimale > 0 && associe) {
+                  tarifAff = tarif * 0.96;
+                  icAff = getICAffrete(associe, matos) * hDecimale;
+                } else {
+                  tarifAff = 0;
+                  icAff = 0;
+                }
+              } else {
+                // Matériel classique : on garde la valeur réellement saisie/stockée
+                tarif =
+                  parseFloat(
+                    (row.tarif || "0").replace(/[€\s]/g, "").replace(",", "."),
+                  ) || 0;
+                icC =
+                  parseFloat(
+                    (row.IC_client || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+                tarifAff =
+                  parseFloat(
+                    (row.tarif_affrete || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+                icAff =
+                  parseFloat(
+                    (row.IC_affrete || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+              }
+
+              const suppC =
+                parseFloat(
+                  (row.supplement_client || "0")
+                    .replace(/[€\s]/g, "")
+                    .replace(",", "."),
+                ) || 0;
+              const suppAff =
+                parseFloat(
+                  (row.supplement_affrete || "0")
+                    .replace(/[€\s]/g, "")
+                    .replace(",", "."),
+                ) || 0;
+
+              return { tarif, suppC, icC, tarifAff, suppAff, icAff };
+            }
+
             let dataRowCount = 0;
             keys.forEach((key) => {
               const dayData = JSON.parse(localStorage.getItem(key) || "[]");
@@ -5640,40 +5727,8 @@
                 )
                   return;
 
-                const tarif =
-                  parseFloat(
-                    (row.tarif || "0").replace(/[€\s]/g, "").replace(",", "."),
-                  ) || 0;
-                const suppC =
-                  parseFloat(
-                    (row.supplement_client || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
-                const icC =
-                  parseFloat(
-                    (row.IC_client || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
-                const tarifAff =
-                  parseFloat(
-                    (row.tarif_affrete || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
-                const suppAff =
-                  parseFloat(
-                    (row.supplement_affrete || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
-                const icAff =
-                  parseFloat(
-                    (row.IC_affrete || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
+                const { tarif, suppC, icC, tarifAff, suppAff, icAff } =
+                  getValeursLigneExport(row);
 
                 totalClient += tarif;
                 totalSupplement_client += suppC;
