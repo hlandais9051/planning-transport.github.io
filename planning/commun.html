@@ -578,6 +578,69 @@
       .pilier-row-custom td {
         border-left: 3px solid #ff6b35 !important;
       }
+      #dialog-suppr-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 9998;
+      }
+      #dialog-suppr {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        z-index: 9999;
+        padding: 28px 32px;
+        min-width: 340px;
+        text-align: center;
+      }
+      #dialog-suppr h3 {
+        margin: 0 0 8px 0;
+        font-size: 16px;
+        color: #333;
+      }
+      #dialog-suppr p {
+        margin: 0 0 22px 0;
+        font-size: 13px;
+        color: #666;
+      }
+      .dialog-btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .dialog-btn-group button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .dialog-btn-group button:hover {
+        opacity: 0.85;
+      }
+      .btn-suppr-total {
+        background: #dc3545;
+        color: white;
+      }
+      .btn-suppr-partiel {
+        background: #ff9800;
+        color: white;
+      }
+      .btn-suppr-annuler {
+        background: #e0e0e0;
+        color: #333;
+      }
     </style>
   </head>
   <body>
@@ -1476,7 +1539,7 @@
       let undoStack = JSON.parse(localStorage.getItem("undoStack") || "[]");
       let redoStack = JSON.parse(localStorage.getItem("redoStack") || "[]");
       let undoDebounceTimer = null;
-      let isUndoRedoAction = false;
+      let isUndoRedoAction = false; // évite de capturer pendant undo/redo
       let lastCapturedData = JSON.parse(
         localStorage.getItem("lastCapturedData") || "{}",
       );
@@ -1503,7 +1566,7 @@
             "lastCapturedData",
             JSON.stringify(lastCapturedData),
           );
-        } catch (e) {}
+        } catch (e) {} // si localStorage plein, on ignore silencieusement
       }
 
       function captureUndoStateBefore() {
@@ -1759,7 +1822,7 @@
             : communData.indice || 0;
 
         baseAssocies.forEach((pilier) => {
-          if (!forceAll && isPilierOverridden(pilier, matos)) return;
+          if (!forceAll && isPilierOverridden(pilier, matos)) return; // skip if custom override
           if (!transportConfigAssocie[pilier])
             transportConfigAssocie[pilier] = {};
           if (!transportConfigAssocie[pilier][matos])
@@ -2844,8 +2907,8 @@
           JSON.stringify(transportConfigHoraireGlobal),
         );
 
-        renderConfigUI();
-        renderConfigUI2();
+        renderConfigUI(); // Interface Client
+        renderConfigUI2(); // Interface Affrété
       }
 
       function updateGroupCatIndice(associe, categorie, valeur) {
@@ -3162,6 +3225,7 @@
 
         const hDecimale = parseHeuresSaisies(texteHeures);
 
+        // 1. GESTION DU TARIF CLIENT
         if (associe && matos && client) {
           let tarifC =
             parseFloat(
@@ -3187,7 +3251,7 @@
 
           let icC = getICClient(client, matos);
           if (estCalculHoraire) {
-            icC = icC * hDecimale;
+            icC = icC * hDecimale; // Applique le prorata horaire
           }
           cellICClient.textContent = icC.toFixed(2) + " €";
           cellICClient.style.color =
@@ -3199,6 +3263,7 @@
           cellICClient.textContent = "0.00 €";
         }
 
+        // 2. GESTION DU TARIF AFFRÉTÉ
         if (associe && matos && client) {
           let tarifA =
             parseFloat(
@@ -3229,7 +3294,7 @@
 
           let icA = getICAffrete(associe, matos);
           if (estCalculHoraire) {
-            icA = icA * hDecimale;
+            icA = icA * hDecimale; // Applique le prorata horaire
           }
           cellICAffrete.textContent = icA.toFixed(2) + " €";
           cellICAffrete.style.color =
@@ -3290,7 +3355,7 @@
 
         const rows = document.querySelectorAll("#table-body tr");
         rows.forEach((tr) => {
-          const dateLigne = tr.cells[3]?.innerText || "";
+          const dateLigne = tr.cells[3]?.innerText || ""; // format DD/MM/YY
           const partiesDate = dateLigne.split("/");
           const anneeLigne =
             partiesDate.length === 3 ? "20" + partiesDate[2] : "";
@@ -3432,6 +3497,7 @@
 
         ensurePiliersCommunsExists();
 
+        // --- PRÉPARATION DES DONNÉES ---
         associeListDatalist.innerHTML = "";
         const allAssociesSet = new Set([
           ...Object.keys(transportConfigAssocie),
@@ -3462,6 +3528,7 @@
           ]),
         ).sort();
 
+        // --- BLOC 1 : PILIERS COMMUNS ---
         let htmlCommun = `
     <div class="piliers-communs-section">
       <div class="piliers-communs-header">
@@ -3543,6 +3610,7 @@
         }
         htmlCommun += `</tbody></table></div></div>`;
 
+        // --- BLOC 2 : TARIFS INDIVIDUELS (ALLARD, LANDAIS, STD + AUTRES) ---
         let html = `
     <div class="piliers-communs-section" style="margin-top:30px;">
       <div class="piliers-communs-header">
@@ -3586,6 +3654,7 @@
               index > 0 &&
               baseAssocies.includes(sortedEntries[index - 1].toUpperCase());
 
+            // Séparation visuelle entre les 3 Piliers et les Autres Affrétés
             if (index > 0 && !estPilier && precedentEtaitPilier) {
               html += `<tr style="background-color:#f1f3f4;"><td colspan="7" style="text-align:center;font-weight:bold;color:#5f6368;padding:10px;border:1px solid #dee2e6;">AUTRES AFFRÉTÉS</td></tr>`;
             }
@@ -4115,11 +4184,6 @@
               if (hexColor) couleursParCellule[index] = hexColor;
             }
           });
-
-          const cellBon = tr.cells[11];
-          const imgBon = cellBon.querySelector("img");
-          const valNBon = imgBon ? imgBon.src : cellBon.innerText.trim();
-
           rows.push({
             associe: tr.querySelector(".select-associe").value,
             chantier: tr.cells[2].innerText,
@@ -4136,7 +4200,7 @@
             chauffeur: tr.querySelector(".select-chauffeur").value,
             n_chantier: tr.cells[9].innerText,
             n_commande: tr.cells[10].innerText,
-            n_bon: valNBon,
+            n_bon: tr.cells[11].innerText,
             heures: tr.cells[12].innerText,
             tarif: tr.cells[13].innerText,
             supplement_client: tr.cells[14].innerText,
@@ -4195,14 +4259,82 @@
         }
       }
 
+      let _ligneASupprimer = null;
+
       function supprimerLigne(btn) {
+        _ligneASupprimer = btn.closest("tr");
+        document.getElementById("dialog-suppr-overlay").style.display = "block";
+        document.getElementById("dialog-suppr").style.display = "block";
+      }
+
+      function fermerDialogSuppr() {
+        _ligneASupprimer = null;
+        document.getElementById("dialog-suppr-overlay").style.display = "none";
+        document.getElementById("dialog-suppr").style.display = "none";
+      }
+
+      function confirmerSupprTotal() {
+        if (!_ligneASupprimer) return;
+        captureUndoStateBefore();
         const tableBody = document.getElementById("table-body");
-        if (confirm("Voulez-vous vraiment supprimer cette ligne ?")) {
-          btn.closest("tr").remove();
-          if (tableBody.querySelectorAll("tr").length === 0) ajouterLigne();
-          saveCurrentDay();
-          calculerTousLesTotaux();
+        _ligneASupprimer.remove();
+        if (tableBody.querySelectorAll("tr").length === 0) ajouterLigne();
+        saveCurrentDay();
+        calculerTousLesTotaux();
+        fermerDialogSuppr();
+      }
+
+      function confirmerSupprPartiel() {
+        if (!_ligneASupprimer) return;
+        captureUndoStateBefore();
+        const row = _ligneASupprimer;
+
+        // Cellules texte à effacer
+        const cellules = [
+          { index: 2, text: "Chantier..." },
+          { index: 7, text: "Consigne..." },
+          { index: 9, text: "N° Chantier..." },
+          { index: 10, text: "N° Commande..." },
+          { index: 11, text: "N° Bon..." },
+          { index: 19, text: "Commentaire..." },
+        ];
+        cellules.forEach((item) => {
+          const cell = row.cells[item.index];
+          if (cell) {
+            cell.innerText = item.text;
+            cell.classList.add("placeholder-style");
+            cell.style.removeProperty("background-color");
+          }
+        });
+
+        // Effacer client et contact uniquement
+        const inputClient = row.querySelector(".select-client");
+        if (inputClient) inputClient.value = "";
+
+        const telCell = row.querySelector(".col-telephone");
+        if (telCell) {
+          telCell.setAttribute("data-telephone-full", "");
+          displayTelephoneInCell(telCell, "");
         }
+
+        // Remettre les tarifs à zéro
+        [
+          "cell-tarif",
+          "cell-IC-client",
+          "cell-tarif-affrete",
+          "cell-IC-affrete",
+          "cell-supplement-client",
+          "cell-supplement-affrete",
+        ].forEach((cls) => {
+          const el = row.querySelector("." + cls);
+          if (el) el.textContent = "0.00 €";
+        });
+
+        delete row.dataset.snapshot;
+        updateRowHighlight(row);
+        saveCurrentDay();
+        calculerTousLesTotaux();
+        fermerDialogSuppr();
       }
 
       function estMemeMoisQueSelection(dateStr) {
@@ -4394,60 +4526,6 @@
         return h + m / 60;
       }
 
-      function traiterUploadBon(input, row) {
-        const file = input.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            const img = new Image();
-            img.onload = function () {
-              const canvas = document.createElement("canvas");
-              const MAX_WIDTH = 200;
-              const scaleSize = MAX_WIDTH / img.width;
-              canvas.width = MAX_WIDTH;
-              canvas.height = img.height * scaleSize;
-
-              const ctx = canvas.getContext("2d");
-              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-              const base64Image = canvas.toDataURL("image/jpeg", 0.7);
-
-              const cell = input.parentElement;
-              const tr = input.closest("tr");
-
-              cell.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; gap:5px;">
-                                    <img src="${base64Image}" style="width:60px; height:40px; cursor:pointer; border:1px solid #ccc;" 
-                                         onclick="agrandirImage('${base64Image}')">
-                                    <button onclick="supprimerPhoto(this)" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold;">×</button>
-                                  </div>`;
-
-              saveCurrentDay();
-              updateRowHighlight(tr);
-              calculerTousLesTotaux();
-            };
-            img.src = e.target.result;
-          };
-          reader.readAsDataURL(file);
-        }
-      }
-
-      function agrandirImage(src) {
-        const overlay = document.createElement("div");
-        overlay.style =
-          "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:flex; justify-content:center; align-items:center; z-index:9999;";
-        overlay.innerHTML = `<img src="${src}" style="max-width:90%; max-height:90%; border:2px solid white;">`;
-        overlay.onclick = () => overlay.remove();
-        document.body.appendChild(overlay);
-      }
-
-      function supprimerPhoto(btn) {
-        if (confirm("Supprimer cette photo ?")) {
-          const td = btn.closest("td");
-          td.innerHTML = `<input type="file" accept="image/*" onchange="traiterUploadBon(this, this.closest('tr'))" style="width:90px;">`;
-          saveCurrentDay();
-          calculerTousLesTotaux();
-        }
-      }
-
       function ajouterLigne(data = null) {
         const tableBody = document.getElementById("table-body");
         const datePicker = document.getElementById("current-date-picker");
@@ -4472,7 +4550,7 @@
 
         tr.innerHTML = `
               <td class="hide-export" style="text-align:center; white-space:nowrap;">
-                  <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); if(confirm('Supprimer ?')){this.closest('tr').remove(); saveCurrentDay(); calculerTousLesTotaux();}">×</button>
+                  <button style="color:red; background:none; border:none; cursor:pointer; font-size:16px;" onclick="supprimerLigne(this)">×</button>
                   <button style="color:orange; background:none; border:none; cursor:pointer; font-size:16px;" onclick="captureUndoStateBefore(); dupliquerLigne(this)">📑</button>
               </td>
               <td class="matos-cell"><input class="combo-input select-associe" list="list-associe" value="${data ? data.associe : ""}" placeholder="Associé..."></td>
@@ -4485,22 +4563,7 @@
               <td class="matos-cell"><input class="combo-input select-chauffeur" list="list-chauffeur" value="${data ? data.chauffeur : ""}" placeholder="Chauffeur..."></td>
               <td contenteditable="true" class="${getPlaceholderClass(valChantierNum, "N° Chantier...")}">${valChantierNum}</td>
               <td contenteditable="true" class="${getPlaceholderClass(valCommande, "N° Commande...")}">${valCommande}</td>
-              <td class="cell-bon" style="text-align:center;">
-                  ${
-                    valBon && valBon.startsWith("data:image")
-                      ? `<div style="display:flex; align-items:center; justify-content:center; gap:5px;">
-                            <img src="${valBon}" 
-                                  style="width:60px; height:40px; cursor:pointer; border:1px solid #ccc;" 
-                                  onclick="agrandirImage('${valBon}')" 
-                                  title="Cliquer pour agrandir">
-                            <button onclick="supprimerPhoto(this)" 
-                                    style="color:red; background:none; border:none; cursor:pointer; font-weight:bold;">
-                                ×
-                            </button>
-                          </div>`
-                      : `<input type="file" accept="image/*" onchange="traiterUploadBon(this, this.closest('tr'))" style="width:90px;">`
-                  }
-              </td>
+              <td contenteditable="true" class="cell-bon ${getPlaceholderClass(valBon, "N° Bon...")}">${valBon}</td>
               <td class="cell-heures ${!data || !data.heures || data.heures === "Heures..." ? "placeholder-style" : ""}"
                   contenteditable="true">
                   ${valHeures}
@@ -4667,7 +4730,7 @@
                 const snapshot = captureSnapshot(client, vehicule, associe);
                 tr.dataset.snapshot = JSON.stringify(snapshot);
                 applySnapshotToRow(tr, snapshot);
-                updateRowTarif(tr);
+                updateRowTarif(tr); // On force la correction juste après l'injection
               }
             }
             saveCurrentDay();
@@ -5073,6 +5136,10 @@
       function chargerCouleursDate(date) {}
 
       document.addEventListener("DOMContentLoaded", function () {
+        document
+          .getElementById("dialog-suppr-overlay")
+          .addEventListener("click", fermerDialogSuppr);
+
         verifierEtReparerSiNecessaire();
         ensurePiliersCommunsExists();
 
@@ -5526,6 +5593,93 @@
             headers.forEach((h, c) => setCell(c, h, styleHeader));
             R++;
 
+            const parseHeuresExport = (texte) => {
+              const t = (texte || "").trim();
+              if (!t || t === "Heures...") return 0;
+              if (t.includes(":")) {
+                const [h, m] = t.split(":").map(Number);
+                return h + (m || 0) / 60;
+              }
+              return parseFloat(t.replace(",", ".")) || 0;
+            };
+
+            function getValeursLigneExport(row) {
+              const client =
+                row.client && row.client !== "Client..." ? row.client : "";
+              const matos =
+                row.vehicule && row.vehicule !== "Véhicule..."
+                  ? row.vehicule
+                  : "";
+              const associe =
+                row.associe && row.associe !== "Associé..." ? row.associe : "";
+              const heuresTexte =
+                row.heures && row.heures !== "Heures..." ? row.heures : "";
+              const hDecimale = parseHeuresExport(heuresTexte);
+              const estCalculHoraire =
+                typeof transportConfigHoraireGlobal !== "undefined" &&
+                transportConfigHoraireGlobal[matos] === true;
+
+              let tarif, icC, tarifAff, icAff;
+
+              if (estCalculHoraire && matos) {
+                // Matériel "à l'heure" : on ignore la chaîne stockée et on recalcule
+                // toujours à partir du tarif de config × le nombre d'heures saisi.
+                if (hDecimale > 0 && client) {
+                  tarif = hDecimale * getTarifClient(client, matos);
+                  icC = getICClient(client, matos) * hDecimale;
+                } else {
+                  tarif = 0;
+                  icC = 0;
+                }
+                if (hDecimale > 0 && associe) {
+                  tarifAff = tarif * 0.96;
+                  icAff = getICAffrete(associe, matos) * hDecimale;
+                } else {
+                  tarifAff = 0;
+                  icAff = 0;
+                }
+              } else {
+                // Matériel classique : on garde la valeur réellement saisie/stockée
+                tarif =
+                  parseFloat(
+                    (row.tarif || "0").replace(/[€\s]/g, "").replace(",", "."),
+                  ) || 0;
+                icC =
+                  parseFloat(
+                    (row.IC_client || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+                tarifAff =
+                  parseFloat(
+                    (row.tarif_affrete || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+                icAff =
+                  parseFloat(
+                    (row.IC_affrete || "0")
+                      .replace(/[€\s]/g, "")
+                      .replace(",", "."),
+                  ) || 0;
+              }
+
+              const suppC =
+                parseFloat(
+                  (row.supplement_client || "0")
+                    .replace(/[€\s]/g, "")
+                    .replace(",", "."),
+                ) || 0;
+              const suppAff =
+                parseFloat(
+                  (row.supplement_affrete || "0")
+                    .replace(/[€\s]/g, "")
+                    .replace(",", "."),
+                ) || 0;
+
+              return { tarif, suppC, icC, tarifAff, suppAff, icAff };
+            }
+
             let dataRowCount = 0;
             keys.forEach((key) => {
               const dayData = JSON.parse(localStorage.getItem(key) || "[]");
@@ -5573,40 +5727,8 @@
                 )
                   return;
 
-                const tarif =
-                  parseFloat(
-                    (row.tarif || "0").replace(/[€\s]/g, "").replace(",", "."),
-                  ) || 0;
-                const suppC =
-                  parseFloat(
-                    (row.supplement_client || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
-                const icC =
-                  parseFloat(
-                    (row.IC_client || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
-                const tarifAff =
-                  parseFloat(
-                    (row.tarif_affrete || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
-                const suppAff =
-                  parseFloat(
-                    (row.supplement_affrete || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
-                const icAff =
-                  parseFloat(
-                    (row.IC_affrete || "0")
-                      .replace(/[€\s]/g, "")
-                      .replace(",", "."),
-                  ) || 0;
+                const { tarif, suppC, icC, tarifAff, suppAff, icAff } =
+                  getValeursLigneExport(row);
 
                 totalClient += tarif;
                 totalSupplement_client += suppC;
@@ -5780,7 +5902,7 @@
         downloadAnchorNode.setAttribute("href", dataStr);
         downloadAnchorNode.setAttribute(
           "download",
-          "SAUVEGARDE_" + date + ".json",
+          "SAUVEGARDE_TOTALE_" + date + ".json",
         );
         document.body.appendChild(downloadAnchorNode);
         downloadAnchorNode.click();
@@ -5812,49 +5934,6 @@
         };
         reader.readAsText(file);
         input.value = "";
-      }
-
-      function archiverEtNettoyer() {
-        const backupData = {};
-        let count = 0;
-
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key.startsWith("planning_")) {
-            backupData[key] = localStorage.getItem(key);
-            count++;
-          }
-        }
-
-        if (count === 0) {
-          alert("Aucune donnée de planning trouvée à archiver.");
-          return;
-        }
-
-        const blob = new Blob([JSON.stringify(backupData, null, 2)], {
-          type: "application/json",
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `Planning_${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        const confirmDelete = confirm(
-          `Vous avez téléchargé un fichier avec ${count} jours de planning. Voulez-vous supprimer ces données du navigateur pour libérer de l'espace ?`,
-        );
-
-        if (confirmDelete) {
-          for (const key in backupData) {
-            localStorage.removeItem(key);
-          }
-          alert(
-            "Archivage réussi : les données ont été téléchargées et supprimées du navigateur.",
-          );
-          location.reload();
-        }
       }
     </script>
 
@@ -6040,18 +6119,6 @@
           style="display: none"
           onchange="restaurerConfigComplete(this)"
         />
-        <button
-          onclick="archiverEtNettoyer()"
-          style="
-            background-color: #ff9800;
-            color: white;
-            padding: 10px;
-            border: none;
-            cursor: pointer;
-          "
-        >
-          Archiver et vider les anciennes données
-        </button>
       </div>
       <button
         onclick="toggleHelp()"
@@ -6062,32 +6129,22 @@
         ?
       </button>
     </div>
-    <div
-      id="img-viewer"
-      style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 9999;
-        align-items: center;
-        justify-content: center;
-      "
-      onclick="this.style.display = 'none'"
-    >
-      <img
-        id="full-size-img"
-        src=""
-        style="
-          max-width: 90%;
-          max-height: 90%;
-          border: 2px solid white;
-          box-shadow: 0 0 20px black;
-        "
-      />
+    <div id="dialog-suppr-overlay"></div>
+    <div id="dialog-suppr">
+      <h3>🗑️ Supprimer la ligne</h3>
+      <p>Que voulez-vous faire avec cette ligne ?</p>
+      <div class="dialog-btn-group">
+        <button class="btn-suppr-total" onclick="confirmerSupprTotal()">
+          ❌ Supprimer toute la ligne
+        </button>
+        <button class="btn-suppr-partiel" onclick="confirmerSupprPartiel()">
+          🧹 Effacer seulement Chantier, Client,<br />N°Chantier, N°Commande,
+          N°Bon, Consigne
+        </button>
+        <button class="btn-suppr-annuler" onclick="fermerDialogSuppr()">
+          Annuler
+        </button>
+      </div>
     </div>
   </body>
 </html>
