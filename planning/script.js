@@ -3822,7 +3822,9 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       const clean = (val, def) =>
-        !val || val === def || val.trim() === "" ? "" : val;
+        !val || val === def || val.trim() === "" || val.trim() === "undefined"
+          ? ""
+          : val;
 
       const borderThin = { style: "thin", color: { rgb: "CCCCCC" } };
       const allBorders = {

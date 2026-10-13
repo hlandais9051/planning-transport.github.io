@@ -207,6 +207,69 @@
     return enCours.then(() => (dirty.size && !erreur ? envoyer() : undefined));
   }
 
+  // ---- Nettoyage des "undefined" enregistrés par erreur dans d'anciennes données
+  const CHAMPS_TEXTE = {
+    chantier: "Chantier...",
+    consigne: "Consigne...",
+    n_chantier: "N° Chantier...",
+    n_commande: "N° Commande...",
+    n_bon: "N° Bon...",
+    heures: "Heures...",
+    commentaire: "Commentaire...",
+    associe: "",
+    vehicule: "",
+    client: "",
+    chauffeur: "",
+    telephone: "",
+  };
+  const CHAMPS_MONTANT = [
+    "tarif",
+    "supplement_client",
+    "IC_client",
+    "tarif_affrete",
+    "supplement_affrete",
+    "IC_affrete",
+  ];
+  const estVide = (v) =>
+    v === undefined || v === null || String(v).trim() === "undefined";
+
+  // Renvoie le texte corrigé de la journée, ou null si rien à corriger
+  function nettoyerJour(date, texte) {
+    let lignes;
+    try {
+      lignes = JSON.parse(texte);
+    } catch (e) {
+      return null;
+    }
+    if (!Array.isArray(lignes)) return null;
+    let modifie = false;
+    lignes.forEach((r) => {
+      if (!r || typeof r !== "object") return;
+      Object.keys(CHAMPS_TEXTE).forEach((c) => {
+        if (estVide(r[c])) {
+          r[c] = CHAMPS_TEXTE[c];
+          modifie = true;
+        }
+      });
+      CHAMPS_MONTANT.forEach((c) => {
+        if (String(r[c]).trim() === "undefined") {
+          r[c] = "0.00 €";
+          modifie = true;
+        }
+      });
+      if (estVide(r.date)) {
+        r.date = new Date(date + "T12:00:00").toLocaleDateString("fr-FR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+        });
+        modifie = true;
+      }
+    });
+    return modifie ? JSON.stringify(lignes) : null;
+  }
+  const joursCorriges = new Set();
+
   // ---- Chargement initial depuis la base
   function ligneDepuisColonnes(r) {
     return {
@@ -257,9 +320,12 @@
       });
       if (data.length < pas) break;
     }
-    jours.forEach((lignes, date) =>
-      cache.set("planning_" + date, JSON.stringify(lignes)),
-    );
+    jours.forEach((lignes, date) => {
+      const texte = JSON.stringify(lignes);
+      const propre = nettoyerJour(date, texte);
+      if (propre) joursCorriges.add("planning_" + date);
+      cache.set("planning_" + date, propre || texte);
+    });
     cleListe = null;
   }
 
@@ -291,7 +357,9 @@
     if (!ok) return;
     setOverlayTexte("Envoi des données vers la base… ne fermez pas la page");
     aImporter.forEach((k) => {
-      const v = rawGet.call(realLS, k);
+      let v = rawGet.call(realLS, k);
+      const m = CLE_JOUR.exec(k);
+      if (m && v) v = nettoyerJour(m[1], v) || v;
       if (v !== null) {
         cache.set(k, v);
         dirty.add(k);
@@ -449,6 +517,11 @@
       installerCache();
       actif = true;
       await proposerMigration();
+      if (joursCorriges.size) {
+        joursCorriges.forEach((k) => dirty.add(k));
+        majStatut("attente");
+        envoyer();
+      }
 
       sb.auth.onAuthStateChange((evt) => {
         if (evt === "SIGNED_OUT") location.reload();
