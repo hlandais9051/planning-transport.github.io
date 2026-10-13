@@ -2913,6 +2913,30 @@ function ajouterLigne(data = null) {
     month: "2-digit",
     year: "2-digit",
   });
+  // Champs manquants (ou valant le texte "undefined") : on remet l'affichage vide habituel
+  if (data) {
+    data = { ...data };
+    const defautsChamps = {
+      chantier: "Chantier...",
+      consigne: "Consigne...",
+      n_chantier: "N° Chantier...",
+      n_commande: "N° Commande...",
+      n_bon: "N° Bon...",
+      heures: "Heures...",
+      commentaire: "Commentaire...",
+      associe: "",
+      vehicule: "",
+      client: "",
+      chauffeur: "",
+      telephone: "",
+      date: dateFormatee,
+    };
+    Object.keys(defautsChamps).forEach((champ) => {
+      const v = data[champ];
+      if (v === undefined || v === null || String(v).trim() === "undefined")
+        data[champ] = defautsChamps[champ];
+    });
+  }
   const tr = document.createElement("tr");
   tr.style.backgroundColor = "";
   tr.removeAttribute("style");
