@@ -183,9 +183,6 @@ th {
   font-size: 18px;
   margin-bottom: 10px;
 }
-.col-actions {
-  width: 3%;
-}
 .col-associe {
   width: 5%;
 }
@@ -236,6 +233,9 @@ th {
 .col-nbon {
   width: 5%;
 }
+.col-heures {
+  width: 3%;
+}
 .col-tarif,
 .col-tarif-affrete {
   width: 4%;
@@ -250,6 +250,9 @@ th {
 }
 .col-commentaire {
   width: 5%;
+}
+.col-actions {
+  width: 3%;
 }
 .matos-cell {
   padding: 0 !important;
@@ -561,4 +564,67 @@ th {
 }
 .pilier-row-custom td {
   border-left: 3px solid #ff6b35 !important;
+}
+#dialog-suppr-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 9998;
+}
+#dialog-suppr {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+  padding: 28px 32px;
+  min-width: 340px;
+  text-align: center;
+}
+#dialog-suppr h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #333;
+}
+#dialog-suppr p {
+  margin: 0 0 22px 0;
+  font-size: 13px;
+  color: #666;
+}
+.dialog-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dialog-btn-group button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.dialog-btn-group button:hover {
+  opacity: 0.85;
+}
+.btn-suppr-total {
+  background: #dc3545;
+  color: white;
+}
+.btn-suppr-partiel {
+  background: #ff9800;
+  color: white;
+}
+.btn-suppr-annuler {
+  background: #e0e0e0;
+  color: #333;
 }
