@@ -121,6 +121,29 @@
   let enCours = null;
   let erreur = false;
 
+  // Une ligne est "vide" si rien n'a été saisi (textes d'aide, montants à 0, aucune couleur)
+  function ligneVide(r) {
+    if (!r || typeof r !== "object") return true;
+    if (r.couleurs_cellules && Object.keys(r.couleurs_cellules).length)
+      return false;
+    for (const c of Object.keys(CHAMPS_TEXTE)) {
+      const v = r[c];
+      if (!(estVide(v) || String(v).trim() === "" || v === CHAMPS_TEXTE[c]))
+        return false;
+    }
+    for (const c of CHAMPS_MONTANT) {
+      const v = r[c];
+      if (estVide(v)) continue;
+      const n = parseFloat(
+        String(v)
+          .replace(",", ".")
+          .replace(/[^0-9.\-]/g, ""),
+      );
+      if (n) return false;
+    }
+    return true;
+  }
+
   async function enregistrerJour(date) {
     const texte = cache.get("planning_" + date);
     let lignes = [];
@@ -133,6 +156,8 @@
         return true;
       }
     }
+    // Une journée où toutes les lignes sont vides n'est pas conservée en base
+    if (lignes.length && lignes.every(ligneVide)) lignes = [];
     const { error } = await sb.rpc("remplacer_jour", {
       p_date: date,
       p_lignes: lignes,
