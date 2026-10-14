@@ -990,3 +990,30 @@ th {
 .dropdown-content .btn:last-child {
   margin-bottom: 0 !important;
 }
+
+/* ===== Boutons dans les écrans de configuration ===== */
+#config-section-client,
+#config-section-associe,
+#config-section-chauffeur,
+#config-section-telephone {
+  --bouton-fond: #2a2a2e; /* couleur normale du bouton */
+  --bouton-trait: #d90429; /* trait de couleur à gauche */
+}
+
+#config-section-client .btn,
+#config-section-associe .btn,
+#config-section-chauffeur .btn,
+#config-section-telephone .btn {
+  background-color: var(--bouton-fond);
+  color: #fff;
+  border-left: 4px solid var(--bouton-trait);
+}
+
+#config-section-client .btn:hover,
+#config-section-associe .btn:hover,
+#config-section-chauffeur .btn:hover,
+#config-section-telephone .btn:hover {
+  background-color: var(--bouton-trait);
+  color: #fff;
+  filter: none;
+}
