@@ -133,7 +133,6 @@ body {
   transform: translateX(-50%);
   width: max-content;
   border: 1px solid var(--noir-3);
-  border-top: 3px solid var(--rouge);
   padding: 10px;
   border-radius: 0 0 var(--rayon) var(--rayon);
   background: var(--noir-2);
@@ -617,26 +616,26 @@ th {
 #total-price-supplement-client,
 #total-price-IC-client,
 #total-marge-client {
-  color: #fff !important;
+  color: #007bff !important;
 }
 #total-price-affrete,
 #total-price-supplement-affrete,
 #total-price-IC-affrete,
 #total-marge-affrete {
-  color: #ff8a9a !important;
+  color: #dc3545 !important;
 }
 #marge-nette {
-  color: #3ddc84 !important;
+  color: #28a745 !important;
   font-size: 1.3em;
 }
 #totals-container strong[style*="#007bff"] {
-  color: #fff !important;
+  color: #007bff !important;
 }
 #totals-container strong[style*="#dc3545"] {
-  color: #ff5c73 !important;
+  color: #dc3545 !important;
 }
 #totals-container strong[style*="#000000"] {
-  color: var(--rouge) !important;
+  color: #28a745 !important;
 }
 
 /* ---------- Écrans de configuration ---------- */
