@@ -795,6 +795,7 @@
   });
 
   // Fonctions utilisées par script.js
+  window.baseLigneVide = (ligne) => ligneVide(ligne);
   window.baseAttendreSynchro = () => envoyer();
   window.baseViderTout = async () => {
     localStorage.clear();

@@ -2904,6 +2904,17 @@ function timeToDecimal(t) {
   return h + m / 60;
 }
 
+// Garde toujours une ligne vide en bas du tableau (les lignes vides ne sont plus
+// enregistrées en base : on la recrée à l'affichage d'un jour)
+function ajouterLigneVideSiBesoin(lignes) {
+  const derniere = lignes && lignes[lignes.length - 1];
+  const estVide =
+    derniere &&
+    typeof window.baseLigneVide === "function" &&
+    window.baseLigneVide(derniere);
+  if (!estVide) ajouterLigne();
+}
+
 function ajouterLigne(data = null) {
   const tableBody = document.getElementById("table-body");
   const datePicker = document.getElementById("current-date-picker");
@@ -3316,6 +3327,7 @@ function collerJournee() {
     row.date = dateFormatee;
     ajouterLigne(row);
   });
+  ajouterLigneVideSiBesoin(data);
   saveCurrentDay();
   setTimeout(() => {
     estEnTrainDeColler = false;
@@ -3540,7 +3552,9 @@ document.addEventListener("DOMContentLoaded", function () {
   renderConfigTelephoneUI();
   const saved = localStorage.getItem("planning_" + aujourdhui);
   if (saved && JSON.parse(saved).length > 0) {
-    JSON.parse(saved).forEach(ajouterLigne);
+    const lignesSauvees = JSON.parse(saved);
+    lignesSauvees.forEach(ajouterLigne);
+    ajouterLigneVideSiBesoin(lignesSauvees);
     setTimeout(() => {
       forceRecalculTousLesTarifs();
       isInitialLoading = false;
@@ -3557,9 +3571,11 @@ document.addEventListener("DOMContentLoaded", function () {
       "Planning du " + new Date(nouvelleDate).toLocaleDateString("fr-FR");
     document.getElementById("table-body").innerHTML = "";
     const savedDay = localStorage.getItem("planning_" + nouvelleDate);
-    if (savedDay && JSON.parse(savedDay).length > 0)
-      JSON.parse(savedDay).forEach(ajouterLigne);
-    else ajouterLigne();
+    if (savedDay && JSON.parse(savedDay).length > 0) {
+      const lignesSauvees = JSON.parse(savedDay);
+      lignesSauvees.forEach(ajouterLigne);
+      ajouterLigneVideSiBesoin(lignesSauvees);
+    } else ajouterLigne();
     calculerTousLesTotaux();
     updateUndoRedoButtons();
     setTimeout(() => {
