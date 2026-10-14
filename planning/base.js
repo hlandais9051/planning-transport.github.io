@@ -670,18 +670,32 @@
   let badge = null;
   function creerBadge(email) {
     badge = document.createElement("div");
+    // Style aligné avec les boutons du footer
     badge.style.cssText =
-      "position:fixed;left:8px;bottom:8px;z-index:9000;background:#fff;border:1px solid #ddd;border-radius:14px;padding:4px 12px;font:12px sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.15);";
+      "background:#fff;border:1px solid #ddd;border-radius:14px;padding:4px 12px;font:12px sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.15);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;";
     badge.innerHTML =
       '<span id="base-statut"></span> · <span style="color:#666">' +
       email +
       "</span>" +
       (Object.keys(sourceLocale()).length
-        ? ' · <a href="#" id="base-reprise" style="color:#007bff;text-decoration:none;">Reprendre les données de ce navigateur</a>'
+        ? ' · <a href="#" id="base-reprise" style="color:#007bff;text-decoration:none;">Reprendre les données</a>'
         : "") +
       ' · <a href="#" id="base-fusion" style="color:#007bff;text-decoration:none;">Fusionner une sauvegarde</a>' +
       ' · <a href="#" id="base-deco" style="color:#007bff;text-decoration:none;">Déconnexion</a>';
-    document.body.appendChild(badge);
+
+    // Injection directe dans le groupe de boutons du footer
+    const footerGroup = document.querySelector(".footer-left-group");
+    if (footerGroup) {
+      footerGroup.appendChild(badge);
+    } else {
+      const footerActions = document.querySelector(".admin-footer-actions");
+      if (footerActions) {
+        footerActions.insertBefore(badge, footerActions.firstChild);
+      } else {
+        document.body.appendChild(badge);
+      }
+    }
+
     const lienReprise = document.getElementById("base-reprise");
     if (lienReprise)
       lienReprise.onclick = (e) => {
