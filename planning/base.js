@@ -23,10 +23,40 @@
   const rawKey = P.key,
     rawClear = P.clear;
   const lengthGetter = Object.getOwnPropertyDescriptor(P, "length").get;
+  // Si le localStorage du navigateur est plein (ancien planning), la session de connexion
+  // et les petits indicateurs sont gardés dans sessionStorage (valable tant que l'onglet reste ouvert).
+  function lireLocal(k) {
+    let v = null;
+    try {
+      v = rawGet.call(realLS, k);
+    } catch (e) {}
+    if (v === null) {
+      try {
+        v = window.sessionStorage.getItem(k);
+      } catch (e) {}
+    }
+    return v;
+  }
+  function ecrireLocal(k, v) {
+    try {
+      rawSet.call(realLS, k, v);
+      return;
+    } catch (e) {}
+    try {
+      window.sessionStorage.setItem(k, v);
+    } catch (e) {}
+  }
   const adapterSession = {
-    getItem: (k) => rawGet.call(realLS, k),
-    setItem: (k, v) => rawSet.call(realLS, k, v),
-    removeItem: (k) => rawRemove.call(realLS, k),
+    getItem: (k) => lireLocal(k),
+    setItem: (k, v) => ecrireLocal(k, v),
+    removeItem: (k) => {
+      try {
+        rawRemove.call(realLS, k);
+      } catch (e) {}
+      try {
+        window.sessionStorage.removeItem(k);
+      } catch (e) {}
+    },
   };
 
   // ---- Cache en mémoire (remplace le stockage du navigateur)
@@ -156,8 +186,8 @@
         return true;
       }
     }
-    // Une journée où toutes les lignes sont vides n'est pas conservée en base
-    if (lignes.length && lignes.every(ligneVide)) lignes = [];
+    // Les lignes vides ne sont jamais conservées en base (une journée vide n'y apparaît donc pas)
+    lignes = lignes.filter((l) => !ligneVide(l));
     const { error } = await sb.rpc("remplacer_jour", {
       p_date: date,
       p_lignes: lignes,
@@ -354,58 +384,234 @@
     cleListe = null;
   }
 
-  // ---- Reprise des anciennes données du navigateur (une seule fois)
-  async function proposerMigration() {
-    const anciennes = [];
-    for (let i = 0; i < lengthGetter.call(realLS); i++) {
-      const k = rawKey.call(realLS, i);
-      if (k && !LOCAL_ONLY.test(k)) anciennes.push(k);
+  // ---- Fusion de données (sauvegarde JSON ou anciennes données du navigateur)
+  // Règle : rien de ce qui est déjà en base n'est écrasé sans accord explicite.
+  function canon(v) {
+    if (Array.isArray(v)) return "[" + v.map(canon).join(",") + "]";
+    if (v && typeof v === "object")
+      return (
+        "{" +
+        Object.keys(v)
+          .sort()
+          .map((k) => JSON.stringify(k) + ":" + canon(v[k]))
+          .join(",") +
+        "}"
+      );
+    return JSON.stringify(v);
+  }
+  function lignesNonVides(texte) {
+    try {
+      const p = JSON.parse(texte);
+      if (Array.isArray(p)) return p.filter((r) => !ligneVide(r));
+    } catch (e) {}
+    return null;
+  }
+  function canonJour(texte) {
+    const l = lignesNonVides(texte);
+    return l ? canon(l) : String(texte);
+  }
+  // Ajoute à "a" ce qui manque depuis "b" ; en cas de désaccord, la valeur de "a" (la base) gagne
+  function fusionProfonde(a, b) {
+    if (Array.isArray(a) && Array.isArray(b)) {
+      const vus = new Set(a.map(canon));
+      const res = a.slice();
+      b.forEach((x) => {
+        const c = canon(x);
+        if (!vus.has(c)) {
+          vus.add(c);
+          res.push(x);
+        }
+      });
+      return res;
     }
-    if (!anciennes.length || rawGet.call(realLS, "base_migration_ok")) return;
-    const aImporter = anciennes.filter((k) => !cache.has(k));
-    const nbJours = aImporter.filter((k) => CLE_JOUR.test(k)).length;
-    const nbReglages = aImporter.length - nbJours;
-    if (!aImporter.length) {
-      rawSet.call(realLS, "base_migration_ok", new Date().toISOString());
-      return;
+    if (
+      a &&
+      b &&
+      typeof a === "object" &&
+      typeof b === "object" &&
+      !Array.isArray(a) &&
+      !Array.isArray(b)
+    ) {
+      const res = Object.assign({}, a);
+      Object.keys(b).forEach((k) => {
+        res[k] = k in a ? fusionProfonde(a[k], b[k]) : b[k];
+      });
+      return res;
     }
-    const ok = confirm(
-      "Des données de ce navigateur ne sont pas encore dans la base en ligne :\n" +
-        "• " +
-        nbJours +
-        " jour(s) de planning\n• " +
-        nbReglages +
-        " réglage(s) (clients, tarifs, chauffeurs…)\n\n" +
-        "Les envoyer maintenant dans la base ?\n(Ce qui existe déjà en ligne ne sera jamais écrasé. " +
-        "Les données de ce navigateur ne sont pas supprimées.)",
-    );
-    if (!ok) return;
-    setOverlayTexte("Envoi des données vers la base… ne fermez pas la page");
-    aImporter.forEach((k) => {
-      let v = rawGet.call(realLS, k);
+    return a;
+  }
+
+  // Renvoie "ok", "rien" ou "annule"
+  async function fusionner(source, libelle, silencieux) {
+    const joursAjoutes = [],
+      joursDifferents = [],
+      reglagesAjoutes = [];
+    const reglagesFusionnes = [];
+    Object.keys(source).forEach((k) => {
+      if (LOCAL_ONLY.test(k) || typeof source[k] !== "string") return;
       const m = CLE_JOUR.exec(k);
-      if (m && v) v = nettoyerJour(m[1], v) || v;
-      if (v !== null) {
-        cache.set(k, v);
-        dirty.add(k);
+      if (m) {
+        const texte = nettoyerJour(m[1], source[k]) || source[k];
+        const lignes = lignesNonVides(texte);
+        if (!lignes || !lignes.length) return; // journée vide ou illisible : ignorée
+        const propre = JSON.stringify(lignes);
+        if (!cache.has(k)) joursAjoutes.push([k, propre]);
+        else if (canonJour(cache.get(k)) !== canonJour(propre))
+          joursDifferents.push([k, propre]);
+      } else {
+        if (!cache.has(k)) {
+          reglagesAjoutes.push([k, source[k]]);
+          return;
+        }
+        try {
+          const base = JSON.parse(cache.get(k)),
+            ajout = JSON.parse(source[k]);
+          const fusion = fusionProfonde(base, ajout);
+          if (canon(fusion) !== canon(base))
+            reglagesFusionnes.push([k, JSON.stringify(fusion)]);
+        } catch (e) {}
       }
     });
+
+    if (
+      !joursAjoutes.length &&
+      !joursDifferents.length &&
+      !reglagesAjoutes.length &&
+      !reglagesFusionnes.length
+    ) {
+      if (!silencieux)
+        alert(
+          "Rien à fusionner : tout ce que contient " +
+            libelle +
+            " est déjà dans la base.",
+        );
+      return "rien";
+    }
+    const ok = confirm(
+      "Fusion avec la base en ligne\nSource : " +
+        libelle +
+        "\n\n" +
+        "• " +
+        joursAjoutes.length +
+        " jour(s) absents de la base → seront ajoutés\n" +
+        "• " +
+        (reglagesAjoutes.length + reglagesFusionnes.length) +
+        " réglage(s) (clients, tarifs, chauffeurs…) → les éléments manquants seront ajoutés, sans modifier ceux qui existent déjà\n" +
+        "• " +
+        joursDifferents.length +
+        " jour(s) présents des deux côtés avec un contenu différent → je vous demanderai quoi faire\n\n" +
+        "Rien de ce qui est déjà en base n'est supprimé ni écrasé à cette étape. Continuer ?",
+    );
+    if (!ok) return "annule";
+
+    let remplacer = false;
+    if (joursDifferents.length) {
+      const liste =
+        joursDifferents
+          .map((x) => x[0].slice(9))
+          .slice(0, 12)
+          .join(", ") + (joursDifferents.length > 12 ? "…" : "");
+      remplacer = confirm(
+        joursDifferents.length +
+          " jour(s) existent en base ET dans la source (" +
+          libelle +
+          ") avec un contenu différent :\n" +
+          liste +
+          "\n\nOK = remplacer ces jours par la version de la source (la version actuelle de la base sera PERDUE)\n" +
+          "Annuler = garder la version de la base pour ces jours",
+      );
+    }
+    joursAjoutes.forEach(([k, v]) => {
+      cache.set(k, v);
+      dirty.add(k);
+    });
+    reglagesAjoutes.forEach(([k, v]) => {
+      cache.set(k, v);
+      dirty.add(k);
+    });
+    reglagesFusionnes.forEach(([k, v]) => {
+      cache.set(k, v);
+      dirty.add(k);
+    });
+    if (remplacer)
+      joursDifferents.forEach(([k, v]) => {
+        cache.set(k, v);
+        dirty.add(k);
+      });
     cleListe = null;
+    setOverlayTexte("Envoi des données vers la base… ne fermez pas la page");
     await envoyer();
     if (erreur || dirty.size) {
       alert(
         "⚠️ L'envoi n'est pas terminé (connexion ?). Rechargez la page pour réessayer.",
       );
-      return;
+      return "annule";
     }
-    rawSet.call(realLS, "base_migration_ok", new Date().toISOString());
     alert(
-      "✅ " +
-        nbJours +
-        " jour(s) et " +
-        nbReglages +
-        " réglage(s) envoyés dans la base.",
+      "✅ Fusion terminée :\n• " +
+        joursAjoutes.length +
+        " jour(s) ajoutés" +
+        (remplacer
+          ? "\n• " + joursDifferents.length + " jour(s) remplacés"
+          : joursDifferents.length
+            ? "\n• " +
+              joursDifferents.length +
+              " jour(s) différents laissés tels quels dans la base"
+            : "") +
+        "\n• " +
+        (reglagesAjoutes.length + reglagesFusionnes.length) +
+        " réglage(s) complétés",
     );
+    return "ok";
+  }
+
+  // ---- Reprise des anciennes données du navigateur (au premier chargement)
+  function sourceLocale() {
+    const source = {};
+    try {
+      for (let i = 0; i < lengthGetter.call(realLS); i++) {
+        const k = rawKey.call(realLS, i);
+        if (k && !LOCAL_ONLY.test(k)) source[k] = rawGet.call(realLS, k);
+      }
+    } catch (e) {}
+    return source;
+  }
+  async function proposerMigration() {
+    if (lireLocal("base_migration_ok")) return;
+    const source = sourceLocale();
+    if (!Object.keys(source).length) return;
+    const res = await fusionner(source, "les données de ce navigateur", true);
+    if (res === "ok" || res === "rien")
+      ecrireLocal("base_migration_ok", new Date().toISOString());
+  }
+  // Relance manuelle (lien en bas à gauche) : utile si l'ancien lien a continué d'être utilisé
+  async function reprendreDonneesLocales() {
+    await fusionner(sourceLocale(), "les données de ce navigateur", false);
+  }
+
+  // Fusion d'un fichier de sauvegarde JSON (bouton « Fusionner une sauvegarde »)
+  function choisirSauvegarde() {
+    const inp = document.createElement("input");
+    inp.type = "file";
+    inp.accept = ".json";
+    inp.onchange = () => {
+      const f = inp.files[0];
+      if (!f) return;
+      const lecteur = new FileReader();
+      lecteur.onload = async (e) => {
+        let obj;
+        try {
+          obj = JSON.parse(e.target.result);
+        } catch (err) {
+          return alert("❌ Fichier illisible.");
+        }
+        if (!obj || typeof obj !== "object" || Array.isArray(obj))
+          return alert("❌ Ce fichier n'est pas une sauvegarde du planning.");
+        await fusionner(obj, "le fichier « " + f.name + " »");
+      };
+      lecteur.readAsText(f);
+    };
+    inp.click();
   }
 
   // ---- Interface : écran de connexion, chargement, indicateur
@@ -469,8 +675,23 @@
     badge.innerHTML =
       '<span id="base-statut"></span> · <span style="color:#666">' +
       email +
-      '</span> · <a href="#" id="base-deco" style="color:#007bff;text-decoration:none;">Déconnexion</a>';
+      "</span>" +
+      (Object.keys(sourceLocale()).length
+        ? ' · <a href="#" id="base-reprise" style="color:#007bff;text-decoration:none;">Reprendre les données de ce navigateur</a>'
+        : "") +
+      ' · <a href="#" id="base-fusion" style="color:#007bff;text-decoration:none;">Fusionner une sauvegarde</a>' +
+      ' · <a href="#" id="base-deco" style="color:#007bff;text-decoration:none;">Déconnexion</a>';
     document.body.appendChild(badge);
+    const lienReprise = document.getElementById("base-reprise");
+    if (lienReprise)
+      lienReprise.onclick = (e) => {
+        e.preventDefault();
+        reprendreDonneesLocales();
+      };
+    document.getElementById("base-fusion").onclick = (e) => {
+      e.preventDefault();
+      choisirSauvegarde();
+    };
     document.getElementById("base-deco").onclick = async (e) => {
       e.preventDefault();
       await envoyer();
