@@ -617,12 +617,14 @@ th {
 #total-price-IC-client,
 #total-marge-client {
   color: #007bff !important;
+  font-size: 1.3em;
 }
 #total-price-affrete,
 #total-price-supplement-affrete,
 #total-price-IC-affrete,
 #total-marge-affrete {
   color: #dc3545 !important;
+  font-size: 1.3em;
 }
 #marge-nette {
   color: #28a745 !important;
@@ -1015,4 +1017,16 @@ th {
   background-color: var(--bouton-trait);
   color: #fff;
   filter: none;
+}
+/* Totaux : tous les montants à la même taille (1.3em) */
+#totals-container td > div > div > div {
+  font-size: 1.3em !important; /* annule les tailles écrites dans le HTML */
+}
+#totals-container span {
+  font-size: 1em !important; /* tous les montants */
+}
+
+/* Titres des sections : même taille aussi (facultatif) */
+#totals-container strong {
+  font-size: 1.6em !important;
 }
