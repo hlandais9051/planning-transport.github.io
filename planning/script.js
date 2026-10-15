@@ -46,21 +46,38 @@ function sauvegarderUndoRedoEnLocal() {
   } catch (e) {} // si localStorage plein, on ignore silencieusement
 }
 
-function captureUndoStateBefore() {
+// Chaque modification enregistrée mémorise l'état précédent du jour : on peut donc
+// l'annuler tout de suite. Les modifications très rapprochées (frappe continue,
+// recalcul automatique des tarifs) forment une seule étape.
+const UNDO_GROUPE_MS = 1000;
+let derniereModifUndo = {};
+let ignorerUndoJusqua = Date.now() + 2500; // pas de capture pendant le chargement de la page
+
+function ignorerUndoPendant(ms) {
+  ignorerUndoJusqua = Date.now() + ms;
+}
+
+function enregistrerEtatPourAnnulation(date, nouvelEtat) {
   if (isUndoRedoAction || estEnTrainDeColler || isInitialLoading) return;
-  const date = document.getElementById("current-date-picker")?.value;
-  if (!date) return;
-  const saved = localStorage.getItem("planning_" + date);
-  if (!saved) return;
+  if (Date.now() < ignorerUndoJusqua) return;
+  const precedent = localStorage.getItem("planning_" + date) || "[]";
+  if (precedent === nouvelEtat) return; // rien n'a changé
+  const maintenant = Date.now();
+  const dernier = derniereModifUndo[date] || 0;
+  derniereModifUndo[date] = maintenant;
   const hadRedo = redoStack.some((s) => s.date === date);
   redoStack = redoStack.filter((s) => s.date !== date);
-  if (hadRedo) updateUndoRedoButtons();
-  if (lastCapturedData[date] === saved) return;
-  undoStack.push({ date, data: saved });
-  if (undoStack.length > UNDO_MAX) undoStack.shift();
-  lastCapturedData[date] = saved;
-  updateUndoRedoButtons();
+  if (maintenant - dernier >= UNDO_GROUPE_MS) {
+    undoStack.push({ date, data: precedent });
+    if (undoStack.length > UNDO_MAX) undoStack.shift();
+    updateUndoRedoButtons();
+  } else if (hadRedo) {
+    updateUndoRedoButtons();
+  }
 }
+
+// Conservée pour les appels existants : la capture se fait maintenant à l'enregistrement
+function captureUndoStateBefore() {}
 
 function undoPlanning() {
   const date = document.getElementById("current-date-picker")?.value;
@@ -77,8 +94,10 @@ function undoPlanning() {
   isUndoRedoAction = true;
   localStorage.setItem("planning_" + date, stateToRestore.data);
   lastCapturedData[date] = stateToRestore.data;
+  derniereModifUndo[date] = 0;
   rechargerPlanningDepuisLocalStorage(date, () => {
     isUndoRedoAction = false;
+    ignorerUndoPendant(800);
     updateUndoRedoButtons();
   });
   afficherNotification("↩ Annulation", "#546e7a");
@@ -100,8 +119,10 @@ function redoPlanning() {
   isUndoRedoAction = true;
   localStorage.setItem("planning_" + date, stateToRestore.data);
   lastCapturedData[date] = stateToRestore.data;
+  derniereModifUndo[date] = 0;
   rechargerPlanningDepuisLocalStorage(date, () => {
     isUndoRedoAction = false;
+    ignorerUndoPendant(800);
     updateUndoRedoButtons();
   });
   afficherNotification("↪ Rétablissement", "#546e7a");
@@ -118,6 +139,7 @@ function rechargerPlanningDepuisLocalStorage(date, onDone) {
       const rows = JSON.parse(saved);
       if (rows.length > 0) {
         rows.forEach(ajouterLigne);
+        ajouterLigneVideSiBesoin(rows);
         setTimeout(() => {
           forceRecalculTousLesTarifs();
           lastCapturedData[date] = localStorage.getItem("planning_" + date);
@@ -2599,7 +2621,9 @@ function saveCurrentDay() {
         Object.keys(couleursParCellule).length > 0 ? couleursParCellule : null,
     });
   });
-  localStorage.setItem("planning_" + date, JSON.stringify(rows));
+  const nouvelEtat = JSON.stringify(rows);
+  enregistrerEtatPourAnnulation(date, nouvelEtat);
+  localStorage.setItem("planning_" + date, nouvelEtat);
   calculerTousLesTotaux();
 }
 
@@ -3562,10 +3586,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 100);
   } else {
     ajouterLigne();
+    // Jour sans ligne enregistrée : le chargement est terminé aussi (sinon l'annulation reste bloquée)
+    setTimeout(() => {
+      isInitialLoading = false;
+      lastCapturedData = {};
+    }, 100);
   }
   setTimeout(updateUndoRedoButtons, 200);
 
   datePicker.addEventListener("change", function () {
+    ignorerUndoPendant(1000);
     const nouvelleDate = this.value;
     displayDate.textContent =
       "Planning du " + new Date(nouvelleDate).toLocaleDateString("fr-FR");
