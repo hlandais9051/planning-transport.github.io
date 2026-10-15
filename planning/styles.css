@@ -252,7 +252,6 @@ body {
   top: 20px;
   right: 20px;
   background-color: var(--noir);
-  border-left: 5px solid var(--rouge);
   color: white;
   padding: 15px 25px;
   border-radius: var(--rayon);
