@@ -619,7 +619,7 @@
   function creerOverlay() {
     overlay = document.createElement("div");
     overlay.style.cssText =
-      "position:fixed;inset:0;background:#f0f2f5;z-index:20000;display:flex;align-items:center;justify-content:center;font-family:sans-serif;";
+      "position:fixed;inset:0;background:#f0f2f5 url('image.avif') center/cover no-repeat;z-index:20000;display:flex;align-items:center;justify-content:center;font-family:sans-serif;";
     document.body.appendChild(overlay);
   }
   function setOverlayTexte(t) {
