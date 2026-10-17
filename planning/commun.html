@@ -23,33 +23,12 @@
             document.getElementById('sous-menu-add').style.display = 'none'
           "
         >
-          <button
-            onmouseenter="toggleMenu('sous-menu-add', event)"
-            class="btn"
-            style="
-              background-color: #ff0000;
-              color: rgb(0, 0, 0);
-              font-weight: bold;
-              font-size: 15px;
-            "
-          >
+          <button onmouseenter="toggleMenu('sous-menu-add', event)" class="btn">
             ➕ Lignes ▼
           </button>
-          <div
-            id="sous-menu-add"
-            class="dropdown-content"
-            style="display: none"
-          >
-            <button
-              id="add-row"
-              class="btn btn-add"
-              style="width: 100%; margin-bottom: 5px"
-            >
-              Ajouter une ligne
-            </button>
-            <button id="reset-day" class="btn btn-reset" style="width: 100%">
-              Tout supprimer
-            </button>
+          <div id="sous-menu-add" class="dropdown-content">
+            <button id="add-row" class="btn btn-add">Ajouter une ligne</button>
+            <button id="reset-day" class="btn btn-reset">Tout supprimer</button>
           </div>
         </div>
 
@@ -62,32 +41,14 @@
           <button
             onmouseenter="toggleMenu('sous-menu-copy', event)"
             class="btn"
-            style="
-              background-color: #ff0000;
-              color: rgb(0, 0, 0);
-              font-weight: bold;
-              font-size: 15px;
-            "
           >
             📋 Copier ▼
           </button>
-          <div
-            id="sous-menu-copy"
-            class="dropdown-content"
-            style="display: none"
-          >
-            <button
-              id="copy-day"
-              class="btn btn-copy-day"
-              style="width: 100%; margin-bottom: 5px"
-            >
+          <div id="sous-menu-copy" class="dropdown-content">
+            <button id="copy-day" class="btn btn-copy-day">
               Copier journée
             </button>
-            <button
-              id="paste-day"
-              class="btn btn-paste-day"
-              style="width: 100%"
-            >
+            <button id="paste-day" class="btn btn-paste-day">
               Coller journée
             </button>
           </div>
@@ -102,46 +63,18 @@
           <button
             onmouseenter="toggleMenu('sous-menu-photos', event)"
             class="btn"
-            style="
-              background-color: #ff0000;
-              color: rgb(0, 0, 0);
-              font-weight: bold;
-              font-size: 15px;
-            "
           >
             📤 Export ▼
           </button>
-          <div
-            id="sous-menu-photos"
-            class="dropdown-content"
-            style="display: none"
-          >
-            <button
-              id="copy-image"
-              class="btn btn-copy-img"
-              style="width: 100%; margin-bottom: 5px"
-            >
+          <div id="sous-menu-photos" class="dropdown-content">
+            <button id="copy-image" class="btn btn-copy-img">
               Copier Planning (N°Commande)
             </button>
-            <button
-              id="copy-image-client"
-              class="btn"
-              style="background-color: #07cc00; width: 100%; margin-bottom: 5px"
-            >
+            <button id="copy-image-client" class="btn">
               Copier Planning (Supp. Client)
             </button>
-            <button
-              id="export-excel"
-              class="btn btn-export"
-              style="width: 100%; margin-bottom: 5px"
-            >
-              Excel
-            </button>
-            <button
-              onclick="imprimerPlanning()"
-              class="btn"
-              style="background-color: #333; width: 100%"
-            >
+            <button id="export-excel" class="btn btn-export">Excel</button>
+            <button onclick="imprimerPlanning()" class="btn">
               🖨️ Imprimer
             </button>
           </div>
@@ -156,45 +89,25 @@
           <button
             onmouseenter="toggleMenu('sous-menu-config', event)"
             class="btn"
-            style="
-              background-color: #ff0000;
-              color: rgb(0, 0, 0);
-              font-weight: bold;
-              font-size: 15px;
-            "
           >
             ⚙️ Configs ▼
           </button>
-          <div
-            id="sous-menu-config"
-            class="dropdown-content"
-            style="display: none"
-          >
-            <button
-              id="toggle-config-client"
-              class="btn btn-config-client"
-              style="width: 100%; margin-bottom: 5px"
-            >
+          <div id="sous-menu-config" class="dropdown-content">
+            <button id="toggle-config-client" class="btn btn-config-client">
               Clients
             </button>
-            <button
-              id="toggle-config-associe"
-              class="btn btn-config-associe"
-              style="width: 100%; margin-bottom: 5px"
-            >
+            <button id="toggle-config-associe" class="btn btn-config-associe">
               Associés
             </button>
             <button
               id="toggle-config-chauffeur"
               class="btn btn-config-chauffeur"
-              style="width: 100%; margin-bottom: 5px"
             >
               Chauffeurs
             </button>
             <button
               id="toggle-config-telephone"
               class="btn btn-config-telephone"
-              style="width: 100%"
             >
               Téléphones
             </button>
@@ -206,61 +119,24 @@
       </div>
 
       <div id="config-section-client">
-        <h2 style="margin-top: 20px; padding-top: 10px">
-          Configuration Clients
-        </h2>
-        <div
-          class="sticky-top-wrapper"
-          style="
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-          "
-        >
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex-wrap: wrap;
-              flex: 1;
-            "
-          >
+        <h2>Configuration Clients</h2>
+        <div class="sticky-top-wrapper config-barre config-barre--wrap">
+          <div class="config-groupe">
             <strong>Nouveau Groupe :</strong><br />
             <input type="text" id="new-group-name" placeholder="Nom..." />
             <button onclick="addNewGroup()" class="btn btn-add">
               Créer Groupe
             </button>
           </div>
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex-wrap: wrap;
-              flex: 1;
-            "
-          >
+          <div class="config-groupe">
             <strong>Nouveau Client :</strong><br />
             <input type="text" id="new-client-name" placeholder="Nom..." />
             <button onclick="addNewClient()" class="btn btn-add">
               Créer Client
             </button>
           </div>
-          <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex-wrap: wrap;
-              flex: 1;
-            "
-          >
+          <div class="config-separateur"></div>
+          <div class="config-groupe">
             <strong>Nouvelle Catégorie :</strong><br />
             <input
               type="text"
@@ -274,15 +150,7 @@
               Ajouter partout
             </button>
           </div>
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex-wrap: wrap;
-              flex: 1;
-            "
-          >
+          <div class="config-groupe">
             <strong>Nouveau Matériel :</strong><br />
             <input type="text" id="global-matos-client" placeholder="Nom..." />
             <button
@@ -294,8 +162,7 @@
           </div>
           <div>
             <button
-              class="btn btn-reset"
-              style="float: right"
+              class="btn btn-reset btn-fermer"
               onclick="closeConfigs('config-section-client')"
             >
               Fermer
@@ -306,46 +173,17 @@
       </div>
 
       <div id="config-section-associe">
-        <h2 style="margin-top: 20px; padding-top: 10px">
-          Configuration Associés - Affrétés
-        </h2>
-        <div
-          class="sticky-top-wrapper"
-          style="
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-          "
-        >
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex-wrap: wrap;
-              flex: 1;
-            "
-          >
+        <h2>Configuration Associés - Affrétés</h2>
+        <div class="sticky-top-wrapper config-barre config-barre--wrap">
+          <div class="config-groupe">
             <strong>Nouvel Affrété :</strong><br />
             <input type="text" id="new-config2-name" placeholder="Nom..." />
             <button onclick="addNewClient2()" class="btn btn-add">
               Créer Affrété
             </button>
           </div>
-          <div style="border-left: 2px solid #ccc; padding-left: 15px"></div>
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex-wrap: wrap;
-              flex: 1;
-            "
-          >
+          <div class="config-separateur"></div>
+          <div class="config-groupe">
             <strong>Nouvelle Catégorie :</strong><br />
             <input
               type="text"
@@ -359,15 +197,7 @@
               Ajouter partout
             </button>
           </div>
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex-wrap: wrap;
-              flex: 1;
-            "
-          >
+          <div class="config-groupe">
             <strong>Nouveau Matériel :</strong><br />
             <input type="text" id="global-matos-associe" placeholder="Nom..." />
             <button
@@ -379,8 +209,7 @@
           </div>
           <div>
             <button
-              class="btn btn-reset"
-              style="float: right"
+              class="btn btn-reset btn-fermer"
               onclick="closeConfigs('config-section-associe')"
             >
               Fermer
@@ -391,29 +220,9 @@
       </div>
 
       <div id="config-section-chauffeur">
-        <h2 style="margin-top: 20px; padding-top: 10px">
-          Configuration Chauffeurs
-        </h2>
-        <div
-          class="sticky-top-wrapper"
-          style="
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-          "
-        >
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex-wrap: wrap;
-              flex: 1;
-            "
-          >
+        <h2>Configuration Chauffeurs</h2>
+        <div class="sticky-top-wrapper config-barre">
+          <div class="config-groupe">
             <strong>Nouveau chauffeur :</strong><br />
             <input
               type="text"
@@ -426,8 +235,7 @@
           </div>
           <div>
             <button
-              class="btn btn-reset"
-              style="float: right"
+              class="btn btn-reset btn-fermer"
               onclick="closeConfigs('config-section-chauffeur')"
             >
               Fermer
@@ -438,29 +246,9 @@
       </div>
 
       <div id="config-section-telephone">
-        <h2 style="margin-top: 20px; padding-top: 10px">
-          Configuration Téléphones Clients
-        </h2>
-        <div
-          class="sticky-top-wrapper"
-          style="
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
-          "
-        >
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              flex-wrap: wrap;
-              flex: 1;
-            "
-          >
+        <h2>Configuration Téléphones Clients</h2>
+        <div class="sticky-top-wrapper config-barre">
+          <div class="config-groupe">
             <strong>Nouveau contact :</strong><br />
             <input
               type="text"
@@ -483,8 +271,7 @@
           </div>
           <div>
             <button
-              class="btn btn-reset"
-              style="float: right"
+              class="btn btn-reset btn-fermer"
               onclick="closeConfigs('config-section-telephone')"
             >
               Fermer
@@ -494,88 +281,40 @@
         <div id="config-container-telephone"></div>
       </div>
 
-      <div
-        class="search-filters"
-        style="
-          margin-bottom: 15px;
-          background: #f8f9fa;
-          padding: 10px;
-          border-radius: 5px;
-          border: 1px solid #ddd;
-          display: flex;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 10px;
-        "
-      >
+      <div class="search-filters">
         <strong>Filtres :</strong>
         <input
           type="text"
           id="filter-associe"
           placeholder="Filtrer par Associé..."
           oninput="filterTable()"
-          style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
         />
         <input
           type="text"
           id="filter-client"
           placeholder="Filtrer par Client..."
           oninput="filterTable()"
-          style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
         />
         <input
           type="text"
           id="filter-chantier"
           placeholder="Filtrer par Chantier..."
           oninput="filterTable()"
-          style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
         />
         <input
           type="text"
           id="filter-materiel"
           placeholder="Filtrer par Matériel..."
           oninput="filterTable()"
-          style="padding: 5px; border: 1px solid #ccc; border-radius: 4px"
         />
-        <button
-          onclick="resetFilters()"
-          style="
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-          "
-        >
-          Réinitialiser
-        </button>
-        <button
-          onclick="N_Bon()"
-          style="
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-          "
-        >
-          Effacer les N°Bon
-        </button>
-        <div style="display: flex; align-items: center; gap: 6px">
+        <button onclick="resetFilters()">Réinitialiser</button>
+        <button onclick="N_Bon()">Effacer les N°Bon</button>
+        <div class="barre-groupe">
           <button
             id="btn-undo"
             onclick="undoPlanning()"
             title="Annuler (Ctrl+Z)"
-            style="
-              background: #546e7a;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              padding: 5px 9px;
-              font-size: 18px;
-              cursor: pointer;
-              opacity: 0.35;
-              transition: opacity 0.2s;
-            "
-            disabled
+            disabled=""
           >
             ↩
           </button>
@@ -583,168 +322,68 @@
             id="btn-redo"
             onclick="redoPlanning()"
             title="Rétablir (Ctrl+Y)"
-            style="
-              background: #546e7a;
-              color: white;
-              border: none;
-              border-radius: 4px;
-              padding: 5px 9px;
-              font-size: 18px;
-              cursor: pointer;
-              opacity: 0.35;
-              transition: opacity 0.2s;
-            "
-            disabled
+            disabled=""
           >
             ↪
           </button>
         </div>
-        <div style="flex-grow: 1"></div>
-        <div
-          id="color-picker-tools"
-          class="hide-export"
-          style="
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            background: #fff;
-            padding: 5px 10px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-          "
-        >
-          <small style="color: #666; font-weight: bold; margin-right: 5px"
-            >MARQUER :</small
-          >
+        <div class="espaceur"></div>
+        <div id="color-picker-tools" class="hide-export">
+          <small>MARQUER :</small>
           <div
             onclick="setColorToSelectedRow('#ffffff')"
-            style="
-              width: 25px;
-              height: 25px;
-              background: #fff;
-              border: 1px solid #ccc;
-              cursor: pointer;
-              border-radius: 3px;
-            "
+            style="background: #fff; border: 1px solid #ccc"
             title="Effacer"
+            class="pastille"
           ></div>
           <div
             onclick="setColorToSelectedRow('#ffee00')"
-            style="
-              width: 25px;
-              height: 25px;
-              background: #ffee00;
-              cursor: pointer;
-              border-radius: 3px;
-            "
+            style="background: #ffee00"
             title="Prise de commande"
+            class="pastille"
           ></div>
           <div
             onclick="setColorToSelectedRow('#ffae00')"
-            style="
-              width: 25px;
-              height: 25px;
-              background: #ffae00;
-              cursor: pointer;
-              border-radius: 3px;
-            "
+            style="background: #ffae00"
             title="Réduction"
+            class="pastille"
           ></div>
           <div
             onclick="setColorToSelectedRow('#ff0000')"
-            style="
-              width: 25px;
-              height: 25px;
-              background: #ff0000;
-              cursor: pointer;
-              border-radius: 3px;
-            "
+            style="background: #ff0000"
             title="Intempéries"
+            class="pastille"
           ></div>
           <div
             onclick="setColorToSelectedRow('#b700ff')"
-            style="
-              width: 25px;
-              height: 25px;
-              background: #b700ff;
-              cursor: pointer;
-              border-radius: 3px;
-            "
+            style="background: #b700ff"
             title="Violet"
+            class="pastille"
           ></div>
           <div
             onclick="setColorToSelectedRow('#ff00d4')"
-            style="
-              width: 25px;
-              height: 25px;
-              background: #ff00d4;
-              cursor: pointer;
-              border-radius: 3px;
-            "
+            style="background: #ff00d4"
             title="Rose"
+            class="pastille"
           ></div>
-          <button
-            onclick="resetAllColors()"
-            style="
-              padding: 5px 10px;
-              cursor: pointer;
-              border-radius: 4px;
-              border: 1px solid #ccc;
-            "
-          >
-            Effacer les marquages
-          </button>
+          <button onclick="resetAllColors()">Effacer les marquages</button>
         </div>
-        <div style="display: flex; align-items: center; gap: 5px">
+        <div class="barre-date">
           Le :
-          <button
-            onclick="changerJour(-1)"
-            style="
-              padding: 3px 8px;
-              border-radius: 4px;
-              border: 1px solid #ccc;
-              cursor: pointer;
-              font-size: 16px;
-              background: #fff;
-            "
-          >
-            ◀
-          </button>
+          <button onclick="changerJour(-1)" class="btn-jour">◀</button>
           <input
             type="date"
             id="current-date-picker"
             onchange="updateAllAfterDateChange()"
-            style="padding: 3px; border-radius: 4px; border: 1px solid #ccc"
           />
-          <button
-            onclick="changerJour(+1)"
-            style="
-              padding: 3px 8px;
-              border-radius: 4px;
-              border: 1px solid #ccc;
-              cursor: pointer;
-              font-size: 16px;
-              background: #fff;
-            "
-          >
-            ▶
-          </button>
+          <button onclick="changerJour(+1)" class="btn-jour">▶</button>
         </div>
       </div>
     </div>
 
     <div id="capture-area">
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          margin-bottom: 1vw;
-          flex-wrap: wrap;
-        "
-      >
-        <h2 id="display-date" style="margin: 0">Planning du ...</h2>
+      <div class="entete-planning">
+        <h2 id="display-date">Planning du ...</h2>
       </div>
       <div class="table-container">
         <table id="my-table">
@@ -782,33 +421,14 @@
     </div>
 
     <div id="totals-container" class="hide-export">
-      <table style="width: 100%; border-collapse: collapse; margin-top: 10px">
+      <table>
         <tfoot>
-          <tr
-            style="
-              background: #f8f9fa;
-              font-weight: bold;
-              border: 1px solid #ccc;
-            "
-          >
-            <td style="padding: 10px">
-              <div
-                style="
-                  display: flex;
-                  flex-wrap: nowrap;
-                  justify-content: space-between;
-                  align-items: left;
-                  gap: 30px;
-                  width: 100%;
-                  overflow: hidden;
-                  font-size: clamp(0.4rem, 1vw, 0.7rem);
-                "
-              >
-                <div style="flex: 1; text-align: left; line-height: 1.4">
-                  <strong style="color: #007bff; display: block"
-                    >SECTION CLIENT</strong
-                  >
-                  <div style="white-space: nowrap; margin-top: 5px">
+          <tr>
+            <td>
+              <div class="totaux-flex">
+                <div class="totaux-colonne">
+                  <strong class="titre-client">SECTION CLIENT</strong>
+                  <div class="totaux-ligne">
                     TARIF :
                     <span id="total-price">0.00 €</span>
                     SUPPLEMENT :
@@ -821,11 +441,9 @@
                     <span id="total-marge-client">0.00 €</span>
                   </div>
                 </div>
-                <div style="flex: 1; text-align: left; line-height: 1.4">
-                  <strong style="color: #dc3545; display: block"
-                    >SECTION AFFRÉTÉ</strong
-                  >
-                  <div style="white-space: nowrap; margin-top: 5px">
+                <div class="totaux-colonne">
+                  <strong class="titre-affrete">SECTION AFFRÉTÉ</strong>
+                  <div class="totaux-ligne">
                     TARIF :
                     <span id="total-price-affrete">0.00 €</span>
                     SUPPLEMENT :
@@ -833,16 +451,14 @@
                     IC :
                     <span id="total-price-IC-affrete">0.00 €</span>
                   </div>
-                  <div style="font-size: 1em">
+                  <div>
                     TOTAL GENERAL :
                     <span id="total-marge-affrete">0.00 €</span>
                   </div>
                 </div>
-                <div style="flex: 1; text-align: left; line-height: 1.4">
-                  <strong style="color: #000000; display: block"
-                    >RÉSULTAT DU JOUR</strong
-                  >
-                  <div style="white-space: nowrap; margin-top: 5px">
+                <div class="totaux-colonne">
+                  <strong class="titre-resultat">RÉSULTAT DU JOUR</strong>
+                  <div class="totaux-ligne">
                     MARGE NETTE :
                     <span id="marge-nette">0.00 €</span>
                   </div>
@@ -857,158 +473,111 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
     <script src="base.js"></script>
 
-    <div
-      id="help-modal"
-      style="
-        display: none;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-        width: 90%;
-        max-width: 800px;
-        max-height: 85vh;
-        overflow-y: auto;
-      "
-    >
-      <h3 style="margin-top: 0">💡 Aide & Raccourcis</h3>
-      <ul style="margin-top: 0; padding-left: 20px">
-        <li style="margin-bottom: 2px">
+    <div id="help-modal">
+      <h3>💡 Aide &amp; Raccourcis</h3>
+      <ul>
+        <li>
           <i>Cliquez dans les cases blanches pour saisir vos informations.</i>
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i>Sélectionnez la date dans le calendrier pour changer de jour.</i>
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i>Sélectionnez plusieurs cases pour copier leur contenu.</i>
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
-            >Appuyez sur le bouton
-            <span style="color: #28a745; font-weight: bold">VERT</span> pour
+            >Appuyez sur le bouton <span style="color: #28a745">VERT</span> pour
             rajouter une ligne.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
             >Appuyez sur le bouton
-            <span style="color: #dc3545; font-weight: bold">ROUGE</span> pour
-            tout supprimer la journée.</i
+            <span style="color: #dc3545">ROUGE</span> pour tout supprimer la
+            journée.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
-            >Appuyez sur le bouton
-            <span style="color: #ff00b7; font-weight: bold">ROSE</span> pour
+            >Appuyez sur le bouton <span style="color: #ff00b7">ROSE</span> pour
             copier la journée actuelle.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
             >Appuyez sur le bouton
-            <span style="color: #00d69a; font-weight: bold">TURQUOISE</span>
+            <span style="color: #00d69a">TURQUOISE</span>
             pour coller la journée copiée.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
-            >Appuyez sur le bouton
-            <span style="color: #6610f2; font-weight: bold">BLEU</span> pour
+            >Appuyez sur le bouton <span style="color: #6610f2">BLEU</span> pour
             copier le planning entier en image.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
             >Appuyez sur le bouton
-            <span style="color: #07cc00; font-weight: bold">VERT CLAIR</span>
+            <span style="color: #07cc00">VERT CLAIR</span>
             pour copier le planning jusqu'à la colonne "Supplément-client".</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
             >Appuyez sur le bouton
-            <span style="color: #ff9500; font-weight: bold">ORANGE</span> pour
-            exporter le planning du mois en fichier Excel.</i
+            <span style="color: #ff9500">ORANGE</span> pour exporter le planning
+            du mois en fichier Excel.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
-            >Appuyez sur le bouton
-            <span style="color: #6c757d; font-weight: bold">GRIS</span> pour
+            >Appuyez sur le bouton <span style="color: #6c757d">GRIS</span> pour
             configurer les prix des clients.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
             >Appuyez sur le bouton
-            <span style="color: #17a2b8; font-weight: bold">BLEU CLAIR</span>
+            <span style="color: #17a2b8">BLEU CLAIR</span>
             pour configurer les prix des associés.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
             >Appuyez sur le bouton
-            <span style="color: #9b1594; font-weight: bold">VIOLET</span> pour
-            configurer la liste des chauffeurs.</i
+            <span style="color: #9b1594">VIOLET</span> pour configurer la liste
+            des chauffeurs.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
             >Dans les Configs, K et C0 sont <strong>annuels</strong> (changent
             une fois par an), CM-1 est <strong>mensuel</strong> (à mettre à jour
             chaque mois).</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
             >Appuyez sur les cases de filtres pour rechercher un associé ou un
             client.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i
             >Appuyez sur la feuille à droite 📑 pour dupliquer une seule
             ligne.</i
           >
         </li>
-        <li style="margin-bottom: 2px">
+        <li>
           <i>Appuyez sur la croix à droite × pour supprimer une seule ligne.</i>
         </li>
       </ul>
-      <button
-        onclick="toggleHelp()"
-        style="
-          width: 100%;
-          padding: 10px;
-          cursor: pointer;
-          background: #eee;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-        "
-      >
-        Fermer
-      </button>
+      <button onclick="toggleHelp()">Fermer</button>
     </div>
 
-    <div
-      id="help-overlay"
-      onclick="toggleHelp()"
-      style="
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 999;
-      "
-    ></div>
+    <div id="help-overlay" onclick="toggleHelp()"></div>
 
     <div class="admin-footer-actions">
       <div class="footer-left-group">
@@ -1036,14 +605,13 @@
         <input
           type="file"
           id="input-restaurer"
-          style="display: none"
           onchange="restaurerConfigComplete(this)"
+          hidden=""
         />
       </div>
       <button
         onclick="toggleHelp()"
         class="btn-help-circle"
-        style="margin-left: 15px"
         title="Aide et Astuces"
       >
         ?

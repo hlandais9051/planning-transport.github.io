@@ -93,15 +93,16 @@ body {
   text-align: center;
 }
 
-/* Boutons principaux de la barre (écrase les styles en ligne) */
+/* Boutons-titres de la barre */
 .header-tools > .button-group > button.btn {
+  width: 100%;
   background-color: transparent !important;
   color: #fff !important;
   font-family: "Barlow Condensed", "Barlow", sans-serif;
-  font-size: 17px !important;
+  font-size: 20px !important;
   font-weight: 700 !important;
   letter-spacing: 0.04em;
-  padding: 10px 18px;
+  padding: 14px 18px !important;
   border: 1px solid var(--noir-3);
   border-radius: var(--rayon);
   transition:
@@ -125,24 +126,19 @@ body {
 
 /* ---------- Menus déroulants ---------- */
 .dropdown-content {
+  display: none;
   position: absolute;
   z-index: 1000;
   margin-top: 0;
   top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: max-content;
+  left: 0;
+  right: 0;
+  width: 100%;
   border: 1px solid var(--noir-3);
-  padding: 10px;
+  padding: 14px;
   border-radius: 0 0 var(--rayon) var(--rayon);
   background: var(--noir-2);
   box-shadow: var(--ombre-forte);
-  min-width: 190px;
-  max-width: 280px;
-}
-.dropdown-content .btn {
-  text-align: left;
-  padding: 10px 14px;
 }
 
 /* ---------- Boutons ---------- */
@@ -165,10 +161,18 @@ body {
   transform: translateY(1px);
 }
 
-/* Tous les boutons des menus : même style que « Coller journée » */
+/* Boutons des menus : fond sombre + trait de couleur (--couleur-btn), plein au survol */
 .dropdown-content .btn {
+  text-align: left;
+  white-space: normal;
+  font-size: 16px !important;
+  padding: 14px 18px !important;
+  margin-bottom: 8px !important;
   background-color: var(--noir-3) !important;
   border-left: 4px solid var(--couleur-btn, var(--rouge)) !important;
+}
+.dropdown-content .btn:last-child {
+  margin-bottom: 0 !important;
 }
 .dropdown-content .btn:hover {
   background-color: var(--couleur-btn, var(--rouge)) !important;
@@ -199,15 +203,9 @@ body {
 .dropdown-content .btn:not([id]) {
   --couleur-btn: #8a8a92;
 } /* Imprimer */
-.btn-config-client {
-  --couleur-btn: #4da3ff;
-}
-.btn-config-associe {
-  --couleur-btn: #4da3ff;
-}
-.btn-config-chauffeur {
-  --couleur-btn: #4da3ff;
-}
+.btn-config-client,
+.btn-config-associe,
+.btn-config-chauffeur,
 .btn-config-telephone {
   --couleur-btn: #4da3ff;
 }
@@ -335,6 +333,13 @@ body {
   border-bottom: 1px solid var(--bord) !important;
   border-radius: 0 !important;
   box-shadow: var(--ombre);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.search-filters button {
+  cursor: pointer;
 }
 .search-filters strong {
   font-family: "Barlow Condensed", sans-serif;
@@ -380,21 +385,60 @@ body {
 #btn-redo {
   background: var(--noir) !important;
   border-radius: 6px !important;
+  color: white;
+  border: none;
+  padding: 5px 9px;
+  font-size: 18px;
+  opacity: 0.35;
+  transition: opacity 0.2s;
 }
 #btn-undo:not(:disabled):hover,
 #btn-redo:not(:disabled):hover {
   background: var(--rouge) !important;
 }
 #color-picker-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 20px;
   background: var(--fond) !important;
   border: 1px solid var(--bord) !important;
+}
+#color-picker-tools small {
+  color: #666;
+  font-weight: bold;
+  margin-right: 5px;
 }
 #color-picker-tools > div {
   transition: transform 0.12s;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
 }
+.pastille {
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  border-radius: 3px;
+}
 #color-picker-tools > div:hover {
   transform: scale(1.2);
+}
+
+.barre-groupe {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.barre-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.espaceur {
+  flex-grow: 1;
+}
+.btn-jour {
+  font-size: 16px;
 }
 
 /* ---------- Zone planning ---------- */
@@ -407,14 +451,21 @@ body {
   box-shadow: var(--ombre);
   border-top: 4px solid var(--noir);
 }
+.entete-planning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 1vw;
+  flex-wrap: wrap;
+}
 #display-date {
-  margin-top: 0;
+  margin: 0;
   color: var(--noir);
   font-family: "Barlow Condensed", sans-serif;
   font-size: 28px;
   font-weight: 700;
   letter-spacing: 0.01em;
-  margin-bottom: 10px;
   padding-left: 12px;
   border-left: 5px solid var(--rouge);
 }
@@ -589,6 +640,7 @@ th {
 }
 #totals-container table {
   width: 100%;
+  margin-top: 10px;
   background: var(--noir);
   border-radius: 10px;
   overflow: hidden;
@@ -603,47 +655,72 @@ th {
 #totals-container tr {
   background: var(--noir) !important;
   border: none !important;
+  font-weight: bold;
+}
+.totaux-flex {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 30px;
+  width: 100%;
+  overflow: hidden;
+  font-size: clamp(0.4rem, 1vw, 0.7rem);
+}
+.totaux-colonne {
+  flex: 1;
+  text-align: left;
+  line-height: 1.4;
+}
+.totaux-colonne > div {
+  font-size: 1.3em; /* libellés et montants à la même taille */
+}
+.totaux-ligne {
+  white-space: nowrap;
+  margin-top: 5px;
 }
 #totals-container strong {
+  display: block;
   font-family: "Barlow Condensed", sans-serif;
+  font-size: 1.6em;
   letter-spacing: 0.04em;
 }
 #totals-container span {
   font-weight: 700;
 }
+.titre-client {
+  color: #007bff;
+}
+.titre-affrete {
+  color: #dc3545;
+}
+.titre-resultat {
+  color: #28a745;
+}
 #total-price,
 #total-price-supplement-client,
 #total-price-IC-client,
 #total-marge-client {
-  color: #007bff !important;
-  font-size: 1.3em;
+  color: #007bff;
 }
 #total-price-affrete,
 #total-price-supplement-affrete,
 #total-price-IC-affrete,
 #total-marge-affrete {
-  color: #dc3545 !important;
-  font-size: 1.3em;
+  color: #dc3545;
 }
 #marge-nette {
-  color: #28a745 !important;
-  font-size: 1.3em;
-}
-#totals-container strong[style*="#007bff"] {
-  color: #007bff !important;
-}
-#totals-container strong[style*="#dc3545"] {
-  color: #dc3545 !important;
-}
-#totals-container strong[style*="#000000"] {
-  color: #28a745 !important;
+  color: #28a745;
 }
 
 /* ---------- Écrans de configuration ---------- */
-#config-section-client,
-#config-section-associe,
-#config-section-chauffeur,
-#config-section-telephone {
+:is(
+  #config-section-client,
+  #config-section-associe,
+  #config-section-chauffeur,
+  #config-section-telephone
+) {
+  --bouton-fond: #2a2a2e; /* couleur normale des boutons */
+  --bouton-trait: #d90429; /* trait de couleur à gauche */
   display: none;
   position: fixed;
   top: 0;
@@ -655,46 +732,113 @@ th {
   padding: 0 2vw 2vw 2vw;
   overflow-y: auto;
 }
-#config-section-client > h2,
-#config-section-associe > h2,
-#config-section-chauffeur > h2,
-#config-section-telephone > h2 {
+:is(
+    #config-section-client,
+    #config-section-associe,
+    #config-section-chauffeur,
+    #config-section-telephone
+  )
+  > h2 {
   font-family: "Barlow Condensed", sans-serif;
   font-size: 30px;
-  color: var(--noir);
-  margin: 0 -2vw 16px;
+  margin: 20px -2vw 16px;
   padding: 18px 2vw !important;
   background: var(--noir);
   color: #fff;
   border-bottom: 3px solid var(--rouge);
 }
-#config-section-client .sticky-top-wrapper,
-#config-section-associe .sticky-top-wrapper,
-#config-section-chauffeur .sticky-top-wrapper,
-#config-section-telephone .sticky-top-wrapper {
+:is(
+    #config-section-client,
+    #config-section-associe,
+    #config-section-chauffeur,
+    #config-section-telephone
+  )
+  .sticky-top-wrapper {
   background: var(--carte) !important;
   border: 1px solid var(--bord);
   box-shadow: var(--ombre);
   border-radius: 10px !important;
 }
-#config-section-client input[type="text"],
-#config-section-associe input[type="text"],
-#config-section-chauffeur input[type="text"],
-#config-section-telephone input[type="text"] {
+:is(
+    #config-section-client,
+    #config-section-associe,
+    #config-section-chauffeur,
+    #config-section-telephone
+  )
+  .config-barre {
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+:is(
+    #config-section-client,
+    #config-section-associe,
+    #config-section-chauffeur,
+    #config-section-telephone
+  )
+  .config-barre--wrap {
+  flex-wrap: wrap;
+}
+:is(
+    #config-section-client,
+    #config-section-associe,
+    #config-section-chauffeur,
+    #config-section-telephone
+  )
+  input[type="text"] {
   font-family: inherit;
   padding: 7px 10px;
   border: 1px solid var(--bord);
   border-radius: 6px;
   background: var(--fond);
 }
-#config-section-client input:focus,
-#config-section-associe input:focus,
-#config-section-chauffeur input:focus,
-#config-section-telephone input:focus {
+:is(
+    #config-section-client,
+    #config-section-associe,
+    #config-section-chauffeur,
+    #config-section-telephone
+  )
+  input:focus {
   outline: none;
   border-color: var(--rouge);
   box-shadow: 0 0 0 3px var(--rouge-clair);
   background: #fff;
+}
+:is(
+    #config-section-client,
+    #config-section-associe,
+    #config-section-chauffeur,
+    #config-section-telephone
+  )
+  .btn {
+  background-color: var(--bouton-fond);
+  color: #fff;
+  border-left: 4px solid var(--bouton-trait);
+}
+:is(
+    #config-section-client,
+    #config-section-associe,
+    #config-section-chauffeur,
+    #config-section-telephone
+  )
+  .btn:hover {
+  background-color: var(--bouton-trait);
+  filter: none;
+}
+.config-groupe {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.config-separateur {
+  border-left: 2px solid #ccc;
+  padding-left: 15px;
+}
+.btn-fermer {
+  float: right;
 }
 
 .config-table {
@@ -754,6 +898,7 @@ th {
   border-color: var(--rouge);
 }
 .btn-help-circle {
+  margin-left: 15px;
   background: none;
   border: none;
   color: #a5a5ad;
@@ -924,6 +1069,12 @@ th {
 }
 
 /* ---------- Responsive ---------- */
+@media (min-width: 769px) {
+  .header-tools > .button-group {
+    flex: 1 1 240px;
+    max-width: 380px;
+  }
+}
 @media (max-width: 768px) {
   .header-tools {
     justify-content: center;
@@ -958,74 +1109,51 @@ th {
   }
 }
 
-/* Boutons-titres des menus : plus grands */
-@media (min-width: 769px) {
-  .header-tools > .button-group {
-    flex: 1 1 240px;
-    max-width: 380px;
-  }
-}
-.header-tools > .button-group > button.btn {
-  width: 100%;
-  font-size: 20px !important;
-  padding: 14px 18px !important;
-}
-
-/* Menus déroulants : même largeur que le bouton-titre */
-.dropdown-content {
+/* ---------- Fenêtre d'aide ---------- */
+#help-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
   left: 0;
-  right: 0;
-  transform: none;
   width: 100%;
-  min-width: 0;
-  max-width: none;
-  padding: 14px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
 }
-.dropdown-content .btn {
-  font-size: 16px !important;
-  padding: 14px 18px !important;
-  margin-bottom: 8px !important;
-  white-space: normal;
+#help-modal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  width: 90%;
+  max-width: 800px;
+  max-height: 85vh;
+  overflow-y: auto;
 }
-.dropdown-content .btn:last-child {
-  margin-bottom: 0 !important;
+#help-modal h3 {
+  margin-top: 0;
 }
-
-/* ===== Boutons dans les écrans de configuration ===== */
-#config-section-client,
-#config-section-associe,
-#config-section-chauffeur,
-#config-section-telephone {
-  --bouton-fond: #2a2a2e; /* couleur normale du bouton */
-  --bouton-trait: #d90429; /* trait de couleur à gauche */
+#help-modal ul {
+  margin-top: 0;
+  padding-left: 20px;
 }
-
-#config-section-client .btn,
-#config-section-associe .btn,
-#config-section-chauffeur .btn,
-#config-section-telephone .btn {
-  background-color: var(--bouton-fond);
-  color: #fff;
-  border-left: 4px solid var(--bouton-trait);
+#help-modal li {
+  margin-bottom: 2px;
 }
-
-#config-section-client .btn:hover,
-#config-section-associe .btn:hover,
-#config-section-chauffeur .btn:hover,
-#config-section-telephone .btn:hover {
-  background-color: var(--bouton-trait);
-  color: #fff;
-  filter: none;
+#help-modal span {
+  font-weight: bold;
 }
-/* Totaux : tous les montants à la même taille (1.3em) */
-#totals-container td > div > div > div {
-  font-size: 1.3em !important; /* annule les tailles écrites dans le HTML */
-}
-#totals-container span {
-  font-size: 1em !important; /* tous les montants */
-}
-
-/* Titres des sections : même taille aussi (facultatif) */
-#totals-container strong {
-  font-size: 1.6em !important;
+#help-modal button {
+  width: 100%;
+  padding: 10px;
+  cursor: pointer;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
